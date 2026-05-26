@@ -1,45 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  ExportOptions.plist – Dùng cho workflow ios-deploy.yml (build signed IPA)
+
+  Hướng dẫn chỉnh sửa:
+  1. Thay "YOUR_TEAM_ID" bằng Apple Developer Team ID thực của bạn
+     (Lấy từ: developer.apple.com → Membership → Team ID)
+  2. Thay "com.example.appWebView" bằng Bundle ID thực nếu khác
+  3. Thay "YOUR_PROVISIONING_PROFILE_NAME" bằng tên Profile đã tạo trên
+     developer.apple.com (App Store Distribution / Ad Hoc)
+  4. Đổi "method" thành:
+     - "app-store"    → upload TestFlight / App Store
+     - "ad-hoc"       → phân phối qua link (không cần Apple account)
+     - "development"  → test nội bộ
+-->
 <plist version="1.0">
 <dict>
-	<!--
-		method: Chọn một trong các giá trị sau:
-		  - "app-store"   : Upload lên App Store / TestFlight
-		  - "ad-hoc"      : Cài trực tiếp lên thiết bị đã đăng ký
-		  - "development" : Dùng trong quá trình phát triển
-	-->
-	<key>method</key>
-	<string>app-store</string>
+    <!-- Team ID: Lấy từ developer.apple.com → Membership -->
+    <key>teamID</key>
+    <string>YOUR_TEAM_ID</string>
 
-	<!--
-		teamID: Team ID Apple Developer của bạn
-		Tìm tại: https://developer.apple.com/account → Membership
-		VD: "ABCDE12345"
-	-->
-	<key>teamID</key>
-	<string>YOUR_TEAM_ID</string>
+    <!-- Phương thức phân phối -->
+    <key>method</key>
+    <string>app-store</string>
 
-	<!--
-		Tắt bitcode (Flutter không dùng bitcode)
-	-->
-	<key>uploadBitcode</key>
-	<false/>
+    <!-- Chế độ ký tự động (khuyến nghị cho CI) -->
+    <key>signingStyle</key>
+    <string>automatic</string>
 
-	<key>uploadSymbols</key>
-	<true/>
+    <!-- Upload lên App Store Connect sau khi build (chỉ có tác dụng với method=app-store) -->
+    <key>uploadBitcode</key>
+    <false/>
 
-	<key>compileBitcode</key>
-	<false/>
+    <key>uploadSymbols</key>
+    <true/>
 
-	<!--
-		Tên provisioning profile (phải khớp tên trong Apple Developer Portal)
-		VD: "AI Screenplay AppStore Distribution"
-	-->
-	<key>provisioningProfiles</key>
-	<dict>
-		<!-- com.yourcompany.aiscreenplay → tên Bundle ID của bạn -->
-		<key>com.yourcompany.aiscreenplay</key>
-		<string>YOUR_PROVISIONING_PROFILE_NAME</string>
-	</dict>
+    <!-- Strip Swift symbols để giảm kích thước -->
+    <key>stripSwiftSymbols</key>
+    <true/>
+
+    <!-- Đường dẫn output (tương đối với thư mục build) -->
+    <key>destination</key>
+    <string>export</string>
+
+    <!-- Provisioning profiles: Bundle ID → Tên profile -->
+    <!-- Chỉ cần khi signingStyle = manual -->
+    <!-- <key>provisioningProfiles</key>
+    <dict>
+        <key>com.example.appWebView</key>
+        <string>YOUR_PROVISIONING_PROFILE_NAME</string>
+    </dict> -->
 </dict>
 </plist>

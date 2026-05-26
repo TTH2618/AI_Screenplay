@@ -1,4 +1,4 @@
-name: Build iOS (Flutter)
+name: 🍎 Build iOS (Flutter)
 
 on:
   push:
@@ -10,128 +10,173 @@ on:
     branches: [main, master]
     paths:
       - 'app_web_view (1)/**'
-  workflow_dispatch: # Cho phép chạy thủ công từ GitHub UI
+  workflow_dispatch: # Chạy thủ công từ GitHub UI → Actions tab
+
+# Chỉ cho phép 1 run trên cùng branch (tự cancel run cũ)
+concurrency:
+  group: ios-build-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-ios:
-    name: Build iOS IPA
-    runs-on: macos-latest
+    name: 🔨 Build iOS IPA (unsigned)
+    runs-on: macos-15          # Xcode 16.x – tương thích Flutter stable mới nhất
     timeout-minutes: 60
 
+    env:
+      FLUTTER_APP_DIR: 'app_web_view (1)'
+
     steps:
-      # ── 1. Checkout code ───────────────────────────────────────
-      - name: Checkout repository
+      # ── 1. Checkout ──────────────────────────────────────────────
+      - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
-      # ── 2. Cài Flutter SDK ─────────────────────────────────────
-      # Không pin cứng flutter-version để tránh lỗi "version not found".
-      # subosito/flutter-action sẽ lấy bản stable mới nhất.
-      - name: Setup Flutter
+      # ── 2. Setup Flutter ─────────────────────────────────────────
+      - name: 🐦 Setup Flutter (stable)
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          cache: true
+          cache: true           # Cache Flutter SDK giữa các runs
 
-      - name: Flutter version info
+      - name: 📋 Flutter version info
         run: flutter --version
 
-      # ── 2b. Tắt SPM → dùng CocoaPods only ─────────────────────
-      # objective_c package yêu cầu native-assets; SPM+native-assets gây
-      # crash "JNI parseOtoolArchitectureSections" trên CI.
-      - name: Configure Flutter (disable SPM, keep native-assets)
+      # ── 2b. Cấu hình Flutter ─────────────────────────────────────
+      # Tắt SPM → dùng CocoaPods; tránh lỗi native-assets trên CI
+      - name: ⚙️ Configure Flutter flags
         run: |
           flutter config --no-enable-swift-package-manager
-          flutter config --enable-native-assets || true
-          flutter config --enable-dart-data-assets || true
+          flutter config --enable-native-assets  2>/dev/null || true
+          flutter config --enable-dart-data-assets 2>/dev/null || true
 
-      # ── 3. Lấy dependencies ────────────────────────────────────
-      - name: Flutter pub get
-        working-directory: 'app_web_view (1)'
+      # ── 3. Cache pub packages ────────────────────────────────────
+      - name: 📦 Cache pub packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            ${{ env.FLUTTER_APP_DIR }}/.dart_tool
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: pub-${{ runner.os }}-
+
+      # ── 4. Flutter pub get ───────────────────────────────────────
+      - name: 📦 Flutter pub get
+        working-directory: ${{ env.FLUTTER_APP_DIR }}
         run: flutter pub get
 
-      # ── 4. Cài CocoaPods dependencies ─────────────────────────
-      - name: Setup CocoaPods
+      # ── 5. Generate app icons ────────────────────────────────────
+      - name: 🎨 Generate launcher icons
+        working-directory: ${{ env.FLUTTER_APP_DIR }}
+        run: dart run flutter_launcher_icons
+        continue-on-error: true
+
+      # ── 6. Cache CocoaPods ───────────────────────────────────────
+      - name: 📦 Cache CocoaPods
+        uses: actions/cache@v4
+        id: cocoapods-cache
+        with:
+          path: |
+            ${{ env.FLUTTER_APP_DIR }}/ios/Pods
+            ~/Library/Caches/CocoaPods
+          key: pods-${{ runner.os }}-${{ hashFiles('**/Podfile.lock') }}
+          restore-keys: pods-${{ runner.os }}-
+
+      # ── 7. Setup CocoaPods ───────────────────────────────────────
+      - name: 🍫 Setup CocoaPods
         uses: maxim-lobanov/setup-cocoapods@v1
         with:
           version: latest
 
-      - name: Pod install
-        working-directory: 'app_web_view (1)/ios'
-        run: pod install --repo-update
-
-      # ── 5. (Tùy chọn) Generate app icons ─────────────────────
-      - name: Generate launcher icons
-        working-directory: 'app_web_view (1)'
-        run: dart run flutter_launcher_icons
-        continue-on-error: true
-
-      # ── 6. Đảm bảo code signing đã tắt trong project.pbxproj ─
-      - name: Ensure code signing is disabled
-        working-directory: 'app_web_view (1)'
+      - name: 🍫 Pod install
+        working-directory: ${{ env.FLUTTER_APP_DIR }}/ios
         run: |
-          if grep -q 'CODE_SIGNING_ALLOWED = NO' ios/Runner.xcodeproj/project.pbxproj; then
-            echo "✅ Code signing already disabled in project.pbxproj"
+          if [ "${{ steps.cocoapods-cache.outputs.cache-hit }}" == "true" ]; then
+            echo "ℹ️ CocoaPods cache hit – skipping repo-update"
+            pod install
           else
-            echo "⚠️ Patching project.pbxproj to disable code signing..."
-            ruby -e "
+            pod install --repo-update
+          fi
+
+      # ── 8. Verify code signing is disabled ───────────────────────
+      - name: 🔐 Verify code signing disabled
+        working-directory: ${{ env.FLUTTER_APP_DIR }}
+        run: |
+          PBXPROJ="ios/Runner.xcodeproj/project.pbxproj"
+          if grep -q 'CODE_SIGNING_ALLOWED = NO' "$PBXPROJ"; then
+            echo "✅ Code signing already disabled"
+          else
+            echo "⚠️ Patching project.pbxproj..."
+            ruby - <<'RUBY'
               path = 'ios/Runner.xcodeproj/project.pbxproj'
               content = File.read(path)
-              content.gsub!(/DEVELOPMENT_TEAM = [^;]*;/, 'DEVELOPMENT_TEAM = \"FAKETEAM00\";')
+              content.gsub!(/DEVELOPMENT_TEAM = [^;]*;/, 'DEVELOPMENT_TEAM = "FAKETEAM00";')
               content.gsub!(/CODE_SIGNING_REQUIRED = YES;/, 'CODE_SIGNING_REQUIRED = NO;')
               content.gsub!(/CODE_SIGNING_ALLOWED = YES;/, 'CODE_SIGNING_ALLOWED = NO;')
               File.write(path, content)
-              puts 'Patched.'
-            "
+              puts '✅ Patched.'
+          RUBY
           fi
 
-      # ── 7. Build iOS (không cần code signing) ─────────────────
-      # Flutter post-build signing check đôi khi exit non-zero dù Xcode
-      # đã build thành công. Dùng BUILD_EXIT_CODE để capture rồi tự verify.
-      - name: Build iOS (no codesign)
-        working-directory: 'app_web_view (1)'
+      # ── 9. Build iOS (no codesign) ───────────────────────────────
+      - name: 🔨 Build iOS release (no codesign)
+        working-directory: ${{ env.FLUTTER_APP_DIR }}
         run: |
           set +e
           flutter build ios --release --no-codesign \
             --build-name=1.0.0 \
             --build-number=${{ github.run_number }}
-          BUILD_EXIT_CODE=$?
+          BUILD_EXIT=$?
           set -e
 
-          # Verify Runner.app thực sự được tạo bởi Xcode
-          if [ ! -d "build/ios/iphoneos/Runner.app" ]; then
-            echo "❌ Runner.app không tồn tại - Xcode build thực sự thất bại! (exit code: $BUILD_EXIT_CODE)"
+          RUNNER_APP="build/ios/iphoneos/Runner.app"
+          if [ ! -d "$RUNNER_APP" ]; then
+            echo "❌ Runner.app không tồn tại – Xcode build thất bại! (exit=$BUILD_EXIT)"
             exit 1
           fi
+          echo "✅ Runner.app OK – size: $(du -sh "$RUNNER_APP" | cut -f1) | flutter exit=$BUILD_EXIT"
 
-          echo "✅ Runner.app built at build/ios/iphoneos/Runner.app (flutter exit: $BUILD_EXIT_CODE)"
-
-      # ── 8. Đóng gói thành IPA (unsigned) ──────────────────────
-      - name: Create unsigned IPA
-        working-directory: 'app_web_view (1)'
+      # ── 10. Đóng gói IPA (unsigned) ──────────────────────────────
+      - name: 📦 Create unsigned IPA
+        working-directory: ${{ env.FLUTTER_APP_DIR }}
         run: |
           mkdir -p Payload
           cp -r build/ios/iphoneos/Runner.app Payload/
-          zip -r AI_Screenplay_unsigned.ipa Payload/
+          zip -qr AI_Screenplay_unsigned.ipa Payload/
           rm -rf Payload/
-          echo "✅ IPA created: AI_Screenplay_unsigned.ipa ($(du -sh AI_Screenplay_unsigned.ipa | cut -f1))"
+          echo "✅ IPA: $(du -sh AI_Screenplay_unsigned.ipa | cut -f1)"
 
-      # ── 9. Upload artifact ────────────────────────────────────
-      - name: Upload IPA artifact
+      # ── 11. Upload artifact ──────────────────────────────────────
+      - name: ⬆️ Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
           name: AI_Screenplay_iOS_${{ github.run_number }}
-          path: 'app_web_view (1)/AI_Screenplay_unsigned.ipa'
+          path: ${{ env.FLUTTER_APP_DIR }}/AI_Screenplay_unsigned.ipa
           retention-days: 14
 
-      # ── 10. (Tùy chọn) Upload lên TestFlight ─────────────────
+      # ── 12. Build summary ────────────────────────────────────────
+      - name: 📊 Build summary
+        if: always()
+        run: |
+          echo "## 🍎 iOS Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Run #** | ${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Branch** | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Commit** | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **macOS runner** | macos-15 |" >> $GITHUB_STEP_SUMMARY
+          echo "| **IPA** | AI_Screenplay_iOS_${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
+
+      # ── 13. (Tùy chọn) Upload lên TestFlight ─────────────────────
       # Bỏ comment khi đã có Apple credentials trong GitHub Secrets:
-      # IOS_CERTIFICATE_BASE64, IOS_CERTIFICATE_PASSWORD,
-      # IOS_PROVISION_PROFILE_BASE64, KEYCHAIN_PASSWORD,
-      # APPSTORE_ISSUER_ID, APPSTORE_API_KEY_ID, APPSTORE_API_PRIVATE_KEY
-      # - name: Upload to TestFlight
+      #   IOS_CERTIFICATE_BASE64, IOS_CERTIFICATE_PASSWORD,
+      #   IOS_PROVISION_PROFILE_BASE64, KEYCHAIN_PASSWORD,
+      #   APPSTORE_ISSUER_ID, APPSTORE_API_KEY_ID, APPSTORE_API_PRIVATE_KEY
+      #
+      # - name: 🚀 Upload to TestFlight
       #   uses: apple-actions/upload-testflight-build@v1
       #   with:
-      #     app-path: 'app_web_view (1)/AI_Screenplay_unsigned.ipa'
+      #     app-path: ${{ env.FLUTTER_APP_DIR }}/AI_Screenplay_unsigned.ipa
       #     issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
       #     api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
       #     api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
