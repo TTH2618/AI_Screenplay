@@ -71,12 +71,22 @@ jobs:
           "
 
       # ── 7. Build iOS (không cần code signing) ─────────────────
+      # Flutter 3.44.x: Xcode build thành công nhưng Flutter post-check
+      # yêu cầu Development Team dù có --no-codesign. Dùng || true để
+      # bỏ qua exit code, rồi verify Runner.app thực sự tồn tại.
       - name: Build iOS (no codesign)
         working-directory: 'app_web_view (1)'
         run: |
           flutter build ios --release --no-codesign \
             --build-name=1.0.0 \
-            --build-number=${{ github.run_number }}
+            --build-number=${{ github.run_number }} || true
+
+          # Verify Runner.app was actually built by Xcode
+          if [ ! -d "build/ios/iphoneos/Runner.app" ]; then
+            echo "❌ Runner.app not found - Xcode build actually failed!"
+            exit 1
+          fi
+          echo "✅ Runner.app built successfully at build/ios/iphoneos/Runner.app"
 
       # ── 8. Đóng gói thành IPA (unsigned) ──────────────────────
       - name: Create unsigned IPA
