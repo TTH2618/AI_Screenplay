@@ -130,10 +130,8 @@ jobs:
           RUNNER_APP="build/ios/iphoneos/Runner.app"
           if [ ! -d "$RUNNER_APP" ]; then
             echo "" 
-            echo "=== ❌ BUILD FAILED – Real error from Xcode: ==="
-            # Hiển thị những dòng lỗi thực sự (error:, BUILD FAILED)
-            grep -E '(error:|BUILD FAILED|PhaseScriptExecution|Target .* failed)' \
-              /tmp/flutter_build.log | head -40 || true
+            echo "=== ❌ BUILD FAILED – Last 200 lines of build log: ==="
+            tail -200 /tmp/flutter_build.log || true
             echo "==================================================="
             echo "❌ Runner.app không tồn tại – Xcode build thất bại! (exit=$BUILD_EXIT)"
             exit 1
