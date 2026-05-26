@@ -33,11 +33,12 @@ jobs:
       - name: Flutter version info
         run: flutter --version
 
-      # ── 2b. Tắt SPM và native-assets để tránh crash JNI pipeline ──
-      - name: Disable Swift Package Manager and native assets
+      # ── 2b. Tắt SPM → dùng CocoaPods only, tránh SPM+native-assets crash ─────
+      - name: Disable Swift Package Manager (CocoaPods only)
         run: |
           flutter config --no-enable-swift-package-manager
-          flutter config --no-enable-native-assets || true
+          flutter config --enable-native-assets
+          flutter config --enable-dart-data-assets || true
 
       # ── 3. Lấy dependencies ────────────────────────────────────
       - name: Flutter pub get
