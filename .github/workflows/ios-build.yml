@@ -92,12 +92,9 @@ jobs:
       - name: 🍫 Pod install
         working-directory: ${{ env.FLUTTER_APP_DIR }}/ios
         run: |
-          if [ "${{ steps.cocoapods-cache.outputs.cache-hit }}" == "true" ]; then
-            echo "ℹ️ CocoaPods cache hit – skipping repo-update"
-            pod install
-          else
-            pod install --repo-update
-          fi
+          # Luôn chạy repo-update lần đầu sau khi sửa Podfile
+          # post_install block mới cần pod install fresh để có hiệu lực
+          pod install --repo-update
 
       # ── 8. Verify code signing is disabled ───────────────────────
       - name: 🔐 Verify code signing disabled
@@ -119,19 +116,25 @@ jobs:
           RUBY
           fi
 
-      # ── 9. Build iOS (no codesign) ───────────────────────────────
+      # ── 9. Build iOS (no codesign) ──────────────────────────────────
       - name: 🔨 Build iOS release (no codesign)
         working-directory: ${{ env.FLUTTER_APP_DIR }}
         run: |
           set +e
           flutter build ios --release --no-codesign \
             --build-name=1.0.0 \
-            --build-number=${{ github.run_number }}
-          BUILD_EXIT=$?
+            --build-number=${{ github.run_number }} 2>&1 | tee /tmp/flutter_build.log
+          BUILD_EXIT=${PIPESTATUS[0]}
           set -e
 
           RUNNER_APP="build/ios/iphoneos/Runner.app"
           if [ ! -d "$RUNNER_APP" ]; then
+            echo "" 
+            echo "=== ❌ BUILD FAILED – Real error from Xcode: ==="
+            # Hiển thị những dòng lỗi thực sự (error:, BUILD FAILED)
+            grep -E '(error:|BUILD FAILED|PhaseScriptExecution|Target .* failed)' \
+              /tmp/flutter_build.log | head -40 || true
+            echo "==================================================="
             echo "❌ Runner.app không tồn tại – Xcode build thất bại! (exit=$BUILD_EXIT)"
             exit 1
           fi
@@ -166,7 +169,7 @@ jobs:
           echo "| **Run #** | ${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
           echo "| **Branch** | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| **Commit** | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **macOS runner** | macos-15 |" >> $GITHUB_STEP_SUMMARY
+          echo "| **macOS runner** | macos-14 (Xcode 15) |" >> $GITHUB_STEP_SUMMARY
           echo "| **IPA** | AI_Screenplay_iOS_${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
 
       # ── 13. (Tùy chọn) Upload lên TestFlight ─────────────────────

@@ -39,7 +39,7 @@ dependencies:
   webview_flutter: ^4.10.0
 
   # Custom Tab - mở Google OAuth không bị chặn
-  flutter_web_auth_2: ^4.0.0
+  flutter_web_auth_2: ^4.1.0
 
   # HTTP requests
   http: ^1.2.0
