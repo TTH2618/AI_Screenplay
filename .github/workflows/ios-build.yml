@@ -162,11 +162,12 @@ jobs:
     name: 🔐 Build Flutter iOS (Signed)
     runs-on: macos-latest
     timeout-minutes: 60
-    # Chỉ chạy khi có đủ secrets (khi có Apple Developer Account)
+    # Chỉ chạy khi bật biến ENABLE_SIGNED_BUILD = 'true' trong repo Settings > Variables
+    # (secrets.* không được phép dùng trong job-level if condition)
     if: |
       github.event_name == 'push' &&
       (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') &&
-      secrets.IOS_CERTIFICATE_BASE64 != ''
+      vars.ENABLE_SIGNED_BUILD == 'true'
     needs: build-ios
 
     steps:
