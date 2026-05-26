@@ -2,21 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>aiscreenplay</string>
-			</array>
-		</dict>
-	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>AI Screenplay</string>
+	<string>App Web View</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -56,28 +45,5 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
-
-	<!-- ✅ Quyền Camera -->
-	<key>NSCameraUsageDescription</key>
-	<string>AI Screenplay cần truy cập camera để chụp ảnh đại diện và nhân vật.</string>
-
-	<!-- ✅ Quyền thư viện ảnh (đọc) -->
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>AI Screenplay cần truy cập thư viện ảnh để chọn ảnh đại diện và nhân vật.</string>
-
-	<!-- ✅ Quyền thư viện ảnh (ghi/lưu) -->
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>AI Screenplay cần quyền lưu ảnh vào thư viện của bạn.</string>
-
-	<!-- ✅ Quyền microphone (cần cho video picker) -->
-	<key>NSMicrophoneUsageDescription</key>
-	<string>AI Screenplay cần quyền microphone để quay video.</string>
-
-	<!-- ✅ Cho phép HTTP cleartext (nếu dùng URL http:// trong dev) -->
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>
 </dict>
 </plist>

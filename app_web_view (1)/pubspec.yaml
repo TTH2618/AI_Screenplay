@@ -39,23 +39,13 @@ dependencies:
   webview_flutter: ^4.10.0
 
   # Custom Tab - mở Google OAuth không bị chặn
-  flutter_web_auth_2: ^4.1.0
+  flutter_web_auth_2: ^4.0.0
 
   # HTTP requests
   http: ^1.2.0
 
   # Lưu token an toàn
   shared_preferences: ^2.3.0
-
-  # Đăng nhập Google Native (Gốc)
-  google_sign_in: ^6.2.1
-
-  # Quản lý quyền hệ thống động (Tải file/Camera)
-  permission_handler: ^11.3.1
-
-  # Native image/file picker thay thế WebView file chooser (hoạt động ổn định trên Android)
-  image_picker: ^1.1.2
-  file_selector: ^1.0.3
 
 dev_dependencies:
   flutter_test:
