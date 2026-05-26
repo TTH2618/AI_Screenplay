@@ -1,0 +1,90 @@
+name: Build iOS (Flutter)
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'app_web_view (1)/**'
+  pull_request:
+    branches: [main, master]
+    paths:
+      - 'app_web_view (1)/**'
+  workflow_dispatch: # Cho phép chạy thủ công từ GitHub UI
+
+jobs:
+  build-ios:
+    name: Build iOS IPA
+    runs-on: macos-latest
+    timeout-minutes: 60
+
+    steps:
+      # ── 1. Checkout code ───────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Cài Flutter SDK ─────────────────────────────────────
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.x'
+          channel: 'stable'
+          cache: true
+
+      - name: Flutter version info
+        run: flutter --version
+
+      # ── 3. Lấy dependencies ────────────────────────────────────
+      - name: Flutter pub get
+        working-directory: 'app_web_view (1)'
+        run: flutter pub get
+
+      # ── 4. Cài CocoaPods dependencies ─────────────────────────
+      - name: Setup CocoaPods
+        uses: maxim-lobanov/setup-cocoapods@v1
+        with:
+          version: latest
+
+      - name: Pod install
+        working-directory: 'app_web_view (1)/ios'
+        run: pod install --repo-update
+
+      # ── 5. (Tùy chọn) Generate app icons ─────────────────────
+      - name: Generate launcher icons
+        working-directory: 'app_web_view (1)'
+        run: flutter pub run flutter_launcher_icons
+        continue-on-error: true
+
+      # ── 6. Build iOS (không cần code signing) ─────────────────
+      - name: Build iOS (no codesign)
+        working-directory: 'app_web_view (1)'
+        run: |
+          flutter build ios --release --no-codesign \
+            --build-name=1.0.0 \
+            --build-number=${{ github.run_number }}
+
+      # ── 7. Đóng gói thành IPA (unsigned) ──────────────────────
+      - name: Create unsigned IPA
+        working-directory: 'app_web_view (1)'
+        run: |
+          mkdir -p Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r AI_Screenplay_unsigned.ipa Payload/
+          rm -rf Payload/
+
+      # ── 8. Upload artifact ─────────────────────────────────────
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AI_Screenplay_iOS_${{ github.run_number }}
+          path: 'app_web_view (1)/AI_Screenplay_unsigned.ipa'
+          retention-days: 14
+
+      # ── 9. (Tùy chọn) Upload lên TestFlight ──────────────────
+      # Bỏ comment khi đã có Apple credentials
+      # - name: Upload to TestFlight
+      #   uses: apple-actions/upload-testflight-build@v1
+      #   with:
+      #     app-path: 'app_web_view (1)/AI_Screenplay_unsigned.ipa'
+      #     issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+      #     api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
+      #     api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}

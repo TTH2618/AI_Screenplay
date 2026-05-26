@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - AI Screenplay</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <!-- PWA Settings -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#7c3aed">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AI Screenplay">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="stylesheet" href="css/pwa.css">
+    <script src="js/pwa.js" defer></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="dashboard.html" class="nav-logo">
+                <i class="fas fa-film"></i>
+                <span>AI Screenplay</span>
+            </a>
+            <!-- <div class="nav-search">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Tìm kiếm dự án..." id="searchInput"> 
+            </div> -->
+            <div class="nav-actions">
+                <!-- <button class="btn-icon" title="Thông báo">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-dot"></span>
+                </button> -->
+                <button class="btn-upgrade-nav" id="upgradeNavBtn" onclick="openUpgradeModal()">
+                    <i class="fas fa-crown"></i>
+                    <span id="upgradeNavLabel">Nâng cấp PRO</span>
+                </button>
+                <div class="user-dropdown">
+                    <button class="user-btn" onclick="toggleUserMenu()">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span id="userName">Người dùng</span>
+                        <span id="userPlanBadgeNavbar" class="user-plan-badge free">FREE</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-menu" id="userMenu">
+                        <a href="admin.html" id="adminMenuLink" style="display:none;">
+                            <i class="fas fa-shield-halved"></i> Trang quản trị
+                        </a>
+                        <a href="#" onclick="openProfileModal(); event.preventDefault();">
+                            <i class="fas fa-user-circle"></i> Hồ sơ cá nhân
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" onclick="handleLogout()" class="logout-link">
+                            <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Welcome Section -->
+        <section class="welcome-section">
+            <div class="welcome-content">
+                <h1>Chào mừng trở lại, <span id="welcomeName">Người dùng</span>!</h1>
+                <p>Bắt đầu viết kịch bản phim của bạn với sự hỗ trợ của AI</p>
+            </div>
+            <button class="btn-new-project" onclick="startNewProject()">
+                <i class="fas fa-plus"></i>
+                <span>Tạo kịch bản mới</span>
+            </button>
+        </section>
+
+        <!-- Quick Stats -->
+        <section class="stats-section">
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    <i class="fas fa-folder"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-number" id="totalProjects">0</span>
+                    <span class="stat-label">Tổng kịch bản</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-number" id="completedProjects">0</span>
+                    <span class="stat-label">Hoàn thành</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-number" id="inProgressProjects">0</span>
+                    <span class="stat-label">Đang thực hiện</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon purple">
+                    <i class="fas fa-magic"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-number" id="totalGenerated">0</span>
+                    <span class="stat-label">Nội dung đã tạo</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tools Section -->
+        <section class="tools-section">
+            <div class="section-header">
+                <h2><i class="fas fa-tools"></i> Công cụ viết kịch bản</h2>
+                <p>Chọn công cụ để bắt đầu hoặc tiếp tục kịch bản của bạn</p>
+            </div>
+            <div class="tools-grid">
+                <div class="tool-card" onclick="openTool('logline')">
+                    <div class="tool-number">1</div>
+                    <div class="tool-icon">
+                        <i class="fas fa-pen-fancy"></i>
+                    </div>
+                    <h3>Khởi tạo Kịch bản</h3>
+                    <p>Nhập ý tưởng phim hoặc tải truyện lên để bắt đầu xây dựng kịch bản</p>
+                    <div class="tool-arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+
+                <div class="tool-card" onclick="openTool('theme')">
+                    <div class="tool-number">2</div>
+                    <div class="tool-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <h3>Xác định Chủ đề</h3>
+                    <p>Tìm ra thông điệp sâu sắc và ý nghĩa của câu chuyện</p>
+                    <div class="tool-arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+
+                <div class="tool-card" onclick="openTool('character')">
+                    <div class="tool-number">3</div>
+                    <div class="tool-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Mô tả Nhân vật</h3>
+                    <p>Xây dựng hồ sơ chi tiết cho từng nhân vật trong phim</p>
+                    <div class="tool-arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+
+                <div class="tool-card" onclick="openTool('synopsis')">
+                    <div class="tool-number">4</div>
+                    <div class="tool-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h3>Viết Synopsis</h3>
+                    <p>Tóm tắt toàn bộ câu chuyện từ đầu đến cuối</p>
+                    <div class="tool-arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+
+                <div class="tool-card" onclick="openTool('structure')">
+                    <div class="tool-number">5</div>
+                    <div class="tool-icon">
+                        <i class="fas fa-sitemap"></i>
+                    </div>
+                    <h3>Cấu trúc 4 Hồi</h3>
+                    <p>Phân chia câu chuyện theo Story Circle của Dan Harmon</p>
+                    <div class="tool-arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+
+                <div class="tool-card" onclick="openTool('beatsheet')">
+                    <div class="tool-number">6</div>
+                    <div class="tool-icon">
+                        <i class="fas fa-list-ol"></i>
+                    </div>
+                    <h3>Tạo Beat Sheet</h3>
+                    <p>Liệt kê các beat quan trọng theo mô hình Save the Cat</p>
+                    <div class="tool-arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+
+                <div class="tool-card" onclick="openTool('scenelist')">
+                    <div class="tool-number">7</div>
+                    <div class="tool-icon">
+                        <i class="fas fa-th-list"></i>
+                    </div>
+                    <h3>Danh sách Cảnh</h3>
+                    <p>Chia kịch bản thành 30-40 cảnh rõ ràng</p>
+                    <div class="tool-arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+
+                <div class="tool-card highlight" onclick="openTool('script')">
+                    <div class="tool-number">8</div>
+                    <div class="tool-icon">
+                        <i class="fas fa-scroll"></i>
+                    </div>
+                    <h3>Viết Kịch bản</h3>
+                    <p>Viết kịch bản chi tiết theo format Hollywood chuẩn</p>
+                    <div class="tool-arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Recent Projects Section -->
+        <section class="projects-section">
+            <div class="section-header">
+                <h2><i class="fas fa-history"></i> Kịch bản gần đây</h2>
+                <a href="#" class="view-all">Xem tất cả <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="projects-grid" id="projectsGrid">
+                <!-- Projects will be loaded dynamically -->
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-icon">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+                    <h3>Chưa có kịch bản nào</h3>
+                    <p>Bắt đầu tạo kịch bản đầu tiên của bạn!</p>
+                    <button class="btn-create" onclick="startNewProject()">
+                        <i class="fas fa-plus"></i> Tạo kịch bản mới
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tips Section -->
+        <section class="tips-section">
+            <div class="tips-card">
+                <div class="tips-icon">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <div class="tips-content">
+                    <h3>💡 Mẹo viết kịch bản</h3>
+                    <p>Bắt đầu với một Logline mạnh mẽ - đó là nền tảng cho toàn bộ kịch bản của bạn. Một Logline tốt sẽ giúp bạn giữ focus trong suốt quá trình viết.</p>
+                </div>
+                <button class="tips-close" onclick="this.parentElement.style.display='none'">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2026 AI Screenplay. Công cụ viết kịch bản phim với AI.</p>
+    </footer>
+
+    <div class="modal-overlay" id="upgradeModal">
+        <div class="modal-container upgrade-modal-container">
+            <div class="modal-header">
+                <h2><i class="fas fa-crown"></i> Nâng cấp PRO</h2>
+                <button class="modal-close" onclick="closeUpgradeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="subscription-header">
+                    <p id="planDescription">Tài khoản Free: tối đa 10 lượt AI/ngày. PRO: không giới hạn lượt dùng.</p>
+                    <span class="plan-badge free" id="planStatusBadge">Free</span>
+                </div>
+                <div class="package-grid">
+                    <article class="package-card">
+                        <h3>Gói 1 tháng</h3>
+                        <p class="price" id="price_display_pro_1m">199.000đ</p>
+                        <p class="package-note">Phù hợp để trải nghiệm PRO nhanh</p>
+                        <button class="btn-package" data-package="pro_1m" onclick="upgradePlan('pro_1m')">Nâng cấp ngay</button>
+                    </article>
+
+                    <article class="package-card featured">
+                        <span class="best-value">Phổ biến</span>
+                        <h3>Gói 3 tháng</h3>
+                        <p class="price" id="price_display_pro_3m">250.000đ</p>
+                        <p class="package-note">Tiết kiệm hơn khi dùng lâu hơn</p>
+                        <button class="btn-package" data-package="pro_3m" onclick="upgradePlan('pro_3m')">Nâng cấp ngay</button>
+                    </article>
+
+                    <article class="package-card">
+                        <h3>Gói 1 năm</h3>
+                        <p class="price" id="price_display_pro_1y">800.000đ</p>
+                        <p class="package-note">Dùng dài hạn, không lo giới hạn</p>
+                        <button class="btn-package" data-package="pro_1y" onclick="upgradePlan('pro_1y')">Nâng cấp ngay</button>
+                    </article>
+                </div>
+                <div class="payment-methods-info">
+                    <span>Hỗ trợ thanh toán:</span>
+                    <span class="payment-method-badge"><i class="fas fa-university"></i> Ngân hàng</span>
+                    <span class="payment-method-badge"><i class="fas fa-qrcode"></i> QR Code</span>
+                    <span class="payment-method-badge"><img src="https://sepay.vn/favicon.ico" style="width:14px;height:14px;object-fit:contain;"> SePay</span>
+                </div>
+                <div class="secure-payment-note">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Thanh toán an toàn qua SePay.vn — chuyển khoản ngân hàng xác nhận tự động</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal (with tabs) -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-circle"></i> Hồ sơ cá nhân</h2>
+                <button class="modal-close" onclick="closeProfileModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <!-- Tabs -->
+            <div class="modal-tabs">
+                <button class="modal-tab active" id="tabProfile" onclick="switchTab('profile')">
+                    <i class="fas fa-id-card"></i> Thông tin cá nhân
+                </button>
+                <button class="modal-tab" id="tabPassword" onclick="switchTab('password')">
+                    <i class="fas fa-key"></i> Đổi mật khẩu
+                </button>
+                <button class="modal-tab" id="tabPaymentHistory" onclick="switchTab('paymentHistory')">
+                    <i class="fas fa-receipt"></i> Lịch sử thanh toán
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Tab: Thông tin cá nhân -->
+                <div id="tabContentProfile">
+                    <div class="avatar-section">
+                        <div class="avatar-preview" id="avatarPreview">
+                            <i class="fas fa-user"></i>
+                            <img id="avatarImage" src="" alt="Avatar" style="display:none;">
+                        </div>
+                        <div class="avatar-actions">
+                            <!-- Nút upload avatar: dùng Flutter native picker trên app, fallback input file trên web -->
+                            <button class="btn-upload" type="button" onclick="triggerAvatarPick()">
+                                <i class="fas fa-camera"></i> Thay ảnh đại diện
+                            </button>
+                            <!-- Input file fallback cho desktop/web thường (hidden properly) -->
+                            <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/gif,image/webp"
+                                style="position: fixed; top: -9999px; left: -9999px; width: 1px; height: 1px; opacity: 0;"
+                                onchange="handleAvatarUploadFromInput(event)">
+                            <span class="avatar-hint">JPG, PNG, GIF, WEBP. Tối đa 2MB</span>
+                        </div>
+                    </div>
+                    <form id="profileForm" onsubmit="handleProfileUpdate(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="profileFullName">Họ và tên</label>
+                                <input type="text" id="profileFullName" placeholder="Nhập họ và tên">
+                            </div>
+                            <div class="form-group">
+                                <label for="profileUsername">Tên đăng nhập</label>
+                                <input type="text" id="profileUsername" placeholder="Nhập tên đăng nhập">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="profileGender">Giới tính</label>
+                                <select id="profileGender">
+                                    <option value="">-- Chọn giới tính --</option>
+                                    <option value="male">Nam</option>
+                                    <option value="female">Nữ</option>
+                                    <option value="other">Khác</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="profileDob">Ngày sinh</label>
+                                <input type="date" id="profileDob">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="profilePhone">Số điện thoại</label>
+                                <input type="tel" id="profilePhone" placeholder="Nhập số điện thoại">
+                            </div>
+                            <div class="form-group">
+                                <label for="profileEmail">Email</label>
+                                <input type="email" id="profileEmail" disabled>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn-cancel" onclick="closeProfileModal()">Hủy</button>
+                            <button type="submit" class="btn-save" id="profileSaveBtn">
+                                <i class="fas fa-save"></i> Lưu thay đổi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <!-- Tab: Đổi mật khẩu -->
+                <div id="tabContentPassword" style="display:none;">
+                    <form id="passwordForm" onsubmit="handlePasswordChange(event)">
+                        <div class="form-group">
+                            <label for="currentPassword">Mật khẩu hiện tại</label>
+                            <div class="password-input-wrap">
+                                <input type="password" id="currentPassword" placeholder="Nhập mật khẩu hiện tại">
+                                <button type="button" class="toggle-password" onclick="togglePasswordVisibility('currentPassword', this)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="newPassword">Mật khẩu mới</label>
+                            <div class="password-input-wrap">
+                                <input type="password" id="newPassword" placeholder="Nhập mật khẩu mới (ít nhất 6 ký tự)">
+                                <button type="button" class="toggle-password" onclick="togglePasswordVisibility('newPassword', this)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength" id="passwordStrength"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword">Xác nhận mật khẩu mới</label>
+                            <div class="password-input-wrap">
+                                <input type="password" id="confirmPassword" placeholder="Nhập lại mật khẩu mới">
+                                <button type="button" class="toggle-password" onclick="togglePasswordVisibility('confirmPassword', this)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn-cancel" onclick="closeProfileModal()">Hủy</button>
+                            <button type="submit" class="btn-save" id="passwordSaveBtn">
+                                <i class="fas fa-lock"></i> Đổi mật khẩu
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <!-- Tab: Lịch sử thanh toán -->
+                <div id="tabContentPaymentHistory" style="display:none;">
+                    <div class="payment-history-container" id="paymentHistoryContainer">
+                        <div class="payment-history-empty">
+                            <i class="fas fa-receipt"></i>
+                            <p>Đang tải lịch sử thanh toán...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment History Tab Content (inside profile modal) -->
+
+    <!-- Payment Loading Overlay -->
+    <div class="payment-loading-overlay" id="paymentLoadingOverlay">
+        <div class="payment-loading-card">
+            <div class="payment-spinner"></div>
+            <h3>Đang tạo đơn thanh toán...</h3>
+            <p>Vui lòng chờ trong giây lát. Bạn sẽ được chuyển đến trang thanh toán.</p>
+        </div>
+    </div>
+
+    <!-- SePay QR Payment Overlay -->
+    <div class="sepay-qr-overlay" id="sepayQROverlay"></div>
+
+    <!-- Payment Result Overlay -->
+    <div class="payment-result-overlay" id="paymentResultOverlay">
+        <div class="payment-result-card" id="paymentResultCard">
+            <!-- Content will be filled by JS -->
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

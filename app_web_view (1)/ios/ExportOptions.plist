@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+		method: Chọn một trong các giá trị sau:
+		  - "app-store"   : Upload lên App Store / TestFlight
+		  - "ad-hoc"      : Cài trực tiếp lên thiết bị đã đăng ký
+		  - "development" : Dùng trong quá trình phát triển
+	-->
+	<key>method</key>
+	<string>app-store</string>
+
+	<!--
+		teamID: Team ID Apple Developer của bạn
+		Tìm tại: https://developer.apple.com/account → Membership
+		VD: "ABCDE12345"
+	-->
+	<key>teamID</key>
+	<string>YOUR_TEAM_ID</string>
+
+	<!--
+		Tắt bitcode (Flutter không dùng bitcode)
+	-->
+	<key>uploadBitcode</key>
+	<false/>
+
+	<key>uploadSymbols</key>
+	<true/>
+
+	<key>compileBitcode</key>
+	<false/>
+
+	<!--
+		Tên provisioning profile (phải khớp tên trong Apple Developer Portal)
+		VD: "AI Screenplay AppStore Distribution"
+	-->
+	<key>provisioningProfiles</key>
+	<dict>
+		<!-- com.yourcompany.aiscreenplay → tên Bundle ID của bạn -->
+		<key>com.yourcompany.aiscreenplay</key>
+		<string>YOUR_PROVISIONING_PROFILE_NAME</string>
+	</dict>
+</dict>
+</plist>

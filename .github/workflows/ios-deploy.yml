@@ -1,0 +1,113 @@
+name: Build & Deploy iOS (Signed)
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'       # Chỉ chạy khi push tag: git tag v1.0.0 && git push --tags
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deploy target'
+        required: true
+        default: 'testflight'
+        type: choice
+        options:
+          - testflight
+          - adhoc
+
+jobs:
+  build-signed-ios:
+    name: Build Signed IPA & Deploy
+    runs-on: macos-latest
+    timeout-minutes: 90
+
+    env:
+      FLUTTER_APP_DIR: 'app_web_view (1)'
+
+    steps:
+      # ── 1. Checkout ────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── 2. Flutter ─────────────────────────────────────────────
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.x'
+          channel: 'stable'
+          cache: true
+
+      # ── 3. Import Certificate & Provisioning Profile ───────────
+      # Thêm các secrets này vào GitHub repo:
+      # Settings → Secrets and variables → Actions → New repository secret
+      #
+      # IOS_CERTIFICATE_BASE64   : base64 của file .p12
+      # IOS_CERTIFICATE_PASSWORD : password của .p12
+      # IOS_PROVISION_PROFILE_BASE64 : base64 của file .mobileprovision
+      # KEYCHAIN_PASSWORD        : mật khẩu tùy ý cho keychain tạm
+
+      - name: Import code signing certificate
+        env:
+          CERTIFICATE_BASE64: ${{ secrets.IOS_CERTIFICATE_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+          PROVISION_PROFILE_BASE64: ${{ secrets.IOS_PROVISION_PROFILE_BASE64 }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          # Tạo keychain tạm
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security set-keychain-settings -t 3600 -u build.keychain
+
+          # Import certificate
+          echo "$CERTIFICATE_BASE64" | base64 --decode > certificate.p12
+          security import certificate.p12 \
+            -k build.keychain \
+            -P "$CERTIFICATE_PASSWORD" \
+            -T /usr/bin/codesign
+          security set-key-partition-list \
+            -S apple-tool:,apple: \
+            -s -k "$KEYCHAIN_PASSWORD" build.keychain
+
+          # Cài provisioning profile
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "$PROVISION_PROFILE_BASE64" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+
+          # Dọn dẹp
+          rm certificate.p12
+
+      # ── 4. Dependencies ────────────────────────────────────────
+      - name: Flutter pub get
+        working-directory: ${{ env.FLUTTER_APP_DIR }}
+        run: flutter pub get
+
+      - name: Pod install
+        working-directory: ${{ env.FLUTTER_APP_DIR }}/ios
+        run: pod install --repo-update
+
+      # ── 5. Build IPA (signed) ──────────────────────────────────
+      - name: Build IPA
+        working-directory: ${{ env.FLUTTER_APP_DIR }}
+        run: |
+          flutter build ipa --release \
+            --export-options-plist=ios/ExportOptions.plist \
+            --build-name=${{ github.ref_name || '1.0.0' }} \
+            --build-number=${{ github.run_number }}
+
+      # ── 6. Upload artifact ─────────────────────────────────────
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: AI_Screenplay_Signed_${{ github.run_number }}
+          path: '${{ env.FLUTTER_APP_DIR }}/build/ios/ipa/*.ipa'
+          retention-days: 30
+
+      # ── 7. Upload lên TestFlight ──────────────────────────────
+      # Cần thêm secrets: APPSTORE_ISSUER_ID, APPSTORE_API_KEY_ID, APPSTORE_API_PRIVATE_KEY
+      # - name: Upload to TestFlight
+      #   uses: apple-actions/upload-testflight-build@v1
+      #   with:
+      #     app-path: build/ios/ipa/app_web_view.ipa
+      #     issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+      #     api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
+      #     api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}

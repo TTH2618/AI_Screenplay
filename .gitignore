@@ -1,0 +1,76 @@
+# ============================================================
+# 🔒 SECURITY: Files chứa thông tin nhạy cảm - KHÔNG push lên Git
+# ============================================================
+
+# ── Environment variables (API keys, passwords, secrets) ────
+.env
+.env.local
+.env.production
+.env.development
+.env.staging
+*.env
+
+# ── Python virtual environment ───────────────────────────────
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# ── Node.js ──────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── Database dumps & migration files chứa data thật ─────────
+*.sql.gz
+*.dump
+
+# ── Uploads (ảnh user, files cá nhân) ────────────────────────
+uploads/avatars/*
+uploads/characters/*
+uploads/stories/*
+# Giữ cấu trúc thư mục
+!uploads/avatars/.gitkeep
+!uploads/characters/.gitkeep
+!uploads/stories/.gitkeep
+
+# ── iOS signing (certificates, provisioning profiles) ────────
+*.p12
+*.mobileprovision
+*.cer
+*.certSigningRequest
+ios/Podfile.lock
+
+# ── Android signing ──────────────────────────────────────────
+*.jks
+*.keystore
+key.properties
+
+# ── Google Services ──────────────────────────────────────────
+google-services.json
+GoogleService-Info.plist
+
+# ── Flutter ──────────────────────────────────────────────────
+app_web_view (1)/.dart_tool/
+app_web_view (1)/build/
+
+# ── IDE & OS ─────────────────────────────────────────────────
+.vscode/settings.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+.DS_Store
+Thumbs.db
+
+# ── Logs ─────────────────────────────────────────────────────
+logs/
+*.log
