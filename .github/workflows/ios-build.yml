@@ -121,7 +121,7 @@ jobs:
         working-directory: ${{ env.FLUTTER_APP_DIR }}
         run: |
           set +e
-          flutter build ios --release --no-codesign \
+          flutter build ios --release --no-codesign -v \
             --build-name=1.0.0 \
             --build-number=${{ github.run_number }} 2>&1 | tee /tmp/flutter_build.log
           BUILD_EXIT=${PIPESTATUS[0]}
@@ -129,7 +129,7 @@ jobs:
 
           RUNNER_APP="build/ios/iphoneos/Runner.app"
           if [ ! -d "$RUNNER_APP" ]; then
-            echo "" 
+            echo ""
             echo "=== ❌ BUILD FAILED – Last 200 lines of build log: ==="
             tail -200 /tmp/flutter_build.log || true
             echo "==================================================="
