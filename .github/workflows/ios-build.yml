@@ -1,3 +1,4 @@
+# Flutter version: 3.44.0 (Dart SDK 3.10.x) - required by pubspec sdk: ^3.10.7
 name: 🍎 iOS Build - AI Screenplay
 
 on:
@@ -44,7 +45,7 @@ jobs:
       - name: 🦋 Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.32.0'
+          flutter-version: '3.44.0'
           channel: 'stable'
           cache: true
 
@@ -177,7 +178,7 @@ jobs:
       - name: 🦋 Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.32.0'
+          flutter-version: '3.44.0'
           channel: 'stable'
           cache: true
 
