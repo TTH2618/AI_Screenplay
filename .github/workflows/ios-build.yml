@@ -42,14 +42,14 @@ jobs:
         run: flutter --version
 
       # ── 2b. Cấu hình Flutter ─────────────────────────────────────
-      # ROOT CAUSE FIX: native-assets phải TẮT trên CI.
-      # Khi enable-native-assets=ON, Flutter gọi otool để parse dylib nhưng
-      # bị null crash tại parseOtoolArchitectureSections → build fail.
+      # objective_c (transitive dep của flutter_web_auth_2) YÊU CẦU native-assets.
+      # native-assets phải ĐƯỢC BẬT. Lỗi null-crash trước chỉ xảy ra trên
+      # macos-15 (Xcode 16) nên ta dùng macos-14 (Xcode 15) + native-assets ON.
       - name: ⚙️ Configure Flutter flags
         run: |
           flutter config --no-enable-swift-package-manager
-          flutter config --no-enable-native-assets 2>/dev/null || true
-          flutter config --no-enable-dart-data-assets 2>/dev/null || true
+          flutter config --enable-native-assets 2>/dev/null || true
+          flutter config --enable-dart-data-assets 2>/dev/null || true
 
       # ── 3. Cache pub packages ────────────────────────────────────
       - name: 📦 Cache pub packages
