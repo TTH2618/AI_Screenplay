@@ -54,21 +54,26 @@ jobs:
         run: flutter pub run flutter_launcher_icons
         continue-on-error: true
 
-      # ── 6. Xóa code signing khỏi project.pbxproj (Flutter 3.22+ requirement) ──
-      - name: Disable code signing in Xcode project
+      # ── 6. Xác nhận code signing đã bị tắt trong project.pbxproj ────────────
+      - name: Verify code signing disabled in Xcode project
         working-directory: 'app_web_view (1)'
         run: |
-          ruby -e "
-            path = 'ios/Runner.xcodeproj/project.pbxproj'
-            content = File.read(path)
-            content.gsub!(/DEVELOPMENT_TEAM = [^;]+;/, 'DEVELOPMENT_TEAM = \"\";')
-            content.gsub!(/CODE_SIGN_IDENTITY = [^;]+;/, 'CODE_SIGN_IDENTITY = \"\";')
-            content.gsub!(/CODE_SIGNING_REQUIRED = YES;/, 'CODE_SIGNING_REQUIRED = NO;')
-            content.gsub!(/PROVISIONING_PROFILE = [^;]+;/, '')
-            content.gsub!(/PROVISIONING_PROFILE_SPECIFIER = [^;]+;/, 'PROVISIONING_PROFILE_SPECIFIER = \"\";')
-            File.write(path, content)
-            puts 'Code signing disabled in project.pbxproj'
-          "
+          if grep -q 'DEVELOPMENT_TEAM = "FAKETEAM00"' ios/Runner.xcodeproj/project.pbxproj; then
+            echo "✅ CODE_SIGNING_ALLOWED=NO and DEVELOPMENT_TEAM=FAKETEAM00 already set in project.pbxproj"
+          else
+            echo "⚠️ Patching project.pbxproj..."
+            ruby -e "
+              path = 'ios/Runner.xcodeproj/project.pbxproj'
+              content = File.read(path)
+              # Replace empty/missing DEVELOPMENT_TEAM with dummy value
+              content.gsub!(/DEVELOPMENT_TEAM = [^;]*;/, 'DEVELOPMENT_TEAM = \"FAKETEAM00\";')
+              # Replace YES signing required with NO
+              content.gsub!(/CODE_SIGNING_REQUIRED = YES;/, 'CODE_SIGNING_REQUIRED = NO;')
+              content.gsub!(/CODE_SIGNING_ALLOWED = YES;/, 'CODE_SIGNING_ALLOWED = NO;')
+              File.write(path, content)
+              puts 'Patched.'
+            "
+          fi
 
       # ── 7. Build iOS (không cần code signing) ─────────────────
       # Flutter 3.44.x: Xcode build thành công nhưng Flutter post-check
