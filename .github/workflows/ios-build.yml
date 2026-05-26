@@ -33,6 +33,12 @@ jobs:
       - name: Flutter version info
         run: flutter --version
 
+      # ── 2b. Tắt SPM và native-assets để tránh crash JNI pipeline ──
+      - name: Disable Swift Package Manager and native assets
+        run: |
+          flutter config --no-enable-swift-package-manager
+          flutter config --no-enable-native-assets || true
+
       # ── 3. Lấy dependencies ────────────────────────────────────
       - name: Flutter pub get
         working-directory: 'app_web_view (1)'
@@ -84,7 +90,7 @@ jobs:
         run: |
           flutter build ios --release --no-codesign \
             --build-name=1.0.0 \
-            --build-number=${{ github.run_number }} || true
+            --build-number=${{ github.run_number }}
 
           # Verify Runner.app was actually built by Xcode
           if [ ! -d "build/ios/iphoneos/Runner.app" ]; then
