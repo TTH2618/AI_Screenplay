@@ -54,7 +54,23 @@ jobs:
         run: flutter pub run flutter_launcher_icons
         continue-on-error: true
 
-      # ── 6. Build iOS (không cần code signing) ─────────────────
+      # ── 6. Xóa code signing khỏi project.pbxproj (Flutter 3.22+ requirement) ──
+      - name: Disable code signing in Xcode project
+        working-directory: 'app_web_view (1)'
+        run: |
+          ruby -e "
+            path = 'ios/Runner.xcodeproj/project.pbxproj'
+            content = File.read(path)
+            content.gsub!(/DEVELOPMENT_TEAM = [^;]+;/, 'DEVELOPMENT_TEAM = \"\";')
+            content.gsub!(/CODE_SIGN_IDENTITY = [^;]+;/, 'CODE_SIGN_IDENTITY = \"\";')
+            content.gsub!(/CODE_SIGNING_REQUIRED = YES;/, 'CODE_SIGNING_REQUIRED = NO;')
+            content.gsub!(/PROVISIONING_PROFILE = [^;]+;/, '')
+            content.gsub!(/PROVISIONING_PROFILE_SPECIFIER = [^;]+;/, 'PROVISIONING_PROFILE_SPECIFIER = \"\";')
+            File.write(path, content)
+            puts 'Code signing disabled in project.pbxproj'
+          "
+
+      # ── 7. Build iOS (không cần code signing) ─────────────────
       - name: Build iOS (no codesign)
         working-directory: 'app_web_view (1)'
         run: |
@@ -62,7 +78,7 @@ jobs:
             --build-name=1.0.0 \
             --build-number=${{ github.run_number }}
 
-      # ── 7. Đóng gói thành IPA (unsigned) ──────────────────────
+      # ── 8. Đóng gói thành IPA (unsigned) ──────────────────────
       - name: Create unsigned IPA
         working-directory: 'app_web_view (1)'
         run: |
@@ -71,7 +87,7 @@ jobs:
           zip -r AI_Screenplay_unsigned.ipa Payload/
           rm -rf Payload/
 
-      # ── 8. Upload artifact ─────────────────────────────────────
+      # ── 9. Upload artifact ───────────────────────────────────────
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
