@@ -5,6 +5,7 @@ on:
     branches: [main, master]
     paths:
       - 'app_web_view (1)/**'
+      - '.github/workflows/ios-build.yml'
   pull_request:
     branches: [main, master]
     paths:
@@ -23,21 +24,24 @@ jobs:
         uses: actions/checkout@v4
 
       # ── 2. Cài Flutter SDK ─────────────────────────────────────
+      # Không pin cứng flutter-version để tránh lỗi "version not found".
+      # subosito/flutter-action sẽ lấy bản stable mới nhất.
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.x'
           channel: 'stable'
           cache: true
 
       - name: Flutter version info
         run: flutter --version
 
-      # ── 2b. Tắt SPM → dùng CocoaPods only, tránh SPM+native-assets crash ─────
-      - name: Disable Swift Package Manager (CocoaPods only)
+      # ── 2b. Tắt SPM → dùng CocoaPods only ─────────────────────
+      # objective_c package yêu cầu native-assets; SPM+native-assets gây
+      # crash "JNI parseOtoolArchitectureSections" trên CI.
+      - name: Configure Flutter (disable SPM, keep native-assets)
         run: |
           flutter config --no-enable-swift-package-manager
-          flutter config --enable-native-assets
+          flutter config --enable-native-assets || true
           flutter config --enable-dart-data-assets || true
 
       # ── 3. Lấy dependencies ────────────────────────────────────
@@ -58,23 +62,21 @@ jobs:
       # ── 5. (Tùy chọn) Generate app icons ─────────────────────
       - name: Generate launcher icons
         working-directory: 'app_web_view (1)'
-        run: flutter pub run flutter_launcher_icons
+        run: dart run flutter_launcher_icons
         continue-on-error: true
 
-      # ── 6. Xác nhận code signing đã bị tắt trong project.pbxproj ────────────
-      - name: Verify code signing disabled in Xcode project
+      # ── 6. Đảm bảo code signing đã tắt trong project.pbxproj ─
+      - name: Ensure code signing is disabled
         working-directory: 'app_web_view (1)'
         run: |
-          if grep -q 'DEVELOPMENT_TEAM = "FAKETEAM00"' ios/Runner.xcodeproj/project.pbxproj; then
-            echo "✅ CODE_SIGNING_ALLOWED=NO and DEVELOPMENT_TEAM=FAKETEAM00 already set in project.pbxproj"
+          if grep -q 'CODE_SIGNING_ALLOWED = NO' ios/Runner.xcodeproj/project.pbxproj; then
+            echo "✅ Code signing already disabled in project.pbxproj"
           else
-            echo "⚠️ Patching project.pbxproj..."
+            echo "⚠️ Patching project.pbxproj to disable code signing..."
             ruby -e "
               path = 'ios/Runner.xcodeproj/project.pbxproj'
               content = File.read(path)
-              # Replace empty/missing DEVELOPMENT_TEAM with dummy value
               content.gsub!(/DEVELOPMENT_TEAM = [^;]*;/, 'DEVELOPMENT_TEAM = \"FAKETEAM00\";')
-              # Replace YES signing required with NO
               content.gsub!(/CODE_SIGNING_REQUIRED = YES;/, 'CODE_SIGNING_REQUIRED = NO;')
               content.gsub!(/CODE_SIGNING_ALLOWED = YES;/, 'CODE_SIGNING_ALLOWED = NO;')
               File.write(path, content)
@@ -83,22 +85,25 @@ jobs:
           fi
 
       # ── 7. Build iOS (không cần code signing) ─────────────────
-      # Flutter 3.44.x: Xcode build thành công nhưng Flutter post-check
-      # yêu cầu Development Team dù có --no-codesign. Dùng || true để
-      # bỏ qua exit code, rồi verify Runner.app thực sự tồn tại.
+      # Flutter post-build signing check đôi khi exit non-zero dù Xcode
+      # đã build thành công. Dùng BUILD_EXIT_CODE để capture rồi tự verify.
       - name: Build iOS (no codesign)
         working-directory: 'app_web_view (1)'
         run: |
+          set +e
           flutter build ios --release --no-codesign \
             --build-name=1.0.0 \
             --build-number=${{ github.run_number }}
+          BUILD_EXIT_CODE=$?
+          set -e
 
-          # Verify Runner.app was actually built by Xcode
+          # Verify Runner.app thực sự được tạo bởi Xcode
           if [ ! -d "build/ios/iphoneos/Runner.app" ]; then
-            echo "❌ Runner.app not found - Xcode build actually failed!"
+            echo "❌ Runner.app không tồn tại - Xcode build thực sự thất bại! (exit code: $BUILD_EXIT_CODE)"
             exit 1
           fi
-          echo "✅ Runner.app built successfully at build/ios/iphoneos/Runner.app"
+
+          echo "✅ Runner.app built at build/ios/iphoneos/Runner.app (flutter exit: $BUILD_EXIT_CODE)"
 
       # ── 8. Đóng gói thành IPA (unsigned) ──────────────────────
       - name: Create unsigned IPA
@@ -108,8 +113,9 @@ jobs:
           cp -r build/ios/iphoneos/Runner.app Payload/
           zip -r AI_Screenplay_unsigned.ipa Payload/
           rm -rf Payload/
+          echo "✅ IPA created: AI_Screenplay_unsigned.ipa ($(du -sh AI_Screenplay_unsigned.ipa | cut -f1))"
 
-      # ── 9. Upload artifact ───────────────────────────────────────
+      # ── 9. Upload artifact ────────────────────────────────────
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
@@ -117,8 +123,11 @@ jobs:
           path: 'app_web_view (1)/AI_Screenplay_unsigned.ipa'
           retention-days: 14
 
-      # ── 9. (Tùy chọn) Upload lên TestFlight ──────────────────
-      # Bỏ comment khi đã có Apple credentials
+      # ── 10. (Tùy chọn) Upload lên TestFlight ─────────────────
+      # Bỏ comment khi đã có Apple credentials trong GitHub Secrets:
+      # IOS_CERTIFICATE_BASE64, IOS_CERTIFICATE_PASSWORD,
+      # IOS_PROVISION_PROFILE_BASE64, KEYCHAIN_PASSWORD,
+      # APPSTORE_ISSUER_ID, APPSTORE_API_KEY_ID, APPSTORE_API_PRIVATE_KEY
       # - name: Upload to TestFlight
       #   uses: apple-actions/upload-testflight-build@v1
       #   with:
