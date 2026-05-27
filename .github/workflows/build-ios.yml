@@ -98,11 +98,9 @@ jobs:
             fi
           done
 
-          # Ký main app binary sau cùng
+          # Ký main app binary sau cùng (không truyền --entitlements vì /dev/null không đọc được)
           echo "  Signing main app binary"
-          codesign --force --sign - \
-            --entitlements /dev/null \
-            "$APP_PATH" 2>&1
+          codesign --force --sign - "$APP_PATH" 2>&1
 
           echo "=== _CodeSignature ==="
           ls "$APP_PATH/_CodeSignature/" 2>/dev/null || echo "WARNING: _CodeSignature missing"
