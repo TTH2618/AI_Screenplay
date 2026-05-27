@@ -1,0 +1,94 @@
+name: Build iOS IPA
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:   # cho phép chạy thủ công trên GitHub
+
+jobs:
+  build-ios:
+    runs-on: macos-latest   # GitHub cung cấp máy Mac miễn phí
+
+    steps:
+      # ── 1. Lấy code từ repo ──────────────────────────────────────────────
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ── 2. Cài Node.js ───────────────────────────────────────────────────
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # ── 3. Cài Capacitor (npm install) ───────────────────────────────────
+      - name: Install Capacitor dependencies
+        run: npm ci
+
+      # ── 4. Tạo thư mục www/ và copy web assets vào đó ───────────────────
+      - name: Prepare www assets
+        run: |
+          mkdir -p www
+          for item in css js icons manifest.json sw.js \
+                      index.html auth.html dashboard.html \
+                      home.html admin.html; do
+            [ -e "$item" ] && cp -r "$item" www/
+          done
+          echo "=== www/ contents ==="
+          ls -la www/
+
+      # ── 5. Thêm platform iOS (tạo thư mục ios/ từ đầu) ──────────────────
+      - name: Add iOS platform
+        run: npx cap add ios
+
+      # ── 6. Sync web assets vào project iOS ──────────────────────────────
+      - name: Sync Capacitor iOS
+        run: npx cap sync ios
+
+      # ── 7. Cài CocoaPods dependencies ────────────────────────────────────
+      - name: Install CocoaPods
+        run: |
+          cd ios/App
+          pod install --repo-update
+
+      # ── 8. Build iOS .app (không ký — AltStore sẽ ký sau) ───────────────
+      - name: Build iOS (no code signing)
+        run: |
+          cd ios/App
+          xcodebuild \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            DEVELOPMENT_TEAM="" \
+            -derivedDataPath DerivedData \
+            ONLY_ACTIVE_ARCH=NO \
+            | xcpretty || true
+
+      # ── 9. Đóng gói .app thành .ipa ──────────────────────────────────────
+      - name: Package IPA
+        run: |
+          APP_PATH=$(find ios/App/DerivedData -name "*.app" \
+                     -path "*/Release-iphoneos/*" | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "ERROR: Không tìm thấy .app bundle"
+            find ios/App/DerivedData -name "*.app" -type d 2>/dev/null || true
+            exit 1
+          fi
+          echo "Found app: $APP_PATH"
+          mkdir -p Payload
+          cp -r "$APP_PATH" Payload/
+          zip -r AIScreenplay.ipa Payload
+          rm -rf Payload
+          ls -lh AIScreenplay.ipa
+
+      # ── 10. Upload artifact để download ──────────────────────────────────
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AIScreenplay-iOS
+          path: AIScreenplay.ipa
+          retention-days: 30

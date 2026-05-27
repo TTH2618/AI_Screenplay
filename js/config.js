@@ -20,6 +20,33 @@
 
     const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
 
+    // ── Phát hiện môi trường Capacitor (iOS / Android native app) ─────────
+    // Khi chạy trong Capacitor, protocol sẽ là 'capacitor:' hoặc 'ionic:'
+    // và hostname là 'localhost' — không thể gọi API về đó được.
+    // Thay vào đó dùng URL backend đã deploy thực tế.
+    const isNativeApp = (
+        protocol === 'capacitor:' ||
+        protocol === 'ionic:' ||
+        (typeof window.Capacitor !== 'undefined' && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())
+    );
+
+    // ⚙️  THAY URL NÀY bằng địa chỉ backend thực tế khi deploy
+    //     Ví dụ: 'https://api.aiscreenplay.com'  hoặc  'https://xxx.ngrok-free.app'
+    const PRODUCTION_BACKEND = 'https://pesky-unlaced-guidable.ngrok-free.dev';
+
+    if (isNativeApp) {
+        window.APP_CONFIG = {
+            API_BASE_URL:    `${PRODUCTION_BACKEND}/api`,
+            AI_API_BASE_URL: `${PRODUCTION_BACKEND}/python-api`,
+            PYTHON_API_URL:  `${PRODUCTION_BACKEND}/python-api`,
+        };
+        console.log(`[Config] Môi trường : NATIVE APP (iOS/Android)`);
+        console.log(`[Config] Node API   → ${window.APP_CONFIG.API_BASE_URL}`);
+        console.log(`[Config] Python AI  → ${window.APP_CONFIG.PYTHON_API_URL}`);
+        return;
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
     // Xây dựng base URL của Node.js (cùng origin với trang hiện tại)
     // Ví dụ:  http://localhost:3000  hoặc  https://abc.ngrok-free.app
     const nodeHost = `${protocol}//${hostname}${port ? ':' + port : ''}`;

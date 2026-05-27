@@ -46,7 +46,14 @@ uploads/stories/*
 *.mobileprovision
 *.cer
 *.certSigningRequest
-ios/Podfile.lock
+
+# ── Capacitor iOS build artifacts ────────────────────────────
+ios/App/Pods/
+ios/App/DerivedData/
+ios/App/build/
+ios/.DS_Store
+www/
+*.ipa
 
 # ── Android signing ──────────────────────────────────────────
 *.jks
