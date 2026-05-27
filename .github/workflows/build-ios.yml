@@ -19,11 +19,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
       # ── 3. Cài Capacitor (npm install) ───────────────────────────────────
       - name: Install Capacitor dependencies
-        run: npm ci
+        run: npm install
 
       # ── 4. Tạo thư mục www/ và copy web assets vào đó ───────────────────
       - name: Prepare www assets
