@@ -15,7 +15,9 @@ let PLAN_PACKAGES = {
 
 function getAuthHeaders() {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    const headers = { 'ngrok-skip-browser-warning': 'true' };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return headers;
 }
 
 // Tool names mapping
@@ -36,7 +38,7 @@ const toolOrder = ['logline', 'theme', 'character', 'synopsis', 'structure', 'be
 document.addEventListener('DOMContentLoaded', async () => {
     // Tải giá gói từ server (admin có thể đã chỉnh)
     try {
-        const priceRes = await fetch(`${API_BASE_URL}/payment/prices`);
+        const priceRes = await fetch(`${API_BASE_URL}/payment/prices`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
         const priceData = await priceRes.json();
         if (priceData.success && priceData.data) {
             const p = priceData.data;
@@ -771,7 +773,7 @@ async function handleAvatarUploadFromBase64(result) {
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         const response = await fetch(`${API_BASE_URL}/auth/avatar`, {
             method: 'POST',
-            headers: { Authorization: `Bearer ${token}` },
+            headers: { Authorization: `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' },
             body: formData
         });
         const data = await response.json();
@@ -818,7 +820,7 @@ async function handleAvatarUploadFromInput(event) {
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         const response = await fetch(`${API_BASE_URL}/auth/avatar`, {
             method: 'POST',
-            headers: { Authorization: `Bearer ${token}` },
+            headers: { Authorization: `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' },
             body: formData
         });
         const data = await response.json();

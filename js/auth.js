@@ -9,7 +9,16 @@ let googleInitPromise = null;
 
 // Lưu session/tokens
 function persistSession(user, token, remember = true) {
-    if (remember) {
+    // Trong Capacitor native app, sessionStorage có thể bị mất khi chuyển trang
+    // trên WKWebView → luôn dùng localStorage để đảm bảo token tồn tại qua các page
+    const isNativeApp = (
+        window.location.protocol === 'capacitor:' ||
+        window.location.protocol === 'ionic:' ||
+        (typeof window.Capacitor !== 'undefined' &&
+         window.Capacitor.isNativePlatform &&
+         window.Capacitor.isNativePlatform())
+    );
+    if (remember || isNativeApp) {
         localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('token', token);
     } else {
