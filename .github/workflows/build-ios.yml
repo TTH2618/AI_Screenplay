@@ -30,7 +30,7 @@ jobs:
           mkdir -p www
           for item in css js icons manifest.json sw.js \
                       index.html auth.html dashboard.html \
-                      home.html admin.html; do
+                      home.html admin.html projects.html; do
             [ -e "$item" ] && cp -r "$item" www/
           done
           echo "=== www/ contents ==="
@@ -50,22 +50,62 @@ jobs:
           cd ios/App
           pod install --repo-update
 
-      # ── 8. Build iOS .app (không ký — AltStore sẽ ký sau) ───────────────
+      # ── 7b. Cài xcpretty để format log ──────────────────────────────────
+      - name: Install xcpretty
+        run: gem install xcpretty --no-document
+
+      # ── 8. Build iOS .app (không ký certificate — ad-hoc sign sau) ──────
       - name: Build iOS (no code signing)
         run: |
           cd ios/App
+          set -o pipefail
           xcodebuild \
             -workspace App.xcworkspace \
             -scheme App \
             -configuration Release \
             -sdk iphoneos \
+            -destination "generic/platform=iOS" \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
             DEVELOPMENT_TEAM="" \
             -derivedDataPath DerivedData \
             ONLY_ACTIVE_ARCH=NO \
-            | xcpretty || true
+            build 2>&1 | xcpretty
+          echo "=== Tìm .app sau build ==="
+          find DerivedData -name "*.app" -type d 2>/dev/null
+
+      # ── 8b. Ad-hoc sign — BẮT BUỘC để AltStore có thể re-sign ───────────
+      #  CODE_SIGNING_ALLOWED=NO tạo binary không có _CodeSignature.
+      #  AltStore (altserver) dùng codesign để replace chữ ký, nên cần
+      #  ít nhất 1 ad-hoc signature (-) trước. codesign có sẵn trên macOS.
+      - name: Ad-hoc sign for AltStore compatibility
+        run: |
+          APP_PATH=$(find ios/App/DerivedData -name "*.app" \
+                     -path "*/Release-iphoneos/*" | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "ERROR: Không tìm thấy .app bundle — xodebuild có thể đã lỗi"
+            exit 1
+          fi
+          echo "Signing: $APP_PATH"
+
+          # Ký tất cả frameworks trước (thứ tự quan trọng)
+          for fw in "$APP_PATH/Frameworks/"*.framework; do
+            FW_NAME=$(basename "$fw" .framework)
+            if [ -f "$fw/$FW_NAME" ]; then
+              echo "  Signing framework: $FW_NAME"
+              codesign --force --sign - "$fw" 2>&1
+            fi
+          done
+
+          # Ký main app binary sau cùng
+          echo "  Signing main app binary"
+          codesign --force --sign - \
+            --entitlements /dev/null \
+            "$APP_PATH" 2>&1
+
+          echo "=== _CodeSignature ==="
+          ls "$APP_PATH/_CodeSignature/" 2>/dev/null || echo "WARNING: _CodeSignature missing"
 
       # ── 9. Đóng gói .app thành .ipa ──────────────────────────────────────
       - name: Package IPA
@@ -74,7 +114,6 @@ jobs:
                      -path "*/Release-iphoneos/*" | head -1)
           if [ -z "$APP_PATH" ]; then
             echo "ERROR: Không tìm thấy .app bundle"
-            find ios/App/DerivedData -name "*.app" -type d 2>/dev/null || true
             exit 1
           fi
           echo "Found app: $APP_PATH"
@@ -82,6 +121,7 @@ jobs:
           cp -r "$APP_PATH" Payload/
           zip -r AIScreenplay.ipa Payload
           rm -rf Payload
+          echo "=== IPA size ==="
           ls -lh AIScreenplay.ipa
 
       # ── 10. Upload artifact để download ──────────────────────────────────
