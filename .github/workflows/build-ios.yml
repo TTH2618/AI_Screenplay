@@ -105,6 +105,25 @@ jobs:
           echo "=== _CodeSignature ==="
           ls "$APP_PATH/_CodeSignature/" 2>/dev/null || echo "WARNING: _CodeSignature missing"
 
+      # ── 8c. Convert tất cả Info.plist sang XML ───────────────────────────
+      #  xcodebuild Release compile Info.plist sang binary format.
+      #  AltStore dùng XML parser → "data isn't in correct format".
+      #  plutil -convert xml1 chuyển binary plist → XML plist tại chỗ.
+      - name: Convert Info.plist to XML (AltStore compatibility)
+        run: |
+          APP_PATH=$(find ios/App/DerivedData -name "*.app" \
+                     -path "*/Release-iphoneos/*" | head -1)
+          echo "Converting plists in: $APP_PATH"
+
+          # Info.plist chính của app
+          plutil -convert xml1 "$APP_PATH/Info.plist"
+          echo "  Converted: App/Info.plist"
+
+          # Info.plist của từng framework
+          for plist in "$APP_PATH/Frameworks/"*.framework/Info.plist; do
+            [ -f "$plist" ] && plutil -convert xml1 "$plist" && echo "  Converted: $plist"
+          done
+
       # ── 9. Đóng gói .app thành .ipa ──────────────────────────────────────
       - name: Package IPA
         run: |
