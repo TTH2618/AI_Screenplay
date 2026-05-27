@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ai-screenplay-v1';
+const CACHE_NAME = 'ai-screenplay-v2';
 const ASSETS = [
   '/',
   '/home.html',
