@@ -76,12 +76,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Check authentication
 async function checkAuth() {
     const user = localStorage.getItem('user') || sessionStorage.getItem('user');
-    
+
     if (!user) {
         window.location.href = 'auth.html';
         return false;
     }
-    
+
     try {
         const userData = JSON.parse(user);
         applyUserToHeader(userData);
@@ -254,7 +254,7 @@ function toggleUserMenu() {
 document.addEventListener('click', (e) => {
     const userDropdown = document.querySelector('.user-dropdown');
     const menu = document.getElementById('userMenu');
-    
+
     if (!userDropdown.contains(e.target)) {
         menu.classList.remove('active');
     }
@@ -285,7 +285,7 @@ async function loadProjects() {
             handleLogout();
             return;
         }
-        
+
         if (data.success && data.data.length > 0) {
             // Load steps for each project
             const projectsWithSteps = await Promise.all(
@@ -298,7 +298,7 @@ async function loadProjects() {
                             }
                         });
                         const stepsData = await stepsResponse.json();
-                        
+
                         if (stepsData.success) {
                             project.steps = {};
                             stepsData.data.forEach(step => {
@@ -313,7 +313,7 @@ async function loadProjects() {
                     return project;
                 })
             );
-            
+
             renderProjects(projectsWithSteps);
             updateStats(projectsWithSteps);
         } else {
@@ -330,27 +330,27 @@ async function loadProjects() {
 function renderProjects(projects) {
     const grid = document.getElementById('projectsGrid');
     const emptyState = document.getElementById('emptyState');
-    
+
     if (projects.length === 0) {
         showEmptyState();
         return;
     }
-    
+
     emptyState.style.display = 'none';
-    
+
     // Sort by updated_at descending
     projects.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
-    
+
     // Show max 6 recent projects
     const recentProjects = projects.slice(0, 6);
-    
+
     const projectsHTML = recentProjects.map(project => {
         const stepsCount = Object.keys(project.steps || {}).length;
-        const progress = Math.round((stepsCount / 9) * 100);
+        const progress = Math.round((stepsCount / 8) * 100);
         const status = getProjectStatus(project, stepsCount);
         const lastStep = getLastCompletedStep(project.steps);
         const date = formatDate(project.updated_at);
-        
+
         return `
             <div class="project-card" onclick="openProject(${project.id})">
                 <div class="project-header">
@@ -362,7 +362,7 @@ function renderProjects(projects) {
                 <h3 class="project-title">${escapeHtml(project.title || 'Dự án không tên')}</h3>
                 <div class="project-meta">
                     <span><i class="fas fa-clock"></i> ${date}</span>
-                    <span><i class="fas fa-tasks"></i> ${stepsCount}/9 bước</span>
+                    <span><i class="fas fa-tasks"></i> ${stepsCount}/8 bước</span>
                 </div>
                 <div class="project-progress">
                     <div class="progress-bar">
@@ -376,7 +376,7 @@ function renderProjects(projects) {
             </div>
         `;
     }).join('');
-    
+
     grid.innerHTML = projectsHTML;
 }
 
@@ -396,7 +396,7 @@ function getLastCompletedStep(steps) {
     if (!steps || Object.keys(steps).length === 0) {
         return 'Chưa bắt đầu';
     }
-    
+
     let lastIndex = -1;
     Object.keys(steps).forEach(tool => {
         const index = toolOrder.indexOf(tool);
@@ -404,11 +404,11 @@ function getLastCompletedStep(steps) {
             lastIndex = index;
         }
     });
-    
+
     if (lastIndex >= 0) {
         return toolNames[toolOrder[lastIndex]];
     }
-    
+
     return 'Chưa bắt đầu';
 }
 
@@ -417,16 +417,16 @@ function formatDate(dateString) {
     const date = new Date(dateString);
     const now = new Date();
     const diff = now - date;
-    
+
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
-    
+
     if (minutes < 1) return 'Vừa xong';
     if (minutes < 60) return `${minutes} phút trước`;
     if (hours < 24) return `${hours} giờ trước`;
     if (days < 7) return `${days} ngày trước`;
-    
+
     return date.toLocaleDateString('vi-VN');
 }
 
@@ -438,12 +438,12 @@ function updateStats(projects) {
         const steps = Object.keys(p.steps || {}).length;
         return steps > 0 && steps < 9;
     }).length;
-    
+
     let totalGenerated = 0;
     projects.forEach(p => {
         totalGenerated += Object.keys(p.steps || {}).length;
     });
-    
+
     animateNumber('totalProjects', total);
     animateNumber('completedProjects', completed);
     animateNumber('inProgressProjects', inProgress);
@@ -456,20 +456,20 @@ function animateNumber(elementId, target) {
     const duration = 1000;
     const start = 0;
     const startTime = performance.now();
-    
+
     function update(currentTime) {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
         const easeProgress = 1 - Math.pow(1 - progress, 3);
         const current = Math.floor(start + (target - start) * easeProgress);
-        
+
         element.textContent = current;
-        
+
         if (progress < 1) {
             requestAnimationFrame(update);
         }
     }
-    
+
     requestAnimationFrame(update);
 }
 
@@ -726,7 +726,7 @@ function triggerAvatarPick() {
     // Kiểm tra xem có đang chạy trong Flutter WebView không
     if (typeof FlutterBridge !== 'undefined' && typeof window.flutterPickImage === 'function') {
         // Dùng Flutter native image picker
-        window.flutterPickImage(function(result) {
+        window.flutterPickImage(function (result) {
             if (!result) {
                 console.log('[Avatar] User hủy chọn ảnh');
                 return;
@@ -972,7 +972,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (userData.avatar) {
                 updateNavbarAvatar(userData.avatar);
             }
-        } catch (e) {}
+        } catch (e) { }
     }
 });
 

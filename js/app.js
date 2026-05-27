@@ -663,6 +663,8 @@ async function handleDashboardRedirect() {
     const openProject = sessionStorage.getItem('openProject');
     const newProject = sessionStorage.getItem('newProject');
     const newProjectLoaded = sessionStorage.getItem('newProjectLoaded');
+    // State lưu trước khi reload
+    const lastStateRaw = sessionStorage.getItem('lastState');
     
     if (newProjectLoaded) {
         sessionStorage.removeItem('newProjectLoaded');
@@ -727,13 +729,49 @@ async function handleDashboardRedirect() {
         };
         const navToolId = openTool.startsWith('story_') ? (storyToNavMap[openTool] || openTool) : openTool;
         
-        const navItems = document.querySelectorAll('.nav-item');
+        const navItems = document.querySelectorAll('#tools-list .nav-item[data-tool]');
         navItems.forEach(item => {
             item.classList.remove('active');
             if (item.dataset.tool === navToolId) {
                 item.classList.add('active');
             }
         });
+    } else if (lastStateRaw) {
+        // ✅ Khôi phục trạng thái sau khi tải lại trang (F5 / Ctrl+R)
+        try {
+            const lastState = JSON.parse(lastStateRaw);
+            const { projectId, toolId } = lastState;
+            
+            if (projectId) {
+                // Wait for projects to load from DB
+                if (typeof waitForProjectsLoaded === 'function') {
+                    await waitForProjectsLoaded();
+                }
+                // Restore project
+                if (typeof loadProject === 'function') {
+                    await loadProject(projectId);
+                }
+            }
+            
+            if (toolId) {
+                loadTool(toolId);
+                // Update nav active state
+                const storyToNavMap = {
+                    'story_theme': 'theme', 'story_character': 'character',
+                    'story_synopsis': 'synopsis', 'story_structure': 'structure',
+                    'story_beatsheet': 'beatsheet', 'story_scenelist': 'scenelist',
+                    'story_script': 'script', 'story_upload': 'logline'
+                };
+                const navToolId = toolId.startsWith('story_') ? (storyToNavMap[toolId] || toolId) : toolId;
+                document.querySelectorAll('#tools-list .nav-item[data-tool]').forEach(item => {
+                    item.classList.remove('active');
+                    if (item.dataset.tool === navToolId) item.classList.add('active');
+                });
+            }
+        } catch (e) {
+            // Nếu lỗi parse thì về dashboard
+            window.location.href = 'dashboard.html';
+        }
     } else {
         // Người dùng truy cập trực tiếp index.html mà không có action nào
         // → Chuyển hướng về dashboard.html
@@ -789,16 +827,22 @@ function handleLogout() {
 
 // Setup navigation
 function setupNavigation() {
-    const navItems = document.querySelectorAll('.nav-item');
-    navItems.forEach(item => {
-        item.addEventListener('click', () => {
-            const toolId = item.dataset.tool;
-            setActiveNavItem(item);
-            // Deselect story nav items
-            document.querySelectorAll('.story-nav-item').forEach(si => si.classList.remove('active'));
-            loadTool(toolId);
+    // Gắn click trực tiếp vào từng nav-item có data-tool trong tools-list
+    const toolsList = document.getElementById('tools-list');
+    if (toolsList) {
+        toolsList.querySelectorAll('.nav-item[data-tool]').forEach(item => {
+            item.addEventListener('click', () => {
+                const toolId = item.dataset.tool;
+                // Bỏ active tất cả nav-item có data-tool
+                document.querySelectorAll('#tools-list .nav-item[data-tool]').forEach(i => i.classList.remove('active'));
+                // Thêm active cho item được click
+                item.classList.add('active');
+                // Deselect story nav items
+                document.querySelectorAll('.story-nav-item').forEach(si => si.classList.remove('active'));
+                loadTool(toolId);
+            });
         });
-    });
+    }
     
     // Setup story nav items
     setupStoryNavigation();
@@ -827,7 +871,7 @@ function setupStoryNavigation() {
 
 // Set active nav item
 function setActiveNavItem(activeItem) {
-    document.querySelectorAll('.nav-item').forEach(item => {
+    document.querySelectorAll('.nav-item[data-tool]').forEach(item => {
         item.classList.remove('active');
     });
     activeItem.classList.add('active');
@@ -972,6 +1016,13 @@ function loadTool(toolId) {
         }
     }
 
+    // ✅ Lưu trạng thái hiện tại vào sessionStorage để khôi phục khi reload
+    const projectForSave = window.ProjectManager ? window.ProjectManager.getCurrentProject() : null;
+    const stateToSave = {
+        toolId: toolId,
+        projectId: projectForSave ? projectForSave.id : null
+    };
+    sessionStorage.setItem('lastState', JSON.stringify(stateToSave));
     currentTool = actualToolId;
     
     // Check if it's a story tool
