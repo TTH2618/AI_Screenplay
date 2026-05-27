@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tất cả Kịch bản - AI Screenplay</title>
+    <meta name="description" content="Xem và quản lý tất cả các dự án kịch bản của bạn với AI Screenplay">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <!-- PWA Settings -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#7c3aed">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AI Screenplay">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="stylesheet" href="css/pwa.css">
+    <script src="js/pwa.js" defer></script>
+    <style>
+        /* =====================================================
+           Projects Page - All Projects
+           ===================================================== */
+
+        /* Page Header Banner */
+        .page-hero {
+            background: var(--gradient-primary);
+            padding: 40px 24px 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+        }
+
+        .page-hero::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: 5%;
+            width: 250px;
+            height: 250px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 50%;
+        }
+
+        .page-hero-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-hero-text .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.65);
+            margin-bottom: 12px;
+        }
+
+        .page-hero-text .breadcrumb a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .page-hero-text .breadcrumb a:hover {
+            color: #fff;
+        }
+
+        .page-hero-text .breadcrumb i {
+            font-size: 0.7rem;
+        }
+
+        .page-hero-text h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--white);
+            margin-bottom: 8px;
+        }
+
+        .page-hero-text p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1rem;
+        }
+
+        .hero-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* Controls bar */
+        .controls-bar {
+            background: var(--white);
+            border-bottom: 1px solid var(--gray-200);
+            padding: 0 24px;
+            position: sticky;
+            top: 64px;
+            z-index: 90;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .controls-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 0;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 200px;
+            max-width: 380px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+            font-size: 0.9rem;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 14px 10px 40px;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            background: var(--gray-50);
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--white);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            background: var(--white);
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            white-space: nowrap;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--primary-light);
+            color: var(--primary);
+            background: rgba(99, 102, 241, 0.04);
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: var(--white);
+        }
+
+        .sort-select {
+            padding: 9px 14px;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            background: var(--white);
+            font-size: 0.85rem;
+            color: var(--gray-700);
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.2s;
+        }
+
+        .sort-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .controls-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .view-toggle {
+            display: flex;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+
+        .view-toggle-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: var(--white);
+            color: var(--gray-400);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .view-toggle-btn.active {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .results-count {
+            font-size: 0.85rem;
+            color: var(--gray-500);
+            white-space: nowrap;
+        }
+
+        /* Main projects area */
+        .all-projects-section {
+            padding: 32px 24px 60px;
+            max-width: 1400px;
+            margin: -44px auto 0;
+            position: relative;
+            z-index: 5;
+        }
+
+        /* Stats strip */
+        .quick-stats-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .qstat-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: var(--shadow-md);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .qstat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .qstat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .qstat-icon.blue {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+        }
+
+        .qstat-icon.green {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .qstat-icon.orange {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .qstat-icon.purple {
+            background: rgba(168, 85, 247, 0.1);
+            color: #a855f7;
+        }
+
+        .qstat-info .qstat-num {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark);
+            line-height: 1;
+        }
+
+        .qstat-info .qstat-label {
+            font-size: 0.8rem;
+            color: var(--gray-500);
+            margin-top: 4px;
+        }
+
+        /* All Projects Grid */
+        .all-projects-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            transition: all 0.3s;
+        }
+
+        .all-projects-grid.list-view {
+            grid-template-columns: 1fr;
+        }
+
+        /* Extended project card */
+        .project-card-ext {
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.4s ease both;
+        }
+
+        .project-card-ext::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--gradient-primary);
+            transform: scaleY(0);
+            transform-origin: bottom;
+            transition: transform 0.3s ease;
+            border-radius: 4px 0 0 4px;
+        }
+
+        .project-card-ext:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--primary-light);
+        }
+
+        .project-card-ext:hover::before {
+            transform: scaleY(1);
+        }
+
+        /* List view card */
+        .all-projects-grid.list-view .project-card-ext {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 20px;
+            padding: 18px 24px;
+        }
+
+        .all-projects-grid.list-view .project-card-ext:hover {
+            transform: translateX(4px) translateY(0);
+        }
+
+        .all-projects-grid.list-view .project-card-ext::before {
+            width: 3px;
+            transform: scaleY(1);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .all-projects-grid.list-view .project-card-ext:hover::before {
+            opacity: 1;
+        }
+
+        .all-projects-grid.list-view .project-card-ext .card-body {
+            display: contents;
+        }
+
+        .all-projects-grid.list-view .project-icon-wrap {
+            grid-row: 1 / 3;
+        }
+
+        .project-icon-wrap {
+            width: 52px;
+            height: 52px;
+            background: var(--gradient-card);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 14px;
+        }
+
+        .all-projects-grid.list-view .card-top {
+            margin-bottom: 0;
+            align-items: center;
+        }
+
+        .card-title-block h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 6px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.4;
+        }
+
+        .all-projects-grid.list-view .card-title-block h3 {
+            -webkit-line-clamp: 1;
+            margin-bottom: 2px;
+        }
+
+        /* Script preview */
+        .script-preview {
+            font-size: 0.82rem;
+            color: var(--gray-500);
+            line-height: 1.55;
+            margin-bottom: 14px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .all-projects-grid.list-view .script-preview {
+            display: none;
+        }
+
+        /* Step chips */
+        .step-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 14px;
+        }
+
+        .all-projects-grid.list-view .step-chips {
+            display: none;
+        }
+
+        .step-chip {
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            background: rgba(99, 102, 241, 0.08);
+            color: var(--primary);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+        }
+
+        .step-chip.done {
+            background: rgba(16, 185, 129, 0.08);
+            color: var(--success);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        /* Card footer */
+        .card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .card-meta {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 0.78rem;
+            color: var(--gray-400);
+        }
+
+        .card-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .card-progress-mini {
+            flex: 1;
+        }
+
+        .all-projects-grid.list-view .card-progress-mini {
+            min-width: 160px;
+            max-width: 200px;
+        }
+
+        .mini-bar {
+            height: 5px;
+            background: var(--gray-200);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .mini-fill {
+            height: 100%;
+            background: var(--gradient-primary);
+            border-radius: 3px;
+            transition: width 0.6s ease;
+        }
+
+        .mini-pct {
+            font-size: 0.72rem;
+            color: var(--gray-500);
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        /* Status badge */
+        .project-badge {
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.73rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .project-badge.in-progress {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .project-badge.completed {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .project-badge.draft {
+            background: rgba(107, 114, 128, 0.1);
+            color: var(--gray-500);
+        }
+
+        /* Card action menu */
+        .card-action-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: var(--gray-100);
+            border-radius: 50%;
+            cursor: pointer;
+            color: var(--gray-500);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .card-action-btn:hover {
+            background: var(--gray-200);
+            color: var(--gray-700);
+        }
+
+        .card-action-menu {
+            position: absolute;
+            top: calc(100% + 4px);
+            right: 0;
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            min-width: 160px;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-6px);
+            transition: all 0.2s;
+        }
+
+        .card-action-menu.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .card-action-menu a,
+        .card-action-menu button {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            color: var(--gray-700);
+            text-decoration: none;
+            background: none;
+            border: none;
+            width: 100%;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: background 0.15s;
+        }
+
+        .card-action-menu a:hover,
+        .card-action-menu button:hover {
+            background: var(--gray-50);
+        }
+
+        .card-action-menu .danger-item {
+            color: var(--danger);
+        }
+
+        .card-action-menu .menu-divider {
+            height: 1px;
+            background: var(--gray-200);
+            margin: 4px 0;
+        }
+
+        /* Loading skeleton */
+        .skeleton-card {
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            animation: pulse 1.5s ease infinite;
+        }
+
+        .skeleton-line {
+            height: 14px;
+            background: var(--gray-200);
+            border-radius: 7px;
+            margin-bottom: 10px;
+        }
+
+        .skeleton-line.short {
+            width: 40%;
+        }
+
+        .skeleton-line.medium {
+            width: 70%;
+        }
+
+        .skeleton-line.long {
+            width: 100%;
+        }
+
+        .skeleton-line.icon {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius-md);
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* No results */
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 72px 24px;
+            background: var(--white);
+            border: 2px dashed var(--gray-200);
+            border-radius: var(--radius-lg);
+        }
+
+        .no-results .no-results-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--gray-100);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 2rem;
+            color: var(--gray-400);
+        }
+
+        .no-results h3 {
+            font-size: 1.2rem;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .no-results p {
+            color: var(--gray-500);
+            margin-bottom: 24px;
+        }
+
+        /* Confirm delete modal */
+        .confirm-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .confirm-modal.open {
+            display: flex;
+        }
+
+        .confirm-box {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            animation: popIn 0.25s ease;
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(0.92);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .confirm-icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 1.75rem;
+            color: var(--danger);
+        }
+
+        .confirm-box h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+
+        .confirm-box p {
+            font-size: 0.9rem;
+            color: var(--gray-500);
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .confirm-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .btn-cancel-del {
+            padding: 11px 24px;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            background: var(--white);
+            color: var(--gray-600);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+
+        .btn-cancel-del:hover {
+            background: var(--gray-50);
+        }
+
+        .btn-confirm-del {
+            padding: 11px 24px;
+            border: none;
+            border-radius: var(--radius-md);
+            background: var(--danger);
+            color: var(--white);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+
+        .btn-confirm-del:hover {
+            background: #dc2626;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 1100px) {
+            .all-projects-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .quick-stats-strip {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 700px) {
+            .all-projects-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-stats-strip {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .page-hero-text h1 {
+                font-size: 1.5rem;
+            }
+
+            .controls-inner {
+                gap: 10px;
+            }
+
+            .filter-group {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .quick-stats-strip {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="dashboard.html" class="nav-logo">
+                <i class="fas fa-film"></i>
+                <span>AI Screenplay</span>
+            </a>
+            <div class="nav-actions">
+                <button class="btn-upgrade-nav" id="upgradeNavBtn" onclick="openUpgradeModal()">
+                    <i class="fas fa-crown"></i>
+                    <span id="upgradeNavLabel">Nâng cấp PRO</span>
+                </button>
+                <div class="user-dropdown">
+                    <button class="user-btn" onclick="toggleUserMenu()">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span id="userName">Người dùng</span>
+                        <span id="userPlanBadgeNavbar" class="user-plan-badge free">FREE</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-menu" id="userMenu">
+                        <a href="admin.html" id="adminMenuLink" style="display:none;">
+                            <i class="fas fa-shield-halved"></i> Trang quản trị
+                        </a>
+                        <a href="#" onclick="openProfileModal(); event.preventDefault();">
+                            <i class="fas fa-user-circle"></i> Hồ sơ cá nhân
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" onclick="handleLogout()" class="logout-link">
+                            <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Hero Banner -->
+        <div class="page-hero">
+            <div class="page-hero-inner">
+                <div class="page-hero-text">
+                    <div class="breadcrumb">
+                        <a href="dashboard.html"><i class="fas fa-home"></i> Trang chủ</a>
+                        <i class="fas fa-chevron-right"></i>
+                        <span>Tất cả kịch bản</span>
+                    </div>
+                    <h1><i class="fas fa-film"></i> Tất cả Kịch bản</h1>
+                    <p>Xem và quản lý toàn bộ dự án kịch bản của bạn</p>
+                </div>
+                <div class="hero-actions">
+                    <a href="dashboard.html" class="filter-btn"
+                        style="text-decoration:none; display:inline-flex; align-items:center; gap:8px; color: rgba(255,255,255,0.85); border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.1);">
+                        <i class="fas fa-arrow-left"></i> Về Dashboard
+                    </a>
+                    <button class="btn-new-project" onclick="startNewProject()"
+                        style="padding:12px 22px; font-size:0.95rem;">
+                        <i class="fas fa-plus"></i>
+                        <span>Tạo kịch bản mới</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Bar -->
+        <div class="controls-bar">
+            <div class="controls-inner">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchProjects" placeholder="Tìm kiếm kịch bản...">
+                </div>
+                <div class="filter-group">
+                    <button class="filter-btn active" id="filterAll" onclick="applyFilter('all')">Tất cả</button>
+                    <button class="filter-btn" id="filterInProgress" onclick="applyFilter('in-progress')">Đang thực
+                        hiện</button>
+                    <button class="filter-btn" id="filterCompleted" onclick="applyFilter('completed')">Hoàn
+                        thành</button>
+                    <button class="filter-btn" id="filterDraft" onclick="applyFilter('draft')">Bản nháp</button>
+                </div>
+                <select class="sort-select" id="sortProjects" onchange="applySortAndRender()">
+                    <option value="updated_desc">Mới cập nhật nhất</option>
+                    <option value="updated_asc">Cũ nhất</option>
+                    <option value="title_asc">Tên A → Z</option>
+                    <option value="title_desc">Tên Z → A</option>
+                    <option value="progress_desc">Tiến độ cao nhất</option>
+                    <option value="progress_asc">Tiến độ thấp nhất</option>
+                </select>
+                <div class="controls-right">
+                    <span class="results-count" id="resultsCount">Đang tải...</span>
+                    <!-- <div class="view-toggle">
+                        <button class="view-toggle-btn active" id="gridViewBtn" onclick="setView('grid')" title="Dạng lưới">
+                            <i class="fas fa-th"></i>
+                        </button>
+                        <button class="view-toggle-btn" id="listViewBtn" onclick="setView('list')" title="Dạng danh sách">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div> -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Projects Area -->
+        <div class="all-projects-section">
+            <!-- Quick Stats -->
+            <div class="quick-stats-strip" id="quickStatsStrip">
+                <div class="qstat-card">
+                    <div class="qstat-icon blue"><i class="fas fa-folder"></i></div>
+                    <div class="qstat-info">
+                        <div class="qstat-num" id="qs-total">0</div>
+                        <div class="qstat-label">Tổng kịch bản</div>
+                    </div>
+                </div>
+                <div class="qstat-card">
+                    <div class="qstat-icon green"><i class="fas fa-check-circle"></i></div>
+                    <div class="qstat-info">
+                        <div class="qstat-num" id="qs-completed">0</div>
+                        <div class="qstat-label">Hoàn thành</div>
+                    </div>
+                </div>
+                <div class="qstat-card">
+                    <div class="qstat-icon orange"><i class="fas fa-clock"></i></div>
+                    <div class="qstat-info">
+                        <div class="qstat-num" id="qs-inprogress">0</div>
+                        <div class="qstat-label">Đang thực hiện</div>
+                    </div>
+                </div>
+                <div class="qstat-card">
+                    <div class="qstat-icon purple"><i class="fas fa-magic"></i></div>
+                    <div class="qstat-info">
+                        <div class="qstat-num" id="qs-generated">0</div>
+                        <div class="qstat-label">Nội dung đã tạo</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid -->
+            <div class="all-projects-grid" id="allProjectsGrid">
+                <!-- Skeleton loading -->
+                <div class="skeleton-card" id="sk1">
+                    <div class="skeleton-line icon" style="margin-bottom:16px;"></div>
+                    <div class="skeleton-line medium"></div>
+                    <div class="skeleton-line long"></div>
+                    <div class="skeleton-line short"></div>
+                </div>
+                <div class="skeleton-card" id="sk2">
+                    <div class="skeleton-line icon" style="margin-bottom:16px;"></div>
+                    <div class="skeleton-line medium"></div>
+                    <div class="skeleton-line long"></div>
+                    <div class="skeleton-line short"></div>
+                </div>
+                <div class="skeleton-card" id="sk3">
+                    <div class="skeleton-line icon" style="margin-bottom:16px;"></div>
+                    <div class="skeleton-line medium"></div>
+                    <div class="skeleton-line long"></div>
+                    <div class="skeleton-line short"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2026 AI Screenplay. Công cụ viết kịch bản phim với AI.</p>
+    </footer>
+
+    <!-- Confirm Delete Modal -->
+    <div class="confirm-modal" id="confirmDeleteModal">
+        <div class="confirm-box">
+            <div class="confirm-icon"><i class="fas fa-trash-alt"></i></div>
+            <h3>Xoá kịch bản?</h3>
+            <p>Hành động này không thể hoàn tác. Toàn bộ nội dung và tiến độ của kịch bản sẽ bị xoá vĩnh viễn.</p>
+            <div class="confirm-actions">
+                <button class="btn-cancel-del" onclick="closeConfirmDelete()">Huỷ</button>
+                <button class="btn-confirm-del" id="confirmDeleteBtn" onclick="executeDelete()">
+                    <i class="fas fa-trash"></i> Xoá
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upgrade Modal (same as dashboard) -->
+    <div class="modal-overlay" id="upgradeModal">
+        <div class="modal-container upgrade-modal-container">
+            <div class="modal-header">
+                <h2><i class="fas fa-crown"></i> Nâng cấp PRO</h2>
+                <button class="modal-close" onclick="closeUpgradeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="subscription-header">
+                    <p id="planDescription">Tài khoản Free: tối đa 10 lượt AI/ngày. PRO: không giới hạn lượt dùng.</p>
+                    <span class="plan-badge free" id="planStatusBadge">Free</span>
+                </div>
+                <div class="package-grid">
+                    <article class="package-card">
+                        <h3>Gói 1 tháng</h3>
+                        <p class="price" id="price_display_pro_1m">199.000đ</p>
+                        <p class="package-note">Phù hợp để trải nghiệm PRO nhanh</p>
+                        <button class="btn-package" data-package="pro_1m" onclick="upgradePlan('pro_1m')">Nâng cấp
+                            ngay</button>
+                    </article>
+                    <article class="package-card featured">
+                        <span class="best-value">Phổ biến</span>
+                        <h3>Gói 3 tháng</h3>
+                        <p class="price" id="price_display_pro_3m">250.000đ</p>
+                        <p class="package-note">Tiết kiệm hơn khi dùng lâu hơn</p>
+                        <button class="btn-package" data-package="pro_3m" onclick="upgradePlan('pro_3m')">Nâng cấp
+                            ngay</button>
+                    </article>
+                    <article class="package-card">
+                        <h3>Gói 1 năm</h3>
+                        <p class="price" id="price_display_pro_1y">800.000đ</p>
+                        <p class="package-note">Dùng dài hạn, không lo giới hạn</p>
+                        <button class="btn-package" data-package="pro_1y" onclick="upgradePlan('pro_1y')">Nâng cấp
+                            ngay</button>
+                    </article>
+                </div>
+                <div class="payment-methods-info">
+                    <span>Hỗ trợ thanh toán:</span>
+                    <span class="payment-method-badge"><i class="fas fa-university"></i> Ngân hàng</span>
+                    <span class="payment-method-badge"><i class="fas fa-qrcode"></i> QR Code</span>
+                    <span class="payment-method-badge"><img src="https://sepay.vn/favicon.ico"
+                            style="width:14px;height:14px;object-fit:contain;"> SePay</span>
+                </div>
+                <div class="secure-payment-note">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Thanh toán an toàn qua SePay.vn — chuyển khoản ngân hàng xác nhận tự động</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-circle"></i> Hồ sơ cá nhân</h2>
+                <button class="modal-close" onclick="closeProfileModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-tabs">
+                <button class="modal-tab active" id="tabProfile" onclick="switchTab('profile')">
+                    <i class="fas fa-id-card"></i> Thông tin cá nhân
+                </button>
+                <button class="modal-tab" id="tabPassword" onclick="switchTab('password')">
+                    <i class="fas fa-key"></i> Đổi mật khẩu
+                </button>
+                <button class="modal-tab" id="tabPaymentHistory" onclick="switchTab('paymentHistory')">
+                    <i class="fas fa-receipt"></i> Lịch sử thanh toán
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="tabContentProfile">
+                    <div class="avatar-section">
+                        <div class="avatar-preview" id="avatarPreview">
+                            <i class="fas fa-user"></i>
+                            <img id="avatarImage" src="" alt="Avatar" style="display:none;">
+                        </div>
+                        <div class="avatar-actions">
+                            <button class="btn-upload" type="button" onclick="triggerAvatarPick()">
+                                <i class="fas fa-camera"></i> Thay ảnh đại diện
+                            </button>
+                            <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/gif,image/webp"
+                                style="position: fixed; top: -9999px; left: -9999px; width: 1px; height: 1px; opacity: 0;"
+                                onchange="handleAvatarUploadFromInput(event)">
+                            <span class="avatar-hint">JPG, PNG, GIF, WEBP. Tối đa 2MB</span>
+                        </div>
+                    </div>
+                    <form id="profileForm" onsubmit="handleProfileUpdate(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="profileFullName">Họ và tên</label>
+                                <input type="text" id="profileFullName" placeholder="Nhập họ và tên">
+                            </div>
+                            <div class="form-group">
+                                <label for="profileUsername">Tên đăng nhập</label>
+                                <input type="text" id="profileUsername" placeholder="Nhập tên đăng nhập">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="profileGender">Giới tính</label>
+                                <select id="profileGender">
+                                    <option value="">-- Chọn giới tính --</option>
+                                    <option value="male">Nam</option>
+                                    <option value="female">Nữ</option>
+                                    <option value="other">Khác</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="profileDob">Ngày sinh</label>
+                                <input type="date" id="profileDob">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="profilePhone">Số điện thoại</label>
+                                <input type="tel" id="profilePhone" placeholder="Nhập số điện thoại">
+                            </div>
+                            <div class="form-group">
+                                <label for="profileEmail">Email</label>
+                                <input type="email" id="profileEmail" disabled>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn-cancel" onclick="closeProfileModal()">Hủy</button>
+                            <button type="submit" class="btn-save" id="profileSaveBtn">
+                                <i class="fas fa-save"></i> Lưu thay đổi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div id="tabContentPassword" style="display:none;">
+                    <form id="passwordForm" onsubmit="handlePasswordChange(event)">
+                        <div class="form-group">
+                            <label for="currentPassword">Mật khẩu hiện tại</label>
+                            <div class="password-input-wrap">
+                                <input type="password" id="currentPassword" placeholder="Nhập mật khẩu hiện tại">
+                                <button type="button" class="toggle-password"
+                                    onclick="togglePasswordVisibility('currentPassword', this)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="newPassword">Mật khẩu mới</label>
+                            <div class="password-input-wrap">
+                                <input type="password" id="newPassword"
+                                    placeholder="Nhập mật khẩu mới (ít nhất 6 ký tự)">
+                                <button type="button" class="toggle-password"
+                                    onclick="togglePasswordVisibility('newPassword', this)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength" id="passwordStrength"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword">Xác nhận mật khẩu mới</label>
+                            <div class="password-input-wrap">
+                                <input type="password" id="confirmPassword" placeholder="Nhập lại mật khẩu mới">
+                                <button type="button" class="toggle-password"
+                                    onclick="togglePasswordVisibility('confirmPassword', this)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn-cancel" onclick="closeProfileModal()">Hủy</button>
+                            <button type="submit" class="btn-save" id="passwordSaveBtn">
+                                <i class="fas fa-lock"></i> Đổi mật khẩu
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div id="tabContentPaymentHistory" style="display:none;">
+                    <div class="payment-history-container" id="paymentHistoryContainer">
+                        <div class="payment-history-empty">
+                            <i class="fas fa-receipt"></i>
+                            <p>Đang tải lịch sử thanh toán...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Loading Overlay -->
+    <div class="payment-loading-overlay" id="paymentLoadingOverlay">
+        <div class="payment-loading-card">
+            <div class="payment-spinner"></div>
+            <h3>Đang tạo đơn thanh toán...</h3>
+            <p>Vui lòng chờ trong giây lát. Bạn sẽ được chuyển đến trang thanh toán.</p>
+        </div>
+    </div>
+
+    <!-- SePay QR Payment Overlay -->
+    <div class="sepay-qr-overlay" id="sepayQROverlay"></div>
+
+    <!-- Payment Result Overlay -->
+    <div class="payment-result-overlay" id="paymentResultOverlay">
+        <div class="payment-result-card" id="paymentResultCard"></div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/projects.js"></script>
+    <script>
+        // =====================================================
+        // Projects Page - All Projects Logic
+        // =====================================================
+
+        const toolNamesMap = {
+            logline: 'Khởi tạo Kịch bản',
+            theme: 'Xác định Chủ đề',
+            character: 'Mô tả Nhân vật',
+            synopsis: 'Viết Synopsis',
+            structure: 'Cấu trúc 4 Hồi',
+            beatsheet: 'Tạo Beat Sheet',
+            scenelist: 'Danh sách Cảnh',
+            script: 'Viết Kịch bản'
+        };
+
+        const toolOrderList = ['logline', 'theme', 'character', 'synopsis', 'structure', 'beatsheet', 'scenelist', 'script'];
+
+        let allProjects = [];
+        let currentFilter = 'all';
+        let currentView = 'grid';
+        let deleteTargetId = null;
+
+        // Override loadProjects to use full list
+        document.addEventListener('DOMContentLoaded', async () => {
+            const authenticated = await checkAuth();
+            if (!authenticated) return;
+            await loadAllProjects();
+        });
+
+        async function loadAllProjects() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/projects`, {
+                    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() }
+                });
+                const data = await res.json();
+
+                if (res.status === 401 || res.status === 403) { handleLogout(); return; }
+
+                if (data.success && data.data.length > 0) {
+                    const projectsWithSteps = await Promise.all(
+                        data.data.map(async (project) => {
+                            try {
+                                const stepsRes = await fetch(`${API_BASE_URL}/ai-responses/project/${project.id}`, {
+                                    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() }
+                                });
+                                const stepsData = await stepsRes.json();
+                                if (stepsData.success) {
+                                    project.steps = {};
+                                    stepsData.data.forEach(step => { project.steps[step.tool_type] = step; });
+                                } else {
+                                    project.steps = {};
+                                }
+                            } catch (e) { project.steps = {}; }
+                            return project;
+                        })
+                    );
+                    allProjects = projectsWithSteps;
+                } else {
+                    allProjects = [];
+                }
+                updateQuickStats(allProjects);
+                applySortAndRender();
+            } catch (err) {
+                console.error('Error loading all projects:', err);
+                allProjects = [];
+                renderAllProjects([]);
+            }
+        }
+
+        function updateQuickStats(projects) {
+            const total = projects.length;
+            const completed = projects.filter(p => Object.keys(p.steps || {}).length >= 8).length;
+            const inProgress = projects.filter(p => {
+                const s = Object.keys(p.steps || {}).length;
+                return s > 0 && s < 8;
+            }).length;
+            let gen = 0;
+            projects.forEach(p => { gen += Object.keys(p.steps || {}).length; });
+
+            animQStat('qs-total', total);
+            animQStat('qs-completed', completed);
+            animQStat('qs-inprogress', inProgress);
+            animQStat('qs-generated', gen);
+        }
+
+        function animQStat(id, target) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            let start = 0;
+            const dur = 900;
+            const t0 = performance.now();
+            function step(now) {
+                const prog = Math.min((now - t0) / dur, 1);
+                el.textContent = Math.floor(start + (target - start) * (1 - Math.pow(1 - prog, 3)));
+                if (prog < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        }
+
+        function applyFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            const map = { all: 'filterAll', 'in-progress': 'filterInProgress', completed: 'filterCompleted', draft: 'filterDraft' };
+            const btn = document.getElementById(map[filter]);
+            if (btn) btn.classList.add('active');
+            applySortAndRender();
+        }
+
+        function applySortAndRender() {
+            const query = (document.getElementById('searchProjects')?.value || '').toLowerCase().trim();
+            const sort = document.getElementById('sortProjects')?.value || 'updated_desc';
+
+            let filtered = allProjects.filter(p => {
+                const stepsCount = Object.keys(p.steps || {}).length;
+                const matchSearch = !query || (p.title || '').toLowerCase().includes(query);
+                let matchFilter = true;
+                if (currentFilter === 'in-progress') matchFilter = stepsCount > 0 && stepsCount < 8;
+                else if (currentFilter === 'completed') matchFilter = stepsCount >= 8;
+                else if (currentFilter === 'draft') matchFilter = stepsCount === 0;
+                return matchSearch && matchFilter;
+            });
+
+            filtered.sort((a, b) => {
+                const sa = Object.keys(a.steps || {}).length;
+                const sb = Object.keys(b.steps || {}).length;
+                if (sort === 'updated_desc') return new Date(b.updated_at) - new Date(a.updated_at);
+                if (sort === 'updated_asc') return new Date(a.updated_at) - new Date(b.updated_at);
+                if (sort === 'title_asc') return (a.title || '').localeCompare(b.title || '', 'vi');
+                if (sort === 'title_desc') return (b.title || '').localeCompare(a.title || '', 'vi');
+                if (sort === 'progress_desc') return sb - sa;
+                if (sort === 'progress_asc') return sa - sb;
+                return 0;
+            });
+
+            renderAllProjects(filtered);
+        }
+
+        function renderAllProjects(projects) {
+            const grid = document.getElementById('allProjectsGrid');
+            const countEl = document.getElementById('resultsCount');
+
+            if (countEl) countEl.textContent = `${projects.length} kịch bản`;
+
+            if (projects.length === 0) {
+                grid.innerHTML = `
+                    <div class="no-results">
+                        <div class="no-results-icon"><i class="fas fa-search"></i></div>
+                        <h3>Không tìm thấy kịch bản</h3>
+                        <p>Thử thay đổi từ khoá tìm kiếm hoặc bộ lọc</p>
+                        <button class="btn-create" onclick="startNewProject()">
+                            <i class="fas fa-plus"></i> Tạo kịch bản mới
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = projects.map((project, idx) => {
+                const stepsCount = Object.keys(project.steps || {}).length;
+                const progress = Math.round((stepsCount / 8) * 100);
+                const status = getStatusInfo(stepsCount);
+                const date = formatDateStr(project.updated_at);
+
+                // Get preview text from first available step content
+                let preview = project.title || '';
+                const stepOrder = ['logline', 'synopsis', 'theme'];
+                for (const t of stepOrder) {
+                    if (project.steps && project.steps[t] && project.steps[t].content) {
+                        const raw = project.steps[t].content.replace(/<[^>]*>/g, '').trim();
+                        if (raw.length > 10) { preview = raw; break; }
+                    }
+                }
+
+                return `
+                    <div class="project-card-ext" onclick="openProject(${project.id})" style="animation-delay:${idx * 0.04}s;">
+                        <div class="card-top">
+                            <div style="display:flex; align-items:flex-start; gap:14px; flex:1; min-width:0;">
+                                <div class="project-icon-wrap"><i class="fas fa-film"></i></div>
+                                <div class="card-title-block" style="flex:1; min-width:0;">
+                                    <h3>${escapeHtml(project.title || 'Dự án không tên')}</h3>
+                                    <div class="card-meta">
+                                        <span><i class="fas fa-clock"></i> ${date}</span>
+                                        <span><i class="fas fa-tasks"></i> ${stepsCount}/8 bước</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px; flex-shrink:0; margin-left:8px;">
+                                <span class="project-badge ${status.class}">${status.text}</span>
+                                <div style="position:relative;">
+                                    <button class="card-action-btn" onclick="toggleMenu(event, ${project.id})">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <div class="card-action-menu" id="menu-${project.id}">
+                                        <button onclick="event.stopPropagation(); openProject(${project.id})">
+                                            <i class="fas fa-external-link-alt"></i> Mở kịch bản
+                                        </button>
+                                        <div class="menu-divider"></div>
+                                        <button class="danger-item" onclick="event.stopPropagation(); confirmDelete(${project.id})">
+                                            <i class="fas fa-trash-alt"></i> Xoá kịch bản
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="script-preview">${escapeHtml(preview)}</p>
+
+                        <div class="card-footer">
+                            <div class="card-progress-mini">
+                                <div class="mini-bar">
+                                    <div class="mini-fill" style="width:${progress}%"></div>
+                                </div>
+                                <div class="mini-pct">${progress}% hoàn thành</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getStatusInfo(stepsCount) {
+            if (stepsCount >= 8) return { text: 'Hoàn thành', class: 'completed' };
+            if (stepsCount > 0) return { text: 'Đang thực hiện', class: 'in-progress' };
+            return { text: 'Bản nháp', class: 'draft' };
+        }
+
+        function formatDateStr(dateStr) {
+            const d = new Date(dateStr);
+            const now = new Date();
+            const diff = now - d;
+            const mins = Math.floor(diff / 60000);
+            const hrs = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+            if (mins < 1) return 'Vừa xong';
+            if (mins < 60) return `${mins} phút trước`;
+            if (hrs < 24) return `${hrs} giờ trước`;
+            if (days < 7) return `${days} ngày trước`;
+            return d.toLocaleDateString('vi-VN');
+        }
+
+        function setView(view) {
+            currentView = view;
+            const grid = document.getElementById('allProjectsGrid');
+            const gridBtn = document.getElementById('gridViewBtn');
+            const listBtn = document.getElementById('listViewBtn');
+            if (view === 'list') {
+                grid.classList.add('list-view');
+                listBtn.classList.add('active');
+                gridBtn.classList.remove('active');
+            } else {
+                grid.classList.remove('list-view');
+                gridBtn.classList.add('active');
+                listBtn.classList.remove('active');
+            }
+        }
+
+        function toggleMenu(event, projectId) {
+            event.stopPropagation();
+            const menu = document.getElementById(`menu-${projectId}`);
+            const isOpen = menu.classList.contains('open');
+            // Close all menus
+            document.querySelectorAll('.card-action-menu').forEach(m => m.classList.remove('open'));
+            if (!isOpen) menu.classList.add('open');
+        }
+
+        // Close menus on outside click
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.card-action-menu').forEach(m => m.classList.remove('open'));
+        });
+
+        function confirmDelete(projectId) {
+            deleteTargetId = projectId;
+            document.getElementById('confirmDeleteModal').classList.add('open');
+        }
+
+        function closeConfirmDelete() {
+            deleteTargetId = null;
+            document.getElementById('confirmDeleteModal').classList.remove('open');
+        }
+
+        async function executeDelete() {
+            if (!deleteTargetId) return;
+            const btn = document.getElementById('confirmDeleteBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xoá...';
+            btn.disabled = true;
+            try {
+                const res = await fetch(`${API_BASE_URL}/projects/${deleteTargetId}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    allProjects = allProjects.filter(p => p.id !== deleteTargetId);
+                    updateQuickStats(allProjects);
+                    applySortAndRender();
+                    showToast('Đã xoá kịch bản thành công', 'success');
+                } else {
+                    showToast(data.message || 'Xoá thất bại', 'error');
+                }
+            } catch (e) {
+                showToast('Lỗi kết nối server', 'error');
+            } finally {
+                closeConfirmDelete();
+                btn.innerHTML = '<i class="fas fa-trash"></i> Xoá';
+                btn.disabled = false;
+            }
+        }
+
+        // Search debounce
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchEl = document.getElementById('searchProjects');
+            if (searchEl) {
+                let timer;
+                searchEl.addEventListener('input', () => {
+                    clearTimeout(timer);
+                    timer = setTimeout(applySortAndRender, 280);
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>
