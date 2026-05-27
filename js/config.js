@@ -81,9 +81,8 @@
     // ─── Tự động thêm header ngrok-skip-browser-warning ──────────────────────
     // Ngrok free plan hiển thị trang cảnh báo HTML thay vì forward request.
     // Header này yêu cầu ngrok bỏ qua trang cảnh báo đó cho fetch/XHR.
-    // Chỉ áp dụng khi đang chạy qua ngrok (domain kết thúc bằng .ngrok-free.app
-    // hoặc .ngrok.io hoặc .ngrok.app).
-    const isNgrok = /\.ngrok(-free)?\.app$|\.ngrok\.io$/.test(hostname);
+    // Áp dụng cho tất cả domain ngrok: .ngrok-free.app, .ngrok-free.dev, .ngrok.io
+    const isNgrok = /\.ngrok(-free)?\.app$|\.ngrok(-free)?\.dev$|\.ngrok\.io$/.test(hostname);
 
     if (isNgrok) {
         console.log('[Config] Phát hiện ngrok → tự động thêm header ngrok-skip-browser-warning');
