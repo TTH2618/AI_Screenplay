@@ -2,7 +2,10 @@
  * AI Screenplay - Dashboard JavaScript
  */
 
-const API_BASE_URL = `${window.location.protocol}//${window.location.host}/api`;
+// Ưu tiên APP_CONFIG từ config.js (native Capacitor app dùng ngrok/production URL)
+const API_BASE_URL = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
+    ? window.APP_CONFIG.API_BASE_URL
+    : `${window.location.protocol}//${window.location.host}/api`;
 
 let PLAN_PACKAGES = {
     pro_1m: { id: 'pro_1m', name: 'PRO 1 tháng', months: 1, price: 199000 },

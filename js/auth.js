@@ -1,6 +1,10 @@
 // Auth.js - Xử lý đăng nhập và đăng ký
 
-const API_BASE_URL = `${window.location.protocol}//${window.location.host}/api`;
+// Ưu tiên APP_CONFIG từ config.js (native Capacitor app dùng ngrok/production URL)
+// Fallback về location-based URL khi chạy trên trình duyệt thường
+const API_BASE_URL = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
+    ? window.APP_CONFIG.API_BASE_URL
+    : `${window.location.protocol}//${window.location.host}/api`;
 let googleInitPromise = null;
 
 // Lưu session/tokens

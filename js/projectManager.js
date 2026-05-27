@@ -3,7 +3,10 @@
  * Lưu trữ và hiển thị lịch sử các dự án phim từ MySQL
  */
 
-const API_BASE_URL = `${window.location.protocol}//${window.location.host}/api`;
+// Ưu tiên APP_CONFIG từ config.js (native Capacitor app dùng ngrok/production URL)
+const API_BASE_URL = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
+    ? window.APP_CONFIG.API_BASE_URL
+    : `${window.location.protocol}//${window.location.host}/api`;
 
 // Lấy header Authorization từ storage
 function getAuthHeaders() {
