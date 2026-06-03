@@ -45,6 +45,42 @@ def get_active_api_key(provider: str = 'openrouter') -> Optional[str]:
         conn.close()
 
 
+def get_active_provider() -> Optional[str]:
+    """Đọc provider AI đang được cấu hình từ DB (payment_settings)."""
+    conn = _get_connection()
+    if conn is None:
+        return None
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "SELECT setting_value FROM payment_settings WHERE setting_key = 'ai_provider' LIMIT 1"
+            )
+            row = cursor.fetchone()
+            return row['setting_value'] if row else None
+    except Exception:
+        return None
+    finally:
+        conn.close()
+
+
+def get_active_model() -> Optional[str]:
+    """Đọc model AI đang được cấu hình từ DB (payment_settings)."""
+    conn = _get_connection()
+    if conn is None:
+        return None
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "SELECT setting_value FROM payment_settings WHERE setting_key = 'ai_model' LIMIT 1"
+            )
+            row = cursor.fetchone()
+            return row['setting_value'] if row else None
+    except Exception:
+        return None
+    finally:
+        conn.close()
+
+
 def get_system_prompt_override(tool_id: str) -> Optional[str]:
     conn = _get_connection()
     if conn is None:
@@ -74,9 +110,13 @@ def log_generation(payload: dict) -> None:
             cursor.execute(
                 """
                 INSERT INTO ai_generation_logs
-                    (user_id, project_id, tool_id, provider, model_name, status, latency_ms, error_type, error_message)
+                    (user_id, project_id, tool_id, provider, model_name,
+                     tokens_in, tokens_out, cost_vnd, call_type,
+                     status, latency_ms, error_type, error_message)
                 VALUES
-                    (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    (%s, %s, %s, %s, %s,
+                     %s, %s, %s, %s,
+                     %s, %s, %s, %s)
                 """,
                 (
                     payload.get('user_id'),
@@ -84,14 +124,108 @@ def log_generation(payload: dict) -> None:
                     payload.get('tool_id', ''),
                     payload.get('provider', 'openrouter'),
                     payload.get('model_name'),
+                    int(payload.get('tokens_in') or 0),
+                    int(payload.get('tokens_out') or 0),
+                    float(payload.get('cost_vnd') or 0),
+                    payload.get('call_type', 'generate'),
                     payload.get('status', 'error'),
                     int(payload.get('latency_ms') or 0),
                     payload.get('error_type'),
                     payload.get('error_message'),
                 ),
             )
-    except Exception:
+    except Exception as _e:
+        print(f'[log_generation ERROR] {_e}')  # Visible in Python console for debugging
         return
+    finally:
+        conn.close()
+
+
+def get_token_pricing() -> tuple:
+    """Return (price_input_per_1k_vnd, price_output_per_1k_vnd)."""
+    conn = _get_connection()
+    if conn is None:
+        return 5.0, 15.0
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "SELECT setting_key, setting_value FROM payment_settings "
+                "WHERE setting_key IN ('token_price_input_per_1k_vnd', 'token_price_output_per_1k_vnd')"
+            )
+            rows = {r['setting_key']: float(r['setting_value']) for r in cursor.fetchall()}
+        return (
+            rows.get('token_price_input_per_1k_vnd', 5.0),
+            rows.get('token_price_output_per_1k_vnd', 15.0),
+        )
+    except Exception:
+        return 5.0, 15.0
+    finally:
+        conn.close()
+
+
+def calculate_cost(tokens_in: int, tokens_out: int) -> float:
+    """Calculate cost in VND for the given token counts."""
+    price_in, price_out = get_token_pricing()
+    return (tokens_in / 1000.0) * price_in + (tokens_out / 1000.0) * price_out
+
+
+def get_user_balance(user_id: int) -> float:
+    """Return current AI credit balance for a user in VND."""
+    if not user_id:
+        return 0.0
+    conn = _get_connection()
+    if conn is None:
+        return 0.0
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                'SELECT ai_balance_vnd FROM users WHERE id = %s LIMIT 1',
+                (int(user_id),),
+            )
+            row = cursor.fetchone()
+            return float(row['ai_balance_vnd']) if row else 0.0
+    except Exception:
+        return 0.0
+    finally:
+        conn.close()
+
+
+def deduct_user_balance(user_id: int, amount_vnd: float) -> bool:
+    """Deduct amount_vnd from user's AI balance. Returns True on success."""
+    if not user_id or amount_vnd <= 0:
+        return True
+    conn = _get_connection()
+    if conn is None:
+        return True  # can't verify, allow
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                'UPDATE users SET ai_balance_vnd = ai_balance_vnd - %s WHERE id = %s',
+                (round(amount_vnd, 4), int(user_id)),
+            )
+            return cursor.rowcount > 0
+    except Exception:
+        return True
+    finally:
+        conn.close()
+
+
+def add_user_balance(user_id: int, amount_vnd: float) -> bool:
+    """Add amount_vnd to user's AI balance."""
+    if not user_id or amount_vnd <= 0:
+        return False
+    conn = _get_connection()
+    if conn is None:
+        return False
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                'UPDATE users SET ai_balance_vnd = ai_balance_vnd + %s WHERE id = %s',
+                (round(amount_vnd, 4), int(user_id)),
+            )
+            return cursor.rowcount > 0
+    except Exception:
+        return False
     finally:
         conn.close()
 

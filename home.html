@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AI Screenplay - Công cụ Viết Kịch bản Phim với AI</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -23,17 +23,17 @@
         <div class="nav-container">
             <a href="home.html" class="nav-logo">
                 <i class="fas fa-film"></i>
-                <span>AI Screenplay</span>
+                <span data-lp="site-name">AI Screenplay</span>
             </a>
             <div class="nav-links">
-                <a href="#features">Tính năng</a>
-                <a href="#workflow">Quy trình</a>
-                <a href="#tools">Công cụ</a>
-                <a href="#testimonials">Đánh giá</a>
+                <a href="#features" data-i18n="home.nav.features">Tính năng</a>
+                <a href="#workflow" data-i18n="home.nav.workflow">Quy trình</a>
+                <a href="#tools" data-i18n="home.nav.tools">Công cụ</a>
+                <a href="#testimonials" data-i18n="home.nav.reviews">Đánh giá</a>
             </div>
             <div class="nav-actions">
-                <a href="auth.html" class="btn-login">Đăng nhập</a>
-                <a href="auth.html" class="btn-start">Bắt đầu miễn phí</a>
+                <a href="auth.html" class="btn-login" data-i18n="home.nav.login">Đăng nhập</a>
+                <a href="auth.html" class="btn-start" data-i18n="home.nav.start">Bắt đầu miễn phí</a>
             </div>
             <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
                 <i class="fas fa-bars"></i>
@@ -43,16 +43,16 @@
 
     <!-- Mobile Menu -->
     <div class="mobile-menu" id="mobileMenu">
-        <a href="#features">Tính năng</a>
-        <a href="#workflow">Quy trình</a>
-        <a href="#tools">Công cụ</a>
-        <a href="#testimonials">Đánh giá</a>
-        <a href="auth.html" class="btn-login">Đăng nhập</a>
-        <a href="auth.html" class="btn-start">Bắt đầu miễn phí</a>
+        <a href="#features" data-i18n="home.nav.features">Tính năng</a>
+        <a href="#workflow" data-i18n="home.nav.workflow">Quy trình</a>
+        <a href="#tools" data-i18n="home.nav.tools">Công cụ</a>
+        <a href="#testimonials" data-i18n="home.nav.reviews">Đánh giá</a>
+        <a href="auth.html" class="btn-login" data-i18n="home.nav.login">Đăng nhập</a>
+        <a href="auth.html" class="btn-start" data-i18n="home.nav.start">Bắt đầu miễn phí</a>
     </div>
 
     <!-- Hero Section -->
-    <section class="hero">
+    <section class="hero" data-lp-section="hero">
         <div class="hero-bg">
             <div class="hero-gradient"></div>
             <div class="floating-elements">
@@ -66,41 +66,41 @@
         <div class="hero-content">
             <div class="hero-badge">
                 <i class="fas fa-sparkles"></i>
-                <span>Powered by AI</span>
+                <span data-lp="hero-badge">Powered by AI</span>
             </div>
             <h1 class="hero-title">
-                Biến Ý Tưởng Thành
-                <span class="gradient-text">Kịch Bản Phim</span>
-                Chuyên Nghiệp
+                <span data-lp="hero-title-before">Biến Ý Tưởng Thành</span>
+                <span class="gradient-text" data-lp="hero-title-gradient">Kịch Bản Phim</span>
+                <span data-lp="hero-title-after">Chuyên Nghiệp</span>
             </h1>
-            <p class="hero-subtitle">
+            <p class="hero-subtitle" data-lp="hero-subtitle">
                 Công cụ AI hỗ trợ viết kịch bản phim theo quy trình Hollywood chuẩn. 
                 Từ ý tưởng đến kịch bản hoàn chỉnh chỉ trong vài bước đơn giản.
             </p>
             <div class="hero-cta">
                 <a href="auth.html" class="btn-primary">
                     <i class="fas fa-rocket"></i>
-                    Bắt đầu sáng tạo
+                    <span data-lp="hero-cta-primary">Bắt đầu sáng tạo</span>
                 </a>
                 <a href="#workflow" class="btn-secondary">
                     <i class="fas fa-play-circle"></i>
-                    Xem cách hoạt động
+                    <span data-lp="hero-cta-secondary">Xem cách hoạt động</span>
                 </a>
             </div>
             <div class="hero-stats">
                 <div class="stat-item">
-                    <span class="stat-number" data-count="9">0</span>
-                    <span class="stat-label">Công cụ AI</span>
+                    <span class="stat-number" data-count="9" data-lp="hero-stat-0-count">0</span>
+                    <span class="stat-label" data-lp="hero-stat-0-label">Công cụ AI</span>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="stat-item">
-                    <span class="stat-number" data-count="1000">0</span>
-                    <span class="stat-label">Kịch bản đã tạo</span>
+                    <span class="stat-number" data-count="1000" data-lp="hero-stat-1-count">0</span>
+                    <span class="stat-label" data-lp="hero-stat-1-label">Kịch bản đã tạo</span>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="stat-item">
-                    <span class="stat-number" data-count="500">0</span>
-                    <span class="stat-label">Người dùng</span>
+                    <span class="stat-number" data-count="500" data-lp="hero-stat-2-count">0</span>
+                    <span class="stat-label" data-lp="hero-stat-2-label">Người dùng</span>
                 </div>
             </div>
         </div>
@@ -140,149 +140,149 @@
     </section>
 
     <!-- Features Section -->
-    <section class="features" id="features">
+    <section class="features" id="features" data-lp-section="features">
         <div class="container">
             <div class="section-header">
-                <span class="section-badge">Tính năng</span>
-                <h2 class="section-title">Tại sao chọn AI Screenplay?</h2>
-                <p class="section-subtitle">Công cụ mạnh mẽ giúp bạn viết kịch bản nhanh hơn và chuyên nghiệp hơn</p>
+                <span class="section-badge" data-lp="features-badge">Tính năng</span>
+                <h2 class="section-title" data-lp="features-title">Tại sao chọn AI Screenplay?</h2>
+                <p class="section-subtitle" data-lp="features-subtitle">Công cụ mạnh mẽ giúp bạn viết kịch bản nhanh hơn và chuyên nghiệp hơn</p>
             </div>
             <div class="features-grid">
-                <div class="feature-card">
+                <div class="feature-card" data-lp-card="0">
                     <div class="feature-icon">
-                        <i class="fas fa-brain"></i>
+                        <i class="fas fa-brain" data-lp-card-icon></i>
                     </div>
-                    <h3>AI Thông Minh</h3>
-                    <p>Sử dụng mô hình ngôn ngữ tiên tiến để tạo nội dung sáng tạo và phù hợp với ngữ cảnh</p>
+                    <h3 data-lp-card-title>AI Thông Minh</h3>
+                    <p data-lp-card-desc>Sử dụng mô hình ngôn ngữ tiên tiến để tạo nội dung sáng tạo và phù hợp với ngữ cảnh</p>
                 </div>
-                <div class="feature-card">
+                <div class="feature-card" data-lp-card="1">
                     <div class="feature-icon">
-                        <i class="fas fa-route"></i>
+                        <i class="fas fa-route" data-lp-card-icon></i>
                     </div>
-                    <h3>Quy Trình Chuẩn</h3>
-                    <p>Theo quy trình viết kịch bản Hollywood với 9 bước từ Logline đến Kịch bản hoàn chỉnh</p>
+                    <h3 data-lp-card-title>Quy Trình Chuẩn</h3>
+                    <p data-lp-card-desc>Theo quy trình viết kịch bản Hollywood với 9 bước từ Logline đến Kịch bản hoàn chỉnh</p>
                 </div>
-                <div class="feature-card">
+                <div class="feature-card" data-lp-card="2">
                     <div class="feature-icon">
-                        <i class="fas fa-clock"></i>
+                        <i class="fas fa-clock" data-lp-card-icon></i>
                     </div>
-                    <h3>Tiết Kiệm Thời Gian</h3>
-                    <p>Giảm thời gian viết kịch bản từ vài tháng xuống còn vài ngày với sự hỗ trợ của AI</p>
+                    <h3 data-lp-card-title>Tiết Kiệm Thời Gian</h3>
+                    <p data-lp-card-desc>Giảm thời gian viết kịch bản từ vài tháng xuống còn vài ngày với sự hỗ trợ của AI</p>
                 </div>
-                <div class="feature-card">
+                <div class="feature-card" data-lp-card="3">
                     <div class="feature-icon">
-                        <i class="fas fa-edit"></i>
+                        <i class="fas fa-edit" data-lp-card-icon></i>
                     </div>
-                    <h3>Chỉnh Sửa Linh Hoạt</h3>
-                    <p>Dễ dàng chỉnh sửa và điều chỉnh nội dung theo ý muốn với giao diện trực quan</p>
+                    <h3 data-lp-card-title>Chỉnh Sửa Linh Hoạt</h3>
+                    <p data-lp-card-desc>Dễ dàng chỉnh sửa và điều chỉnh nội dung theo ý muốn với giao diện trực quan</p>
                 </div>
-                <div class="feature-card">
+                <div class="feature-card" data-lp-card="4">
                     <div class="feature-icon">
-                        <i class="fas fa-database"></i>
+                        <i class="fas fa-database" data-lp-card-icon></i>
                     </div>
-                    <h3>Lưu Trữ An Toàn</h3>
-                    <p>Tất cả dự án được lưu trữ an toàn trên cloud, truy cập mọi lúc mọi nơi</p>
+                    <h3 data-lp-card-title>Lưu Trữ An Toàn</h3>
+                    <p data-lp-card-desc>Tất cả dự án được lưu trữ an toàn trên cloud, truy cập mọi lúc mọi nơi</p>
                 </div>
-                <div class="feature-card">
+                <div class="feature-card" data-lp-card="5">
                     <div class="feature-icon">
-                        <i class="fas fa-language"></i>
+                        <i class="fas fa-language" data-lp-card-icon></i>
                     </div>
-                    <h3>Hỗ Trợ Tiếng Việt</h3>
-                    <p>Giao diện và nội dung hoàn toàn bằng tiếng Việt, phù hợp với nhà biên kịch Việt Nam</p>
+                    <h3 data-lp-card-title>Hỗ Trợ Tiếng Việt</h3>
+                    <p data-lp-card-desc>Giao diện và nội dung hoàn toàn bằng tiếng Việt, phù hợp với nhà biên kịch Việt Nam</p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Workflow Section -->
-    <section class="workflow" id="workflow">
+    <section class="workflow" id="workflow" data-lp-section="workflow">
         <div class="container">
             <div class="section-header">
-                <span class="section-badge">Quy trình</span>
-                <h2 class="section-title">9 Bước Tạo Kịch Bản Hoàn Hảo</h2>
-                <p class="section-subtitle">Quy trình viết kịch bản chuyên nghiệp theo chuẩn Hollywood</p>
+                <span class="section-badge" data-lp="workflow-badge">Quy trình</span>
+                <h2 class="section-title" data-lp="workflow-title">9 Bước Tạo Kịch Bản Hoàn Hảo</h2>
+                <p class="section-subtitle" data-lp="workflow-subtitle">Quy trình viết kịch bản chuyên nghiệp theo chuẩn Hollywood</p>
             </div>
             <div class="workflow-timeline">
                 <div class="timeline-line"></div>
-                <div class="workflow-step" data-step="1">
+                <div class="workflow-step" data-step="1" data-lp-step="0">
                     <div class="step-icon">
                         <i class="fas fa-pen-fancy"></i>
                     </div>
                     <div class="step-content">
-                        <h3>Tạo Logline</h3>
-                        <p>Tóm tắt phim trong 1-2 câu, nêu bật nhân vật, mục tiêu và xung đột</p>
+                        <h3 data-lp-step-title>Tạo Logline</h3>
+                        <p data-lp-step-desc>Tóm tắt phim trong 1-2 câu, nêu bật nhân vật, mục tiêu và xung đột</p>
                     </div>
                 </div>
-                <div class="workflow-step" data-step="2">
+                <div class="workflow-step" data-step="2" data-lp-step="1">
                     <div class="step-icon">
                         <i class="fas fa-lightbulb"></i>
                     </div>
                     <div class="step-content">
-                        <h3>Xác Định Chủ Đề</h3>
-                        <p>Tìm ra thông điệp sâu sắc và ý nghĩa của câu chuyện</p>
+                        <h3 data-lp-step-title>Xác Định Chủ Đề</h3>
+                        <p data-lp-step-desc>Tìm ra thông điệp sâu sắc và ý nghĩa của câu chuyện</p>
                     </div>
                 </div>
-                <div class="workflow-step" data-step="3">
+                <div class="workflow-step" data-step="3" data-lp-step="2">
                     <div class="step-icon">
                         <i class="fas fa-users"></i>
                     </div>
                     <div class="step-content">
-                        <h3>Mô Tả Nhân Vật</h3>
-                        <p>Xây dựng hồ sơ chi tiết cho từng nhân vật trong phim</p>
+                        <h3 data-lp-step-title>Mô Tả Nhân Vật</h3>
+                        <p data-lp-step-desc>Xây dựng hồ sơ chi tiết cho từng nhân vật trong phim</p>
                     </div>
                 </div>
-                <div class="workflow-step" data-step="4">
+                <div class="workflow-step" data-step="4" data-lp-step="3">
                     <div class="step-icon">
                         <i class="fas fa-file-alt"></i>
                     </div>
                     <div class="step-content">
-                        <h3>Viết Synopsis</h3>
-                        <p>Tóm tắt toàn bộ câu chuyện từ đầu đến cuối</p>
+                        <h3 data-lp-step-title>Viết Synopsis</h3>
+                        <p data-lp-step-desc>Tóm tắt toàn bộ câu chuyện từ đầu đến cuối</p>
                     </div>
                 </div>
-                <div class="workflow-step" data-step="5">
+                <div class="workflow-step" data-step="5" data-lp-step="4">
                     <div class="step-icon">
                         <i class="fas fa-sitemap"></i>
                     </div>
                     <div class="step-content">
-                        <h3>Cấu Trúc 4 Hồi</h3>
-                        <p>Phân chia câu chuyện theo cấu trúc Story Circle</p>
+                        <h3 data-lp-step-title>Cấu Trúc 4 Hồi</h3>
+                        <p data-lp-step-desc>Phân chia câu chuyện theo cấu trúc Story Circle</p>
                     </div>
                 </div>
-                <div class="workflow-step" data-step="6">
+                <div class="workflow-step" data-step="6" data-lp-step="5">
                     <div class="step-icon">
                         <i class="fas fa-chart-line"></i>
                     </div>
                     <div class="step-content">
-                        <h3>Phát Triển Nhân Vật</h3>
-                        <p>Mô tả hành trình thay đổi của nhân vật qua các hồi</p>
+                        <h3 data-lp-step-title>Phát Triển Nhân Vật</h3>
+                        <p data-lp-step-desc>Mô tả hành trình thay đổi của nhân vật qua các hồi</p>
                     </div>
                 </div>
-                <div class="workflow-step" data-step="7">
+                <div class="workflow-step" data-step="7" data-lp-step="6">
                     <div class="step-icon">
                         <i class="fas fa-list-ol"></i>
                     </div>
                     <div class="step-content">
-                        <h3>Tạo Beat Sheet</h3>
-                        <p>Liệt kê các beat quan trọng theo mô hình Save the Cat</p>
+                        <h3 data-lp-step-title>Tạo Beat Sheet</h3>
+                        <p data-lp-step-desc>Liệt kê các beat quan trọng theo mô hình Save the Cat</p>
                     </div>
                 </div>
-                <div class="workflow-step" data-step="8">
+                <div class="workflow-step" data-step="8" data-lp-step="7">
                     <div class="step-icon">
                         <i class="fas fa-th-list"></i>
                     </div>
                     <div class="step-content">
-                        <h3>Danh Sách Cảnh</h3>
-                        <p>Chia kịch bản thành 30-40 cảnh rõ ràng</p>
+                        <h3 data-lp-step-title>Danh Sách Cảnh</h3>
+                        <p data-lp-step-desc>Chia kịch bản thành 30-40 cảnh rõ ràng</p>
                     </div>
                 </div>
-                <div class="workflow-step" data-step="9">
+                <div class="workflow-step" data-step="9" data-lp-step="8">
                     <div class="step-icon">
                         <i class="fas fa-scroll"></i>
                     </div>
                     <div class="step-content">
-                        <h3>Viết Kịch Bản</h3>
-                        <p>Viết kịch bản chi tiết theo format Hollywood chuẩn</p>
+                        <h3 data-lp-step-title>Viết Kịch Bản</h3>
+                        <p data-lp-step-desc>Viết kịch bản chi tiết theo format Hollywood chuẩn</p>
                     </div>
                 </div>
             </div>
@@ -290,7 +290,7 @@
     </section>
 
     <!-- Tools Preview Section -->
-    <section class="tools-preview" id="tools">
+    <section class="tools-preview" id="tools" data-lp-section="tools">
         <div class="container">
             <div class="section-header">
                 <span class="section-badge">Công cụ</span>
@@ -420,56 +420,56 @@
     </section>
 
     <!-- Testimonials Section -->
-    <section class="testimonials" id="testimonials">
+    <section class="testimonials" id="testimonials" data-lp-section="testimonials">
         <div class="container">
             <div class="section-header">
-                <span class="section-badge">Đánh giá</span>
-                <h2 class="section-title">Người Dùng Nói Gì?</h2>
-                <p class="section-subtitle">Phản hồi từ các nhà biên kịch đã sử dụng AI Screenplay</p>
+                <span class="section-badge" data-lp="testimonials-badge">Đánh giá</span>
+                <h2 class="section-title" data-lp="testimonials-title">Người Dùng Nói Gì?</h2>
+                <p class="section-subtitle" data-lp="testimonials-subtitle">Phản hồi từ các nhà biên kịch đã sử dụng AI Screenplay</p>
             </div>
             <div class="testimonials-grid">
-                <div class="testimonial-card">
+                <div class="testimonial-card" data-lp-testimonial="0">
                     <div class="testimonial-content">
                         <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
-                        <p>"AI Screenplay đã giúp tôi tiết kiệm rất nhiều thời gian trong quá trình phát triển ý tưởng. Từ một ý tưởng mơ hồ, tôi đã có được kịch bản hoàn chỉnh trong 2 tuần!"</p>
+                        <p data-lp-testimonial-text>"AI Screenplay đã giúp tôi tiết kiệm rất nhiều thời gian trong quá trình phát triển ý tưởng. Từ một ý tưởng mơ hồ, tôi đã có được kịch bản hoàn chỉnh trong 2 tuần!"</p>
                     </div>
                     <div class="testimonial-author">
                         <div class="author-avatar">
                             <i class="fas fa-user"></i>
                         </div>
                         <div class="author-info">
-                            <h4>Nguyễn Văn A</h4>
-                            <span>Biên kịch phim truyền hình</span>
+                            <h4 data-lp-testimonial-author>Nguyễn Văn A</h4>
+                            <span data-lp-testimonial-role>Biên kịch phim truyền hình</span>
                         </div>
                     </div>
                 </div>
-                <div class="testimonial-card featured">
+                <div class="testimonial-card featured" data-lp-testimonial="1">
                     <div class="testimonial-content">
                         <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
-                        <p>"Công cụ tuyệt vời cho cả người mới và chuyên nghiệp. Quy trình 9 bước rất logic và giúp tôi không bỏ sót bất kỳ yếu tố quan trọng nào trong kịch bản."</p>
+                        <p data-lp-testimonial-text>"Công cụ tuyệt vời cho cả người mới và chuyên nghiệp. Quy trình 9 bước rất logic và giúp tôi không bỏ sót bất kỳ yếu tố quan trọng nào trong kịch bản."</p>
                     </div>
                     <div class="testimonial-author">
                         <div class="author-avatar">
                             <i class="fas fa-user"></i>
                         </div>
                         <div class="author-info">
-                            <h4>Trần Thị B</h4>
-                            <span>Đạo diễn phim ngắn</span>
+                            <h4 data-lp-testimonial-author>Trần Thị B</h4>
+                            <span data-lp-testimonial-role>Đạo diễn phim ngắn</span>
                         </div>
                     </div>
                 </div>
-                <div class="testimonial-card">
+                <div class="testimonial-card" data-lp-testimonial="2">
                     <div class="testimonial-content">
                         <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
-                        <p>"Sinh viên điện ảnh như tôi rất cần một công cụ hỗ trợ như thế này. AI Screenplay không viết thay mình mà hướng dẫn mình viết đúng cách."</p>
+                        <p data-lp-testimonial-text>"Sinh viên điện ảnh như tôi rất cần một công cụ hỗ trợ như thế này. AI Screenplay không viết thay mình mà hướng dẫn mình viết đúng cách."</p>
                     </div>
                     <div class="testimonial-author">
                         <div class="author-avatar">
                             <i class="fas fa-user"></i>
                         </div>
                         <div class="author-info">
-                            <h4>Lê Văn C</h4>
-                            <span>Sinh viên Điện ảnh</span>
+                            <h4 data-lp-testimonial-author>Lê Văn C</h4>
+                            <span data-lp-testimonial-role>Sinh viên Điện ảnh</span>
                         </div>
                     </div>
                 </div>
@@ -478,11 +478,11 @@
     </section>
 
     <!-- CTA Section -->
-    <section class="cta-section">
+    <section class="cta-section" data-lp-section="cta">
         <div class="container">
             <div class="cta-content">
-                <h2>Sẵn Sàng Viết Kịch Bản?</h2>
-                <p>Bắt đầu hành trình sáng tạo của bạn ngay hôm nay với AI Screenplay</p>
+                <h2 data-lp="cta-heading">Sẵn Sàng Viết Kịch Bản?</h2>
+                <p data-lp="cta-subtext">Bắt đầu hành trình sáng tạo của bạn ngay hôm nay với AI Screenplay</p>
                 <div class="cta-buttons">
                     <a href="auth.html" class="btn-primary large">
                         <i class="fas fa-rocket"></i>
@@ -509,9 +509,9 @@
                 <div class="footer-brand">
                     <a href="home.html" class="footer-logo">
                         <i class="fas fa-film"></i>
-                        <span>AI Screenplay</span>
+                        <span data-lp="site-name">AI Screenplay</span>
                     </a>
-                    <p>Công cụ viết kịch bản phim với AI - Biến ý tưởng thành câu chuyện.</p>
+                    <p data-lp="footer-brand-desc">Công cụ viết kịch bản phim với AI - Biến ý tưởng thành câu chuyện.</p>
                     <div class="social-links">
                         <a href="#"><i class="fab fa-facebook-f"></i></a>
                         <a href="#"><i class="fab fa-twitter"></i></a>
@@ -543,11 +543,13 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2026 AI Screenplay. Tất cả quyền được bảo lưu.</p>
+                <p data-lp="footer-copyright">&copy; 2026 AI Screenplay. Tất cả quyền được bảo lưu.</p>
             </div>
         </div>
     </footer>
 
+    <script src="js/i18n.js"></script>
+    <script src="js/notify.js"></script>
     <script src="js/home.js"></script>
 </body>
 </html>

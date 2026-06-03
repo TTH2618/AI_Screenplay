@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - AI Screenplay</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- PWA Settings -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#7c3aed">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AI Screenplay">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="stylesheet" href="css/pwa.css">
+    <script src="js/pwa.js" defer></script>
+</head>
+<body class="auth-body">
+    <div class="auth-container">
+        <!-- Left side - Branding -->
+        <div class="auth-branding">
+            <div class="branding-content">
+                <div class="brand-logo">
+                    <i class="fas fa-film"></i>
+                </div>
+                <h1>AI Screenplay</h1>
+                <p>Công cụ viết kịch bản phim thông minh với sự hỗ trợ của trí tuệ nhân tạo</p>
+                <div class="features-list">
+                    <div class="feature-item">
+                        <i class="fas fa-magic"></i>
+                        <span>Tạo Logline tự động</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-users"></i>
+                        <span>Phát triển nhân vật chi tiết</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-sitemap"></i>
+                        <span>Cấu trúc kịch bản chuyên nghiệp</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Xuất kịch bản hoàn chỉnh</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right side - Auth Forms -->
+        <div class="auth-forms">
+            <!-- Login Form -->
+            <div class="auth-form-container" id="login-form-container">
+                <div class="form-header">
+                    <h2>Chào mừng trở lại!</h2>
+                    <p>Đăng nhập để tiếp tục hành trình sáng tạo của bạn</p>
+                </div>
+
+                <form id="login-form" class="auth-form">
+                    <div class="form-group">
+                        <label for="login-email">
+                            <i class="fas fa-envelope"></i>
+                            Email
+                        </label>
+                        <input type="email" id="login-email" name="email" placeholder="Nhập email của bạn" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="login-password">
+                            <i class="fas fa-lock"></i>
+                            Mật khẩu
+                        </label>
+                        <div class="password-input">
+                            <input type="password" id="login-password" name="password" placeholder="Nhập mật khẩu" required>
+                            <button type="button" class="toggle-password" onclick="togglePassword('login-password')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="remember-me">
+                            <input type="checkbox" name="remember">
+                            <span>Ghi nhớ đăng nhập</span>
+                        </label>
+                        <a href="#" class="forgot-password">Quên mật khẩu?</a>
+                    </div>
+
+                    <button type="submit" class="btn-auth btn-primary">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Đăng nhập
+                    </button>
+
+                    <div class="auth-divider">
+                        <span>hoặc</span>
+                    </div>
+
+                    <div class="btn-auth btn-google" id="google-login-btn"></div>
+                </form>
+
+                <div class="auth-switch">
+                    <p>Chưa có tài khoản? <a href="#" onclick="showRegister()">Đăng ký ngay</a></p>
+                </div>
+            </div>
+
+            <!-- Register Form -->
+            <div class="auth-form-container hidden" id="register-form-container">
+                <div class="form-header">
+                    <h2>Tạo tài khoản mới</h2>
+                    <p>Bắt đầu hành trình viết kịch bản của bạn</p>
+                </div>
+
+                <form id="register-form" class="auth-form">
+                    <div class="form-group">
+                        <label for="register-fullname">
+                            <i class="fas fa-user"></i>
+                            Họ và tên
+                        </label>
+                        <input type="text" id="register-fullname" name="fullname" placeholder="Nhập họ và tên" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-username">
+                            <i class="fas fa-at"></i>
+                            Tên đăng nhập
+                        </label>
+                        <input type="text" id="register-username" name="username" placeholder="Chọn tên đăng nhập" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-email">
+                            <i class="fas fa-envelope"></i>
+                            Email
+                        </label>
+                        <input type="email" id="register-email" name="email" placeholder="Nhập email của bạn" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-password">
+                            <i class="fas fa-lock"></i>
+                            Mật khẩu
+                        </label>
+                        <div class="password-input">
+                            <input type="password" id="register-password" name="password" placeholder="Tạo mật khẩu (ít nhất 6 ký tự)" required minlength="6">
+                            <button type="button" class="toggle-password" onclick="togglePassword('register-password')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="password-strength" id="password-strength"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-confirm-password">
+                            <i class="fas fa-lock"></i>
+                            Xác nhận mật khẩu
+                        </label>
+                        <div class="password-input">
+                            <input type="password" id="register-confirm-password" name="confirmPassword" placeholder="Nhập lại mật khẩu" required>
+                            <button type="button" class="toggle-password" onclick="togglePassword('register-confirm-password')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group terms">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="terms" required>
+                            <span>Tôi đồng ý với <a href="#">Điều khoản sử dụng</a> và <a href="#">Chính sách bảo mật</a></span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn-auth btn-primary">
+                        <i class="fas fa-user-plus"></i>
+                        Đăng ký
+                    </button>
+
+                    <!-- <div class="auth-divider">
+                        <span>hoặc</span>
+                    </div>
+
+                    <div class="btn-auth btn-google" id="google-register-btn"></div> -->
+                </form>
+
+                <div class="auth-switch">
+                    <p>Đã có tài khoản? <a href="#" onclick="showLogin()">Đăng nhập</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>

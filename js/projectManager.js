@@ -21,22 +21,22 @@ let projects = [];
 // Tool type mapping
 const toolTypeMap = {
     logline: { name: '1. Logline Creator', icon: 'fas fa-pen-fancy' },
-    story_upload: { name: '0. Tải truyện lên', icon: 'fas fa-upload', isStory: true },
+    story_upload: { name: window.t ? window.t('tool.map.upload') : '0. Tải truyện lên', icon: 'fas fa-upload', isStory: true },
     theme: { name: '2. Movie Theme Creator', icon: 'fas fa-lightbulb' },
     character: { name: '3. Character Creator', icon: 'fas fa-users' },
     synopsis: { name: '4. Synopsis Creator', icon: 'fas fa-file-alt' },
-    structure: { name: '5. Cấu trúc 4 Hồi', icon: 'fas fa-sitemap' },
+    structure: { name: window.t ? window.t('tool.map.structure') : '5. Cấu trúc 4 Hồi', icon: 'fas fa-sitemap' },
     beatsheet: { name: '6. Beat Sheet Creator', icon: 'fas fa-list-ol' },
     scenelist: { name: '7. Scene List Creator', icon: 'fas fa-th-list' },
     script: { name: '8. Script Writer', icon: 'fas fa-scroll' },
     // Story analysis tools
-    story_theme: { name: '1. Phân tích Chủ đề', icon: 'fas fa-lightbulb', isStory: true },
-    story_character: { name: '2. Phân tích Nhân vật', icon: 'fas fa-users', isStory: true },
-    story_synopsis: { name: '3. Viết Synopsis', icon: 'fas fa-file-alt', isStory: true },
-    story_structure: { name: '4. Phân tích theo từng hồi', icon: 'fas fa-sitemap', isStory: true },
-    story_beatsheet: { name: '5. Tạo Beat Sheet', icon: 'fas fa-list-ol', isStory: true },
-    story_scenelist: { name: '6. Danh sách Cảnh', icon: 'fas fa-th-list', isStory: true },
-    story_script: { name: '7. Viết Kịch bản', icon: 'fas fa-scroll', isStory: true }
+    story_theme: { name: window.t ? window.t('tool.map.story-theme') : '1. Phân tích Chủ đề', icon: 'fas fa-lightbulb', isStory: true },
+    story_character: { name: window.t ? window.t('tool.map.story-char') : '2. Phân tích Nhân vật', icon: 'fas fa-users', isStory: true },
+    story_synopsis: { name: window.t ? window.t('tool.map.story-synopsis') : '3. Viết Synopsis', icon: 'fas fa-file-alt', isStory: true },
+    story_structure: { name: window.t ? window.t('tool.map.story-struct') : '4. Phân tích theo từng hồi', icon: 'fas fa-sitemap', isStory: true },
+    story_beatsheet: { name: window.t ? window.t('tool.map.story-beat') : '5. Tạo Beat Sheet', icon: 'fas fa-list-ol', isStory: true },
+    story_scenelist: { name: window.t ? window.t('tool.map.story-scene') : '6. Danh sách Cảnh', icon: 'fas fa-th-list', isStory: true },
+    story_script: { name: window.t ? window.t('tool.map.story-script') : '7. Viết Kịch bản', icon: 'fas fa-scroll', isStory: true }
 };
 
 // ===================== API Helper =====================
@@ -383,7 +383,8 @@ function renderProjectList() {
         }
         
         const displayDate = new Date(project.updated_at || project.created_at);
-        const dateStr = displayDate.toLocaleDateString('vi-VN', {
+        const locale = window.getCurrentLang && window.getCurrentLang() === 'en' ? 'en-US' : 'vi-VN';
+        const dateStr = displayDate.toLocaleDateString(locale, {
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
@@ -392,6 +393,7 @@ function renderProjectList() {
         });
         
         const stepsCount = Object.keys(project.steps || {}).length;
+        const _t = window.t || (k => k);
         
         item.innerHTML = `
             <div class="project-icon">
@@ -399,23 +401,7 @@ function renderProjectList() {
             </div>
             <div class="project-info">
                 <span class="project-name" title="${project.title}">${project.title}</span>
-                <span class="project-date">Cập nhật: ${dateStr} • ${stepsCount} bước 💾</span>
-            </div>
-            <div class="project-actions">
-                <button class="project-more" onclick="toggleProjectMenu(${project.id}, event)" title="Tùy chọn">
-                    <i class="fas fa-ellipsis-v"></i>
-                </button>
-                <div class="project-menu">
-                    <button onclick="event.stopPropagation(); loadProject(${project.id}); closeProjectMenus();">
-                        <i class="fas fa-eye"></i> Xem
-                    </button>
-                    <button onclick="event.stopPropagation(); renameProject(${project.id}); closeProjectMenus();">
-                        <i class="fas fa-edit"></i> Đổi tên
-                    </button>
-                    <button class="danger" onclick="event.stopPropagation(); deleteProject(${project.id}); closeProjectMenus();">
-                        <i class="fas fa-trash"></i> Xóa
-                    </button>
-                </div>
+                <span class="project-date">${_t('proj.item.updated')} ${dateStr} • ${stepsCount} ${_t('proj.item.steps')} 💾</span>
             </div>
         `;
         
@@ -445,7 +431,17 @@ function toggleProjectMenu(projectId, event) {
     const isOpen = menu.classList.contains('open');
     closeProjectMenus();
     if (!isOpen) {
+        // Position the menu above the button using fixed coords
+        const btn = event.currentTarget;
+        const rect = btn.getBoundingClientRect();
+        // Show offscreen first to measure real height
+        menu.style.visibility = 'hidden';
+        menu.style.top = '0px';
+        menu.style.right = (window.innerWidth - rect.right) + 'px';
         menu.classList.add('open');
+        const menuH = menu.offsetHeight;
+        menu.style.top = (rect.top - menuH - 4) + 'px';
+        menu.style.visibility = '';
     }
 }
 
@@ -514,16 +510,53 @@ async function loadProject(projectId) {
 }
 
 // ===================== Rename Project =====================
-async function renameProject(projectId) {
+function renameProject(projectId) {
     const project = projects.find(p => p.id === projectId);
     if (!project) return;
 
-    const newTitle = prompt('Nhập tên mới cho dự án:', project.title || 'Dự án');
-    if (newTitle === null) return;
+    const overlay = document.getElementById('rename-project-overlay');
+    const input = document.getElementById('rename-project-input');
+    const btnOk = document.getElementById('rename-project-ok');
+    const btnCancel = document.getElementById('rename-project-cancel');
+    if (!overlay || !input) {
+        // fallback nếu modal chưa có trong DOM
+        const newTitle = prompt('Nhập tên mới cho dự án:', project.title || 'Dự án');
+        if (newTitle === null) return;
+        _doRenameProject(projectId, newTitle.trim());
+        return;
+    }
 
-    const trimmedTitle = newTitle.trim();
-    if (!trimmedTitle || trimmedTitle === project.title) return;
+    input.value = project.title || '';
+    overlay.style.display = 'flex';
+    setTimeout(() => { input.focus(); input.select(); }, 50);
 
+    function closeModal() {
+        overlay.style.display = 'none';
+        btnOk.removeEventListener('click', onOk);
+        btnCancel.removeEventListener('click', closeModal);
+        input.removeEventListener('keydown', onKeydown);
+    }
+
+    async function onOk() {
+        const trimmedTitle = input.value.trim();
+        if (!trimmedTitle || trimmedTitle === project.title) { closeModal(); return; }
+        closeModal();
+        await _doRenameProject(projectId, trimmedTitle);
+    }
+
+    function onKeydown(e) {
+        if (e.key === 'Enter') onOk();
+        if (e.key === 'Escape') closeModal();
+    }
+
+    btnOk.addEventListener('click', onOk);
+    btnCancel.addEventListener('click', closeModal);
+    input.addEventListener('keydown', onKeydown);
+}
+
+async function _doRenameProject(projectId, trimmedTitle) {
+    const project = projects.find(p => p.id === projectId);
+    if (!project || !trimmedTitle) return;
     try {
         await apiRequest(`/projects/${projectId}`, {
             method: 'PUT',
@@ -536,9 +569,7 @@ async function renameProject(projectId) {
 
         project.title = trimmedTitle;
         const index = projects.findIndex(p => p.id === projectId);
-        if (index !== -1) {
-            projects[index].title = trimmedTitle;
-        }
+        if (index !== -1) projects[index].title = trimmedTitle;
 
         if (currentProject && currentProject.id === projectId) {
             currentProject.title = trimmedTitle;
@@ -565,8 +596,8 @@ function showDeleteConfirm({ title, message, onConfirm }) {
         if (confirm(message)) onConfirm();
         return;
     }
-    document.getElementById('delete-confirm-title').textContent = title || 'Xác nhận xóa';
-    document.getElementById('delete-confirm-message').textContent = message || 'Hành động này không thể hoàn tác.';
+    document.getElementById('delete-confirm-title').textContent = title || (window.t ? window.t('delete.title') : 'Xác nhận xóa');
+    document.getElementById('delete-confirm-message').textContent = message || (window.t ? window.t('delete.message') : 'Hành động này không thể hoàn tác.');
     overlay.style.display = 'flex';
 
     const btnOk = document.getElementById('delete-confirm-ok');
@@ -592,8 +623,8 @@ function showDeleteConfirm({ title, message, onConfirm }) {
 // ===================== Delete Project =====================
 async function deleteProject(projectId) {
     showDeleteConfirm({
-        title: 'Xóa dự án?',
-        message: 'Bạn có chắc muốn xóa dự án này? Dữ liệu sẽ bị xóa vĩnh viễn khỏi database.',
+        title: window.t ? window.t('delete.title') : 'Xóa dự án?',
+        message: window.t ? window.t('delete.message') : 'Bạn có chắc muốn xóa dự án này? Dữ liệu sẽ bị xóa vĩnh viễn khỏi database.',
         onConfirm: async () => {
             try {
                 // Delete from MySQL
@@ -663,7 +694,7 @@ function showProjectHistory() {
                 <div>
                     <h2><i class="fas fa-film"></i> ${currentProject.title}</h2>
                     <p class="project-meta">
-                        Tạo ngày: ${new Date(currentProject.created_at).toLocaleDateString('vi-VN', {
+                        ${window.t ? window.t('hist.created') : 'Tạo ngày:'} ${new Date(currentProject.created_at).toLocaleDateString(window.getCurrentLang && window.getCurrentLang() === 'en' ? 'en-US' : 'vi-VN', {
                             year: 'numeric',
                             month: 'long',
                             day: 'numeric',
@@ -677,11 +708,11 @@ function showProjectHistory() {
                 <div class="project-history-actions">
                     <button class="btn-rename" onclick="renameProject(${currentProject.id})">
                         <i class="fas fa-edit"></i>
-                        Đổi tên
+                        ${window.t ? window.t('hist.rename') : 'Đổi tên'}
                     </button>
                     <button class="btn-del" onclick="deleteProject(${currentProject.id})">
                         <i class="fas fa-trash"></i>
-                        Xóa
+                        ${window.t ? window.t('hist.del') : 'Xóa'}
                     </button>
                 </div>
             </div>
@@ -693,14 +724,14 @@ function showProjectHistory() {
         historyHTML += `
             <div class="no-steps" style="text-align: center; padding: 40px; color: #9ca3af;">
                 <i class="fas fa-clipboard-list" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
-                <p>Chưa có bước nào được tạo</p>
-                <p style="font-size: 0.85rem; margin-top: 5px;">Bắt đầu bằng cách tạo Logline</p>
+                <p>${window.t ? window.t('hist.empty') : 'Chưa có bước nào được tạo'}</p>
+                <p style="font-size: 0.85rem; margin-top: 5px;">${window.t ? window.t('hist.empty.hint') : 'Bắt đầu bằng cách tạo Logline'}</p>
             </div>
         `;
     } else {
         // Render regular tools section
         if (regularKeys.length > 0) {
-            historyHTML += `<div class="history-section-label"><i class="fas fa-film"></i> Công cụ viết kịch bản</div>`;
+            historyHTML += `<div class="history-section-label"><i class="fas fa-film"></i> ${window.t ? window.t('hist.section.tools') : 'Công cụ viết kịch bản'}</div>`;
             regularKeys.forEach(toolType => {
                 historyHTML += renderHistoryItem(toolType, steps[toolType]);
             });
@@ -708,7 +739,7 @@ function showProjectHistory() {
 
         // Render story tools section
         if (storyKeys.length > 0) {
-            historyHTML += `<div class="history-section-label" style="margin-top: 20px;"><i class="fas fa-book"></i> Phân tích truyện</div>`;
+            historyHTML += `<div class="history-section-label" style="margin-top: 20px;"><i class="fas fa-book"></i> ${window.t ? window.t('hist.section.story') : 'Phân tích truyện'}</div>`;
             storyKeys.forEach(toolType => {
                 historyHTML += renderHistoryItem(toolType, steps[toolType]);
             });
@@ -726,7 +757,7 @@ function showProjectHistory() {
 // Render a single history item
 function renderHistoryItem(toolType, step) {
     const toolInfo = toolTypeMap[toolType] || { name: toolType, icon: 'fas fa-cog' };
-    const stepDate = new Date(step.created_at).toLocaleDateString('vi-VN', {
+    const stepDate = new Date(step.created_at).toLocaleDateString(window.getCurrentLang && window.getCurrentLang() === 'en' ? 'en-US' : 'vi-VN', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
@@ -755,10 +786,10 @@ function renderHistoryItem(toolType, step) {
                 </div>
                 <div class="history-item-actions">
                     <button class="btn-delete-step" onclick="deleteStep('${toolType}')">
-                        Xóa
+                        ${window.t ? window.t('hist.del') : 'Xóa'}
                     </button>
                     <button class="btn-view" onclick="viewStepDetail('${toolType}')">
-                        Xem
+                        ${window.t ? window.t('hist.view') : 'Xem'}
                     </button>
                 </div>
             </div>
@@ -779,8 +810,8 @@ async function deleteStep(toolType) {
     }
 
     showDeleteConfirm({
-        title: 'Xóa bước này?',
-        message: 'Bạn có chắc muốn xóa bước này? Nội dung sẽ bị xóa khỏi dự án và không thể phục hồi.',
+        title: window.t ? window.t('hist.step.del.title') : 'Xóa bước này?',
+        message: window.t ? window.t('hist.step.del.body') : 'Bạn có chắc muốn xóa bước này? Nội dung sẽ bị xóa khỏi dự án và không thể phục hồi.',
         onConfirm: async () => {
             try {
                 await apiRequest(`/ai-responses/${toolType}/${step.id}`, {
@@ -911,7 +942,7 @@ function showRestoreNotification(toolType) {
     notification.className = 'restore-notification';
     notification.innerHTML = `
         <i class="fas fa-check-circle"></i>
-        <span>Đã khôi phục dữ liệu từ "${toolInfo.name}"</span>
+        <span>${window.t ? window.t('hist.restored') : 'Đã khôi phục dữ liệu từ'} "${toolInfo.name}"</span>
         <button onclick="this.parentElement.remove()">
             <i class="fas fa-times"></i>
         </button>

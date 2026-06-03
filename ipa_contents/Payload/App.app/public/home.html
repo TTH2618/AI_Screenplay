@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Screenplay - Công cụ Viết Kịch bản Phim với AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/home.css">
+    <!-- PWA Settings -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#7c3aed">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AI Screenplay">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="stylesheet" href="css/pwa.css">
+    <script src="js/pwa.js" defer></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="home.html" class="nav-logo">
+                <i class="fas fa-film"></i>
+                <span>AI Screenplay</span>
+            </a>
+            <div class="nav-links">
+                <a href="#features">Tính năng</a>
+                <a href="#workflow">Quy trình</a>
+                <a href="#tools">Công cụ</a>
+                <a href="#testimonials">Đánh giá</a>
+            </div>
+            <div class="nav-actions">
+                <a href="auth.html" class="btn-login">Đăng nhập</a>
+                <a href="auth.html" class="btn-start">Bắt đầu miễn phí</a>
+            </div>
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="#features">Tính năng</a>
+        <a href="#workflow">Quy trình</a>
+        <a href="#tools">Công cụ</a>
+        <a href="#testimonials">Đánh giá</a>
+        <a href="auth.html" class="btn-login">Đăng nhập</a>
+        <a href="auth.html" class="btn-start">Bắt đầu miễn phí</a>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-bg">
+            <div class="hero-gradient"></div>
+            <div class="floating-elements">
+                <div class="float-element elem-1"><i class="fas fa-pen-fancy"></i></div>
+                <div class="float-element elem-2"><i class="fas fa-film"></i></div>
+                <div class="float-element elem-3"><i class="fas fa-star"></i></div>
+                <div class="float-element elem-4"><i class="fas fa-magic"></i></div>
+                <div class="float-element elem-5"><i class="fas fa-clapperboard"></i></div>
+            </div>
+        </div>
+        <div class="hero-content">
+            <div class="hero-badge">
+                <i class="fas fa-sparkles"></i>
+                <span>Powered by AI</span>
+            </div>
+            <h1 class="hero-title">
+                Biến Ý Tưởng Thành
+                <span class="gradient-text">Kịch Bản Phim</span>
+                Chuyên Nghiệp
+            </h1>
+            <p class="hero-subtitle">
+                Công cụ AI hỗ trợ viết kịch bản phim theo quy trình Hollywood chuẩn. 
+                Từ ý tưởng đến kịch bản hoàn chỉnh chỉ trong vài bước đơn giản.
+            </p>
+            <div class="hero-cta">
+                <a href="auth.html" class="btn-primary">
+                    <i class="fas fa-rocket"></i>
+                    Bắt đầu sáng tạo
+                </a>
+                <a href="#workflow" class="btn-secondary">
+                    <i class="fas fa-play-circle"></i>
+                    Xem cách hoạt động
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <span class="stat-number" data-count="9">0</span>
+                    <span class="stat-label">Công cụ AI</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-number" data-count="1000">0</span>
+                    <span class="stat-label">Kịch bản đã tạo</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-number" data-count="500">0</span>
+                    <span class="stat-label">Người dùng</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="demo-window">
+                <div class="window-header">
+                    <div class="window-dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <span class="window-title">AI Screenplay Studio</span>
+                </div>
+                <div class="window-content">
+                    <div class="demo-sidebar">
+                        <div class="demo-nav-item active"><i class="fas fa-pen-fancy"></i></div>
+                        <div class="demo-nav-item"><i class="fas fa-lightbulb"></i></div>
+                        <div class="demo-nav-item"><i class="fas fa-users"></i></div>
+                        <div class="demo-nav-item"><i class="fas fa-file-alt"></i></div>
+                        <div class="demo-nav-item"><i class="fas fa-sitemap"></i></div>
+                    </div>
+                    <div class="demo-main">
+                        <div class="typing-demo">
+                            <span class="typing-text">Tạo Logline cho phim...</span>
+                            <span class="cursor">|</span>
+                        </div>
+                        <div class="demo-result">
+                            <div class="result-line"></div>
+                            <div class="result-line short"></div>
+                            <div class="result-line"></div>
+                            <div class="result-line medium"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Tính năng</span>
+                <h2 class="section-title">Tại sao chọn AI Screenplay?</h2>
+                <p class="section-subtitle">Công cụ mạnh mẽ giúp bạn viết kịch bản nhanh hơn và chuyên nghiệp hơn</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>AI Thông Minh</h3>
+                    <p>Sử dụng mô hình ngôn ngữ tiên tiến để tạo nội dung sáng tạo và phù hợp với ngữ cảnh</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-route"></i>
+                    </div>
+                    <h3>Quy Trình Chuẩn</h3>
+                    <p>Theo quy trình viết kịch bản Hollywood với 9 bước từ Logline đến Kịch bản hoàn chỉnh</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3>Tiết Kiệm Thời Gian</h3>
+                    <p>Giảm thời gian viết kịch bản từ vài tháng xuống còn vài ngày với sự hỗ trợ của AI</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-edit"></i>
+                    </div>
+                    <h3>Chỉnh Sửa Linh Hoạt</h3>
+                    <p>Dễ dàng chỉnh sửa và điều chỉnh nội dung theo ý muốn với giao diện trực quan</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <h3>Lưu Trữ An Toàn</h3>
+                    <p>Tất cả dự án được lưu trữ an toàn trên cloud, truy cập mọi lúc mọi nơi</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-language"></i>
+                    </div>
+                    <h3>Hỗ Trợ Tiếng Việt</h3>
+                    <p>Giao diện và nội dung hoàn toàn bằng tiếng Việt, phù hợp với nhà biên kịch Việt Nam</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Workflow Section -->
+    <section class="workflow" id="workflow">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Quy trình</span>
+                <h2 class="section-title">9 Bước Tạo Kịch Bản Hoàn Hảo</h2>
+                <p class="section-subtitle">Quy trình viết kịch bản chuyên nghiệp theo chuẩn Hollywood</p>
+            </div>
+            <div class="workflow-timeline">
+                <div class="timeline-line"></div>
+                <div class="workflow-step" data-step="1">
+                    <div class="step-icon">
+                        <i class="fas fa-pen-fancy"></i>
+                    </div>
+                    <div class="step-content">
+                        <h3>Tạo Logline</h3>
+                        <p>Tóm tắt phim trong 1-2 câu, nêu bật nhân vật, mục tiêu và xung đột</p>
+                    </div>
+                </div>
+                <div class="workflow-step" data-step="2">
+                    <div class="step-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <div class="step-content">
+                        <h3>Xác Định Chủ Đề</h3>
+                        <p>Tìm ra thông điệp sâu sắc và ý nghĩa của câu chuyện</p>
+                    </div>
+                </div>
+                <div class="workflow-step" data-step="3">
+                    <div class="step-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="step-content">
+                        <h3>Mô Tả Nhân Vật</h3>
+                        <p>Xây dựng hồ sơ chi tiết cho từng nhân vật trong phim</p>
+                    </div>
+                </div>
+                <div class="workflow-step" data-step="4">
+                    <div class="step-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="step-content">
+                        <h3>Viết Synopsis</h3>
+                        <p>Tóm tắt toàn bộ câu chuyện từ đầu đến cuối</p>
+                    </div>
+                </div>
+                <div class="workflow-step" data-step="5">
+                    <div class="step-icon">
+                        <i class="fas fa-sitemap"></i>
+                    </div>
+                    <div class="step-content">
+                        <h3>Cấu Trúc 4 Hồi</h3>
+                        <p>Phân chia câu chuyện theo cấu trúc Story Circle</p>
+                    </div>
+                </div>
+                <div class="workflow-step" data-step="6">
+                    <div class="step-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="step-content">
+                        <h3>Phát Triển Nhân Vật</h3>
+                        <p>Mô tả hành trình thay đổi của nhân vật qua các hồi</p>
+                    </div>
+                </div>
+                <div class="workflow-step" data-step="7">
+                    <div class="step-icon">
+                        <i class="fas fa-list-ol"></i>
+                    </div>
+                    <div class="step-content">
+                        <h3>Tạo Beat Sheet</h3>
+                        <p>Liệt kê các beat quan trọng theo mô hình Save the Cat</p>
+                    </div>
+                </div>
+                <div class="workflow-step" data-step="8">
+                    <div class="step-icon">
+                        <i class="fas fa-th-list"></i>
+                    </div>
+                    <div class="step-content">
+                        <h3>Danh Sách Cảnh</h3>
+                        <p>Chia kịch bản thành 30-40 cảnh rõ ràng</p>
+                    </div>
+                </div>
+                <div class="workflow-step" data-step="9">
+                    <div class="step-icon">
+                        <i class="fas fa-scroll"></i>
+                    </div>
+                    <div class="step-content">
+                        <h3>Viết Kịch Bản</h3>
+                        <p>Viết kịch bản chi tiết theo format Hollywood chuẩn</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tools Preview Section -->
+    <section class="tools-preview" id="tools">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Công cụ</span>
+                <h2 class="section-title">Bộ Công Cụ Viết Kịch Bản AI</h2>
+                <p class="section-subtitle">9 công cụ chuyên biệt cho từng bước trong quy trình</p>
+            </div>
+            <div class="tools-showcase">
+                <div class="tools-nav">
+                    <button class="tool-tab active" data-tool="logline">
+                        <i class="fas fa-pen-fancy"></i>
+                        <span>Logline</span>
+                    </button>
+                    <button class="tool-tab" data-tool="theme">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>Chủ đề</span>
+                    </button>
+                    <button class="tool-tab" data-tool="character">
+                        <i class="fas fa-users"></i>
+                        <span>Nhân vật</span>
+                    </button>
+                    <button class="tool-tab" data-tool="synopsis">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Synopsis</span>
+                    </button>
+                    <button class="tool-tab" data-tool="structure">
+                        <i class="fas fa-sitemap"></i>
+                        <span>Cấu trúc</span>
+                    </button>
+                </div>
+                <div class="tools-content">
+                    <div class="tool-preview active" id="preview-logline">
+                        <div class="preview-header">
+                            <h3><i class="fas fa-pen-fancy"></i> Tạo Logline</h3>
+                            <span class="preview-badge">Bước 1</span>
+                        </div>
+                        <div class="preview-body">
+                            <p class="preview-desc">Công cụ giúp bạn tạo ra một câu tóm tắt ngắn gọn (1-2 câu) về bộ phim, nêu bật nhân vật chính, mục tiêu và xung đột.</p>
+                            <div class="preview-example">
+                                <div class="example-label">Ví dụ kết quả:</div>
+                                <blockquote>
+                                    "Một thám tử cô đơn phải đối đầu với kẻ giết người hàng loạt bí ẩn trong thành phố tương lai, nơi công nghệ dự đoán tội phạm đã thất bại - và phát hiện ra kẻ thù thực sự chính là hệ thống mà anh từng tin tưởng."
+                                </blockquote>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tool-preview" id="preview-theme">
+                        <div class="preview-header">
+                            <h3><i class="fas fa-lightbulb"></i> Xác Định Chủ Đề</h3>
+                            <span class="preview-badge">Bước 2</span>
+                        </div>
+                        <div class="preview-body">
+                            <p class="preview-desc">Phân tích và xác định thông điệp sâu sắc của phim, bao gồm chủ đề chính, chủ đề phụ và câu hỏi chủ đề.</p>
+                            <div class="preview-example">
+                                <div class="example-label">Các yếu tố được phân tích:</div>
+                                <ul>
+                                    <li>Chủ đề chính (Universal Theme)</li>
+                                    <li>Các chủ đề phụ</li>
+                                    <li>Câu hỏi chủ đề (Thematic Question)</li>
+                                    <li>Cách thể hiện qua câu chuyện</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tool-preview" id="preview-character">
+                        <div class="preview-header">
+                            <h3><i class="fas fa-users"></i> Mô Tả Nhân Vật</h3>
+                            <span class="preview-badge">Bước 3</span>
+                        </div>
+                        <div class="preview-body">
+                            <p class="preview-desc">Tạo hồ sơ chi tiết cho từng nhân vật bao gồm tính cách, ngoại hình, động lực và vai trò trong câu chuyện.</p>
+                            <div class="preview-example">
+                                <div class="example-label">Thông tin nhân vật bao gồm:</div>
+                                <ul>
+                                    <li>Tên, tuổi, nghề nghiệp</li>
+                                    <li>Ngoại hình và tính cách</li>
+                                    <li>Backstory và động lực</li>
+                                    <li>Arc phát triển dự kiến</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tool-preview" id="preview-synopsis">
+                        <div class="preview-header">
+                            <h3><i class="fas fa-file-alt"></i> Viết Synopsis</h3>
+                            <span class="preview-badge">Bước 4</span>
+                        </div>
+                        <div class="preview-body">
+                            <p class="preview-desc">Biến ý tưởng thành bản tóm tắt chi tiết toàn bộ câu chuyện từ đầu đến cuối, bao gồm cả kết thúc.</p>
+                            <div class="preview-example">
+                                <div class="example-label">Cấu trúc Synopsis:</div>
+                                <ul>
+                                    <li>Mở đầu - Giới thiệu thế giới và nhân vật</li>
+                                    <li>Phát triển - Xung đột và thử thách</li>
+                                    <li>Cao trào - Đỉnh điểm kịch tính</li>
+                                    <li>Kết thúc - Giải quyết và thông điệp</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tool-preview" id="preview-structure">
+                        <div class="preview-header">
+                            <h3><i class="fas fa-sitemap"></i> Cấu Trúc 4 Hồi</h3>
+                            <span class="preview-badge">Bước 5</span>
+                        </div>
+                        <div class="preview-body">
+                            <p class="preview-desc">Phân chia câu chuyện thành 4 hồi theo Story Circle của Dan Harmon, giúp kiểm soát nhịp phim tốt hơn.</p>
+                            <div class="preview-example">
+                                <div class="example-label">4 Hồi theo Story Circle:</div>
+                                <ul>
+                                    <li>Hồi 1: Setup (25%) - Thiết lập</li>
+                                    <li>Hồi 2A: Response (25%) - Phản hồi</li>
+                                    <li>Hồi 2B: Action (25%) - Hành động</li>
+                                    <li>Hồi 3: Climax (25%) - Cao trào</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tools-cta">
+                <a href="auth.html" class="btn-primary">
+                    <i class="fas fa-rocket"></i>
+                    Trải nghiệm ngay
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials" id="testimonials">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Đánh giá</span>
+                <h2 class="section-title">Người Dùng Nói Gì?</h2>
+                <p class="section-subtitle">Phản hồi từ các nhà biên kịch đã sử dụng AI Screenplay</p>
+            </div>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
+                        <p>"AI Screenplay đã giúp tôi tiết kiệm rất nhiều thời gian trong quá trình phát triển ý tưởng. Từ một ý tưởng mơ hồ, tôi đã có được kịch bản hoàn chỉnh trong 2 tuần!"</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="author-info">
+                            <h4>Nguyễn Văn A</h4>
+                            <span>Biên kịch phim truyền hình</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card featured">
+                    <div class="testimonial-content">
+                        <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
+                        <p>"Công cụ tuyệt vời cho cả người mới và chuyên nghiệp. Quy trình 9 bước rất logic và giúp tôi không bỏ sót bất kỳ yếu tố quan trọng nào trong kịch bản."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="author-info">
+                            <h4>Trần Thị B</h4>
+                            <span>Đạo diễn phim ngắn</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
+                        <p>"Sinh viên điện ảnh như tôi rất cần một công cụ hỗ trợ như thế này. AI Screenplay không viết thay mình mà hướng dẫn mình viết đúng cách."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="author-info">
+                            <h4>Lê Văn C</h4>
+                            <span>Sinh viên Điện ảnh</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Sẵn Sàng Viết Kịch Bản?</h2>
+                <p>Bắt đầu hành trình sáng tạo của bạn ngay hôm nay với AI Screenplay</p>
+                <div class="cta-buttons">
+                    <a href="auth.html" class="btn-primary large">
+                        <i class="fas fa-rocket"></i>
+                        Bắt đầu miễn phí
+                    </a>
+                    <a href="index.html" class="btn-secondary large">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Đã có tài khoản? Đăng nhập
+                    </a>
+                </div>
+            </div>
+            <div class="cta-decoration">
+                <div class="decoration-circle circle-1"></div>
+                <div class="decoration-circle circle-2"></div>
+                <div class="decoration-circle circle-3"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <a href="home.html" class="footer-logo">
+                        <i class="fas fa-film"></i>
+                        <span>AI Screenplay</span>
+                    </a>
+                    <p>Công cụ viết kịch bản phim với AI - Biến ý tưởng thành câu chuyện.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Sản phẩm</h4>
+                        <a href="#features">Tính năng</a>
+                        <a href="#tools">Công cụ</a>
+                        <a href="#workflow">Quy trình</a>
+                        <a href="auth.html">Đăng ký</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Hỗ trợ</h4>
+                        <a href="#">Hướng dẫn</a>
+                        <a href="#">FAQ</a>
+                        <a href="#">Liên hệ</a>
+                        <a href="#">Báo lỗi</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Pháp lý</h4>
+                        <a href="#">Điều khoản</a>
+                        <a href="#">Bảo mật</a>
+                        <a href="#">Cookie</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 AI Screenplay. Tất cả quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/home.js"></script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tất cả Kịch bản - AI Screenplay</title>
     <meta name="description" content="Xem và quản lý tất cả các dự án kịch bản của bạn với AI Screenplay">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -898,7 +898,7 @@
             <div class="nav-actions">
                 <button class="btn-upgrade-nav" id="upgradeNavBtn" onclick="openUpgradeModal()">
                     <i class="fas fa-crown"></i>
-                    <span id="upgradeNavLabel">Nâng cấp PRO</span>
+                    <span id="upgradeNavLabel" data-i18n="dash.nav.upgrade">Nâng cấp PRO</span>
                 </button>
                 <div class="user-dropdown">
                     <button class="user-btn" onclick="toggleUserMenu()">
@@ -911,14 +911,17 @@
                     </button>
                     <div class="dropdown-menu" id="userMenu">
                         <a href="admin.html" id="adminMenuLink" style="display:none;">
-                            <i class="fas fa-shield-halved"></i> Trang quản trị
+                            <i class="fas fa-shield-halved"></i> <span data-i18n="dash.nav.admin">Trang quản trị</span>
                         </a>
                         <a href="#" onclick="openProfileModal(); event.preventDefault();">
-                            <i class="fas fa-user-circle"></i> Hồ sơ cá nhân
+                            <i class="fas fa-user-circle"></i> <span data-i18n="dash.nav.profile">Hồ sơ cá nhân</span>
+                        </a>
+                        <a href="#" onclick="toggleLanguage(); event.preventDefault();" class="lang-switch-item">
+                            <i class="fas fa-globe"></i> <span data-i18n="lang.switch">VI</span>
                         </a>
                         <div class="dropdown-divider"></div>
                         <a href="#" onclick="handleLogout()" class="logout-link">
-                            <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                            <i class="fas fa-sign-out-alt"></i> <span data-i18n="dash.nav.logout">Đăng xuất</span>
                         </a>
                     </div>
                 </div>
@@ -933,22 +936,22 @@
             <div class="page-hero-inner">
                 <div class="page-hero-text">
                     <div class="breadcrumb">
-                        <a href="dashboard.html"><i class="fas fa-home"></i> Trang chủ</a>
+                        <a href="dashboard.html"><i class="fas fa-home"></i> <span data-i18n="proj.breadcrumb.home">Trang chủ</span></a>
                         <i class="fas fa-chevron-right"></i>
-                        <span>Tất cả kịch bản</span>
+                        <span data-i18n="proj.breadcrumb.all">Tất cả kịch bản</span>
                     </div>
-                    <h1><i class="fas fa-film"></i> Tất cả Kịch bản</h1>
-                    <p>Xem và quản lý toàn bộ dự án kịch bản của bạn</p>
+                    <h1><i class="fas fa-film"></i> <span data-i18n="proj.hero.title">Tất cả Kịch bản</span></h1>
+                    <p data-i18n="proj.hero.sub">Xem và quản lý toàn bộ dự án kịch bản của bạn</p>
                 </div>
                 <div class="hero-actions">
                     <a href="dashboard.html" class="filter-btn"
                         style="text-decoration:none; display:inline-flex; align-items:center; gap:8px; color: rgba(255,255,255,0.85); border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.1);">
-                        <i class="fas fa-arrow-left"></i> Về Dashboard
+                        <i class="fas fa-arrow-left"></i> <span data-i18n="proj.btn.back">Về Dashboard</span>
                     </a>
                     <button class="btn-new-project" onclick="startNewProject()"
                         style="padding:12px 22px; font-size:0.95rem;">
                         <i class="fas fa-plus"></i>
-                        <span>Tạo kịch bản mới</span>
+                        <span data-i18n="proj.btn.new">Tạo kịch bản mới</span>
                     </button>
                 </div>
             </div>
@@ -959,26 +962,26 @@
             <div class="controls-inner">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="searchProjects" placeholder="Tìm kiếm kịch bản...">
+                    <input type="text" id="searchProjects" data-i18n-ph="ph.search-projects" placeholder="Tìm kiếm kịch bản...">
                 </div>
                 <div class="filter-group">
-                    <button class="filter-btn active" id="filterAll" onclick="applyFilter('all')">Tất cả</button>
-                    <button class="filter-btn" id="filterInProgress" onclick="applyFilter('in-progress')">Đang thực
+                    <button class="filter-btn active" id="filterAll" onclick="applyFilter('all')" data-i18n="proj.filter.all">Tất cả</button>
+                    <button class="filter-btn" id="filterInProgress" onclick="applyFilter('in-progress')" data-i18n="proj.filter.in-progress">Đang thực
                         hiện</button>
-                    <button class="filter-btn" id="filterCompleted" onclick="applyFilter('completed')">Hoàn
+                    <button class="filter-btn" id="filterCompleted" onclick="applyFilter('completed')" data-i18n="proj.filter.completed">Hoàn
                         thành</button>
-                    <button class="filter-btn" id="filterDraft" onclick="applyFilter('draft')">Bản nháp</button>
+                    <button class="filter-btn" id="filterDraft" onclick="applyFilter('draft')" data-i18n="proj.filter.draft">Bản nháp</button>
                 </div>
                 <select class="sort-select" id="sortProjects" onchange="applySortAndRender()">
-                    <option value="updated_desc">Mới cập nhật nhất</option>
-                    <option value="updated_asc">Cũ nhất</option>
-                    <option value="title_asc">Tên A → Z</option>
-                    <option value="title_desc">Tên Z → A</option>
-                    <option value="progress_desc">Tiến độ cao nhất</option>
-                    <option value="progress_asc">Tiến độ thấp nhất</option>
+                    <option value="updated_desc" data-i18n="proj.sort.updated-desc">Mới cập nhật nhất</option>
+                    <option value="updated_asc" data-i18n="proj.sort.updated-asc">Cũ nhất</option>
+                    <option value="title_asc" data-i18n="proj.sort.title-asc">Tên A → Z</option>
+                    <option value="title_desc" data-i18n="proj.sort.title-desc">Tên Z → A</option>
+                    <option value="progress_desc" data-i18n="proj.sort.progress-desc">Tiến độ cao nhất</option>
+                    <option value="progress_asc" data-i18n="proj.sort.progress-asc">Tiến độ thấp nhất</option>
                 </select>
                 <div class="controls-right">
-                    <span class="results-count" id="resultsCount">Đang tải...</span>
+                    <span class="results-count" id="resultsCount" data-i18n="proj.count.loading">Đang tải...</span>
                     <!-- <div class="view-toggle">
                         <button class="view-toggle-btn active" id="gridViewBtn" onclick="setView('grid')" title="Dạng lưới">
                             <i class="fas fa-th"></i>
@@ -999,28 +1002,28 @@
                     <div class="qstat-icon blue"><i class="fas fa-folder"></i></div>
                     <div class="qstat-info">
                         <div class="qstat-num" id="qs-total">0</div>
-                        <div class="qstat-label">Tổng kịch bản</div>
+                        <div class="qstat-label" data-i18n="proj.stat.total">Tổng kịch bản</div>
                     </div>
                 </div>
                 <div class="qstat-card">
                     <div class="qstat-icon green"><i class="fas fa-check-circle"></i></div>
                     <div class="qstat-info">
                         <div class="qstat-num" id="qs-completed">0</div>
-                        <div class="qstat-label">Hoàn thành</div>
+                        <div class="qstat-label" data-i18n="proj.stat.completed">Hoàn thành</div>
                     </div>
                 </div>
                 <div class="qstat-card">
                     <div class="qstat-icon orange"><i class="fas fa-clock"></i></div>
                     <div class="qstat-info">
                         <div class="qstat-num" id="qs-inprogress">0</div>
-                        <div class="qstat-label">Đang thực hiện</div>
+                        <div class="qstat-label" data-i18n="proj.stat.in-progress">Đang thực hiện</div>
                     </div>
                 </div>
                 <div class="qstat-card">
                     <div class="qstat-icon purple"><i class="fas fa-magic"></i></div>
                     <div class="qstat-info">
                         <div class="qstat-num" id="qs-generated">0</div>
-                        <div class="qstat-label">Nội dung đã tạo</div>
+                        <div class="qstat-label" data-i18n="proj.stat.generated">Nội dung đã tạo</div>
                     </div>
                 </div>
             </div>
@@ -1059,12 +1062,12 @@
     <div class="confirm-modal" id="confirmDeleteModal">
         <div class="confirm-box">
             <div class="confirm-icon"><i class="fas fa-trash-alt"></i></div>
-            <h3>Xoá kịch bản?</h3>
-            <p>Hành động này không thể hoàn tác. Toàn bộ nội dung và tiến độ của kịch bản sẽ bị xoá vĩnh viễn.</p>
+            <h3 data-i18n="proj.del.title">Xoá kịch bản?</h3>
+            <p data-i18n="proj.del.body">Hành động này không thể hoàn tác. Toàn bộ nội dung và tiến độ của kịch bản sẽ bị xoá vĩnh viễn.</p>
             <div class="confirm-actions">
-                <button class="btn-cancel-del" onclick="closeConfirmDelete()">Huỷ</button>
+                <button class="btn-cancel-del" onclick="closeConfirmDelete()" data-i18n="proj.del.cancel">Huỷ</button>
                 <button class="btn-confirm-del" id="confirmDeleteBtn" onclick="executeDelete()">
-                    <i class="fas fa-trash"></i> Xoá
+                    <i class="fas fa-trash"></i> <span data-i18n="proj.del.confirm">Xoá</span>
                 </button>
             </div>
         </div>
@@ -1074,7 +1077,7 @@
     <div class="modal-overlay" id="upgradeModal">
         <div class="modal-container upgrade-modal-container">
             <div class="modal-header">
-                <h2><i class="fas fa-crown"></i> Nâng cấp PRO</h2>
+                <h2><i class="fas fa-crown"></i> <span data-i18n="proj.upg.title">Nâng cấp PRO</span></h2>
                 <button class="modal-close" onclick="closeUpgradeModal()">
                     <i class="fas fa-times"></i>
                 </button>
@@ -1086,30 +1089,27 @@
                 </div>
                 <div class="package-grid">
                     <article class="package-card">
-                        <h3>Gói 1 tháng</h3>
+                        <h3 data-i18n="modal.pkg.1m.title">Gói 1 tháng</h3>
                         <p class="price" id="price_display_pro_1m">199.000đ</p>
-                        <p class="package-note">Phù hợp để trải nghiệm PRO nhanh</p>
-                        <button class="btn-package" data-package="pro_1m" onclick="upgradePlan('pro_1m')">Nâng cấp
-                            ngay</button>
+                        <p class="package-note" data-i18n="modal.pkg.1m.note">Phù hợp để trải nghiệm PRO nhanh</p>
+                        <button class="btn-package" data-package="pro_1m" onclick="upgradePlan('pro_1m')"><span data-i18n="proj.upg.now">Nâng cấp ngay</span></button>
                     </article>
                     <article class="package-card featured">
-                        <span class="best-value">Phổ biến</span>
-                        <h3>Gói 3 tháng</h3>
+                        <span class="best-value" data-i18n="modal.pkg.popular">Phổ biến</span>
+                        <h3 data-i18n="modal.pkg.3m.title">Gói 3 tháng</h3>
                         <p class="price" id="price_display_pro_3m">250.000đ</p>
-                        <p class="package-note">Tiết kiệm hơn khi dùng lâu hơn</p>
-                        <button class="btn-package" data-package="pro_3m" onclick="upgradePlan('pro_3m')">Nâng cấp
-                            ngay</button>
+                        <p class="package-note" data-i18n="modal.pkg.3m.note">Tiết kiệm hơn khi dùng lâu hơn</p>
+                        <button class="btn-package" data-package="pro_3m" onclick="upgradePlan('pro_3m')"><span data-i18n="proj.upg.now">Nâng cấp ngay</span></button>
                     </article>
                     <article class="package-card">
-                        <h3>Gói 1 năm</h3>
+                        <h3 data-i18n="modal.pkg.1y.title">Gói 1 năm</h3>
                         <p class="price" id="price_display_pro_1y">800.000đ</p>
-                        <p class="package-note">Dùng dài hạn, không lo giới hạn</p>
-                        <button class="btn-package" data-package="pro_1y" onclick="upgradePlan('pro_1y')">Nâng cấp
-                            ngay</button>
+                        <p class="package-note" data-i18n="modal.pkg.1y.note">Dùng dài hạn, không lo giới hạn</p>
+                        <button class="btn-package" data-package="pro_1y" onclick="upgradePlan('pro_1y')"><span data-i18n="proj.upg.now">Nâng cấp ngay</span></button>
                     </article>
                 </div>
                 <div class="payment-methods-info">
-                    <span>Hỗ trợ thanh toán:</span>
+                    <span data-i18n="modal.pay.support">Hỗ trợ thanh toán:</span>
                     <span class="payment-method-badge"><i class="fas fa-university"></i> Ngân hàng</span>
                     <span class="payment-method-badge"><i class="fas fa-qrcode"></i> QR Code</span>
                     <span class="payment-method-badge"><img src="https://sepay.vn/favicon.ico"
@@ -1117,7 +1117,7 @@
                 </div>
                 <div class="secure-payment-note">
                     <i class="fas fa-shield-alt"></i>
-                    <span>Thanh toán an toàn qua SePay.vn — chuyển khoản ngân hàng xác nhận tự động</span>
+                    <span data-i18n="modal.pay.secure">Thanh toán an toàn qua SePay.vn — chuyển khoản ngân hàng xác nhận tự động</span>
                 </div>
             </div>
         </div>
@@ -1127,20 +1127,20 @@
     <div class="modal-overlay" id="profileModal">
         <div class="modal-container">
             <div class="modal-header">
-                <h2><i class="fas fa-user-circle"></i> Hồ sơ cá nhân</h2>
+                <h2><i class="fas fa-user-circle"></i> <span data-i18n="modal.profile.title">Hồ sơ cá nhân</span></h2>
                 <button class="modal-close" onclick="closeProfileModal()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="modal-tabs">
                 <button class="modal-tab active" id="tabProfile" onclick="switchTab('profile')">
-                    <i class="fas fa-id-card"></i> Thông tin cá nhân
+                    <i class="fas fa-id-card"></i> <span data-i18n="modal.tab.profile">Thông tin cá nhân</span>
                 </button>
                 <button class="modal-tab" id="tabPassword" onclick="switchTab('password')">
-                    <i class="fas fa-key"></i> Đổi mật khẩu
+                    <i class="fas fa-key"></i> <span data-i18n="modal.tab.password">Đổi mật khẩu</span>
                 </button>
                 <button class="modal-tab" id="tabPaymentHistory" onclick="switchTab('paymentHistory')">
-                    <i class="fas fa-receipt"></i> Lịch sử thanh toán
+                    <i class="fas fa-receipt"></i> <span data-i18n="modal.tab.history">Lịch sử thanh toán</span>
                 </button>
             </div>
             <div class="modal-body">
@@ -1152,54 +1152,54 @@
                         </div>
                         <div class="avatar-actions">
                             <button class="btn-upload" type="button" onclick="triggerAvatarPick()">
-                                <i class="fas fa-camera"></i> Thay ảnh đại diện
+                                <i class="fas fa-camera"></i> <span data-i18n="modal.profile.avatar-btn">Thay ảnh đại diện</span>
                             </button>
                             <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/gif,image/webp"
                                 style="position: fixed; top: -9999px; left: -9999px; width: 1px; height: 1px; opacity: 0;"
                                 onchange="handleAvatarUploadFromInput(event)">
-                            <span class="avatar-hint">JPG, PNG, GIF, WEBP. Tối đa 2MB</span>
+                            <span class="avatar-hint" data-i18n="modal.profile.avatar-hint">JPG, PNG, GIF, WEBP. Tối đa 2MB</span>
                         </div>
                     </div>
                     <form id="profileForm" onsubmit="handleProfileUpdate(event)">
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="profileFullName">Họ và tên</label>
-                                <input type="text" id="profileFullName" placeholder="Nhập họ và tên">
+                                <label for="profileFullName" data-i18n="modal.profile.fullname">Họ và tên</label>
+                                <input type="text" id="profileFullName" data-i18n-ph="ph.profile-fullname" placeholder="Nhập họ và tên">
                             </div>
                             <div class="form-group">
-                                <label for="profileUsername">Tên đăng nhập</label>
-                                <input type="text" id="profileUsername" placeholder="Nhập tên đăng nhập">
+                                <label for="profileUsername" data-i18n="modal.profile.username">Tên đăng nhập</label>
+                                <input type="text" id="profileUsername" data-i18n-ph="ph.profile-username" placeholder="Nhập tên đăng nhập">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="profileGender">Giới tính</label>
+                                <label for="profileGender" data-i18n="modal.profile.gender">Giới tính</label>
                                 <select id="profileGender">
-                                    <option value="">-- Chọn giới tính --</option>
-                                    <option value="male">Nam</option>
-                                    <option value="female">Nữ</option>
-                                    <option value="other">Khác</option>
+                                    <option value="" data-i18n="opt.gender.choose">-- Chọn giới tính --</option>
+                                    <option value="male" data-i18n="opt.gender.male">Nam</option>
+                                    <option value="female" data-i18n="opt.gender.female">Nữ</option>
+                                    <option value="other" data-i18n="opt.gender.other">Khác</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="profileDob">Ngày sinh</label>
+                                <label for="profileDob" data-i18n="modal.profile.dob">Ngày sinh</label>
                                 <input type="date" id="profileDob">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="profilePhone">Số điện thoại</label>
-                                <input type="tel" id="profilePhone" placeholder="Nhập số điện thoại">
+                                <label for="profilePhone" data-i18n="modal.profile.phone">Số điện thoại</label>
+                                <input type="tel" id="profilePhone" data-i18n-ph="ph.profile-phone" placeholder="Nhập số điện thoại">
                             </div>
                             <div class="form-group">
-                                <label for="profileEmail">Email</label>
+                                <label for="profileEmail" data-i18n="modal.profile.email">Email</label>
                                 <input type="email" id="profileEmail" disabled>
                             </div>
                         </div>
                         <div class="form-actions">
-                            <button type="button" class="btn-cancel" onclick="closeProfileModal()">Hủy</button>
+                            <button type="button" class="btn-cancel" onclick="closeProfileModal()" data-i18n="modal.profile.cancel">Hủy</button>
                             <button type="submit" class="btn-save" id="profileSaveBtn">
-                                <i class="fas fa-save"></i> Lưu thay đổi
+                                <i class="fas fa-save"></i> <span data-i18n="modal.profile.save">Lưu thay đổi</span>
                             </button>
                         </div>
                     </form>
@@ -1207,9 +1207,9 @@
                 <div id="tabContentPassword" style="display:none;">
                     <form id="passwordForm" onsubmit="handlePasswordChange(event)">
                         <div class="form-group">
-                            <label for="currentPassword">Mật khẩu hiện tại</label>
+                            <label for="currentPassword" data-i18n="modal.pwd.current">Mật khẩu hiện tại</label>
                             <div class="password-input-wrap">
-                                <input type="password" id="currentPassword" placeholder="Nhập mật khẩu hiện tại">
+                                <input type="password" id="currentPassword" data-i18n-ph="ph.pwd-current" placeholder="Nhập mật khẩu hiện tại">
                                 <button type="button" class="toggle-password"
                                     onclick="togglePasswordVisibility('currentPassword', this)">
                                     <i class="fas fa-eye"></i>
@@ -1217,9 +1217,9 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="newPassword">Mật khẩu mới</label>
+                            <label for="newPassword" data-i18n="modal.pwd.new">Mật khẩu mới</label>
                             <div class="password-input-wrap">
-                                <input type="password" id="newPassword"
+                                <input type="password" id="newPassword" data-i18n-ph="ph.pwd-new"
                                     placeholder="Nhập mật khẩu mới (ít nhất 6 ký tự)">
                                 <button type="button" class="toggle-password"
                                     onclick="togglePasswordVisibility('newPassword', this)">
@@ -1229,9 +1229,9 @@
                             <div class="password-strength" id="passwordStrength"></div>
                         </div>
                         <div class="form-group">
-                            <label for="confirmPassword">Xác nhận mật khẩu mới</label>
+                            <label for="confirmPassword" data-i18n="modal.pwd.confirm">Xác nhận mật khẩu mới</label>
                             <div class="password-input-wrap">
-                                <input type="password" id="confirmPassword" placeholder="Nhập lại mật khẩu mới">
+                                <input type="password" id="confirmPassword" data-i18n-ph="ph.pwd-confirm" placeholder="Nhập lại mật khẩu mới">
                                 <button type="button" class="toggle-password"
                                     onclick="togglePasswordVisibility('confirmPassword', this)">
                                     <i class="fas fa-eye"></i>
@@ -1239,9 +1239,9 @@
                             </div>
                         </div>
                         <div class="form-actions">
-                            <button type="button" class="btn-cancel" onclick="closeProfileModal()">Hủy</button>
+                            <button type="button" class="btn-cancel" onclick="closeProfileModal()" data-i18n="modal.profile.cancel">Hủy</button>
                             <button type="submit" class="btn-save" id="passwordSaveBtn">
-                                <i class="fas fa-lock"></i> Đổi mật khẩu
+                                <i class="fas fa-lock"></i> <span data-i18n="modal.pwd.submit">Đổi mật khẩu</span>
                             </button>
                         </div>
                     </form>
@@ -1250,7 +1250,7 @@
                     <div class="payment-history-container" id="paymentHistoryContainer">
                         <div class="payment-history-empty">
                             <i class="fas fa-receipt"></i>
-                            <p>Đang tải lịch sử thanh toán...</p>
+                            <p data-i18n="modal.hist.loading">Đang tải lịch sử thanh toán...</p>
                         </div>
                     </div>
                 </div>
@@ -1262,8 +1262,8 @@
     <div class="payment-loading-overlay" id="paymentLoadingOverlay">
         <div class="payment-loading-card">
             <div class="payment-spinner"></div>
-            <h3>Đang tạo đơn thanh toán...</h3>
-            <p>Vui lòng chờ trong giây lát. Bạn sẽ được chuyển đến trang thanh toán.</p>
+            <h3 data-i18n="pay.loading.title">Đang tạo đơn thanh toán...</h3>
+            <p data-i18n="pay.loading.sub">Vui lòng chờ trong giây lát. Bạn sẽ được chuyển đến trang thanh toán.</p>
         </div>
     </div>
 
@@ -1279,6 +1279,8 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <script src="js/config.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/notify.js"></script>
     <script src="js/projects.js"></script>
     <script>
         // =====================================================

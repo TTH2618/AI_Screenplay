@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Dashboard - AI Screenplay</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -36,7 +36,7 @@
                 </button> -->
                 <button class="btn-upgrade-nav" id="upgradeNavBtn" onclick="openUpgradeModal()">
                     <i class="fas fa-crown"></i>
-                    <span id="upgradeNavLabel">Nâng cấp PRO</span>
+                    <span id="upgradeNavLabel" data-i18n="dash.nav.upgrade">Nâng cấp PRO</span>
                 </button>
                 <div class="user-dropdown">
                     <button class="user-btn" onclick="toggleUserMenu()">
@@ -49,14 +49,17 @@
                     </button>
                     <div class="dropdown-menu" id="userMenu">
                         <a href="admin.html" id="adminMenuLink" style="display:none;">
-                            <i class="fas fa-shield-halved"></i> Trang quản trị
+                            <i class="fas fa-shield-halved"></i> <span data-i18n="dash.nav.admin">Trang quản trị</span>
                         </a>
                         <a href="#" onclick="openProfileModal(); event.preventDefault();">
-                            <i class="fas fa-user-circle"></i> Hồ sơ cá nhân
+                            <i class="fas fa-user-circle"></i> <span data-i18n="dash.nav.profile">Hồ sơ cá nhân</span>
+                        </a>
+                        <a href="#" onclick="toggleLanguage(); event.preventDefault();" class="lang-switch-item">
+                            <i class="fas fa-globe"></i> <span data-i18n="lang.switch">VI</span>
                         </a>
                         <div class="dropdown-divider"></div>
                         <a href="#" onclick="handleLogout()" class="logout-link">
-                            <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                            <i class="fas fa-sign-out-alt"></i> <span data-i18n="dash.nav.logout">Đăng xuất</span>
                         </a>
                     </div>
                 </div>
@@ -69,12 +72,12 @@
         <!-- Welcome Section -->
         <section class="welcome-section">
             <div class="welcome-content">
-                <h1>Chào mừng trở lại, <span id="welcomeName">Người dùng</span>!</h1>
-                <p>Bắt đầu viết kịch bản phim của bạn với sự hỗ trợ của AI</p>
+                <h1><span data-i18n="dash.welcome.prefix">Chào mừng trở lại,</span> <span id="welcomeName">Người dùng</span>!</h1>
+                <p data-i18n="dash.welcome.sub">Bắt đầu viết kịch bản phim của bạn với sự hỗ trợ của AI</p>
             </div>
             <button class="btn-new-project" onclick="startNewProject()">
                 <i class="fas fa-plus"></i>
-                <span>Tạo kịch bản mới</span>
+                <span data-i18n="dash.btn.new">Tạo kịch bản mới</span>
             </button>
         </section>
 
@@ -86,7 +89,7 @@
                 </div>
                 <div class="stat-info">
                     <span class="stat-number" id="totalProjects">0</span>
-                    <span class="stat-label">Tổng kịch bản</span>
+                    <span class="stat-label" data-i18n="dash.stat.total">Tổng kịch bản</span>
                 </div>
             </div>
             <div class="stat-card">
@@ -95,7 +98,7 @@
                 </div>
                 <div class="stat-info">
                     <span class="stat-number" id="completedProjects">0</span>
-                    <span class="stat-label">Hoàn thành</span>
+                    <span class="stat-label" data-i18n="dash.stat.completed">Hoàn thành</span>
                 </div>
             </div>
             <div class="stat-card">
@@ -104,7 +107,7 @@
                 </div>
                 <div class="stat-info">
                     <span class="stat-number" id="inProgressProjects">0</span>
-                    <span class="stat-label">Đang thực hiện</span>
+                    <span class="stat-label" data-i18n="dash.stat.in-progress">Đang thực hiện</span>
                 </div>
             </div>
             <div class="stat-card">
@@ -113,7 +116,7 @@
                 </div>
                 <div class="stat-info">
                     <span class="stat-number" id="totalGenerated">0</span>
-                    <span class="stat-label">Nội dung đã tạo</span>
+                    <span class="stat-label" data-i18n="dash.stat.generated">Nội dung đã tạo</span>
                 </div>
             </div>
         </section>
@@ -121,8 +124,8 @@
         <!-- Tools Section -->
         <section class="tools-section">
             <div class="section-header">
-                <h2><i class="fas fa-tools"></i> Công cụ viết kịch bản</h2>
-                <p>Chọn công cụ để bắt đầu hoặc tiếp tục kịch bản của bạn</p>
+                <h2><i class="fas fa-tools"></i> <span data-i18n="dash.tools.heading">Công cụ viết kịch bản</span></h2>
+                <p data-i18n="dash.tools.sub">Chọn công cụ để bắt đầu hoặc tiếp tục kịch bản của bạn</p>
             </div>
             <div class="tools-grid">
                 <div class="tool-card" onclick="openTool('logline')">
@@ -130,8 +133,8 @@
                     <div class="tool-icon">
                         <i class="fas fa-pen-fancy"></i>
                     </div>
-                    <h3>Khởi tạo Kịch bản</h3>
-                    <p>Nhập ý tưởng phim hoặc tải truyện lên để bắt đầu xây dựng kịch bản</p>
+                    <h3 data-i18n="dash.tool1.title">Khởi tạo Kịch bản</h3>
+                    <p data-i18n="dash.tool1.desc">Nhập ý tưởng phim hoặc tải truyện lên để bắt đầu xây dựng kịch bản</p>
                     <div class="tool-arrow">
                         <i class="fas fa-arrow-right"></i>
                     </div>
@@ -142,8 +145,8 @@
                     <div class="tool-icon">
                         <i class="fas fa-lightbulb"></i>
                     </div>
-                    <h3>Xác định Chủ đề</h3>
-                    <p>Tìm ra thông điệp sâu sắc và ý nghĩa của câu chuyện</p>
+                    <h3 data-i18n="dash.tool2.title">Xác định Chủ đề</h3>
+                    <p data-i18n="dash.tool2.desc">Tìm ra thông điệp sâu sắc và ý nghĩa của câu chuyện</p>
                     <div class="tool-arrow">
                         <i class="fas fa-arrow-right"></i>
                     </div>
@@ -154,8 +157,8 @@
                     <div class="tool-icon">
                         <i class="fas fa-users"></i>
                     </div>
-                    <h3>Mô tả Nhân vật</h3>
-                    <p>Xây dựng hồ sơ chi tiết cho từng nhân vật trong phim</p>
+                    <h3 data-i18n="dash.tool3.title">Mô tả Nhân vật</h3>
+                    <p data-i18n="dash.tool3.desc">Xây dựng hồ sơ chi tiết cho từng nhân vật trong phim</p>
                     <div class="tool-arrow">
                         <i class="fas fa-arrow-right"></i>
                     </div>
@@ -166,8 +169,8 @@
                     <div class="tool-icon">
                         <i class="fas fa-file-alt"></i>
                     </div>
-                    <h3>Viết Synopsis</h3>
-                    <p>Tóm tắt toàn bộ câu chuyện từ đầu đến cuối</p>
+                    <h3 data-i18n="dash.tool4.title">Viết Synopsis</h3>
+                    <p data-i18n="dash.tool4.desc">Tóm tắt toàn bộ câu chuyện từ đầu đến cuối</p>
                     <div class="tool-arrow">
                         <i class="fas fa-arrow-right"></i>
                     </div>
@@ -178,8 +181,8 @@
                     <div class="tool-icon">
                         <i class="fas fa-sitemap"></i>
                     </div>
-                    <h3>Cấu trúc 4 Hồi</h3>
-                    <p>Phân chia câu chuyện theo Story Circle của Dan Harmon</p>
+                    <h3 data-i18n="dash.tool5.title">Cấu trúc 4 Hồi</h3>
+                    <p data-i18n="dash.tool5.desc">Phân chia câu chuyện theo Story Circle của Dan Harmon</p>
                     <div class="tool-arrow">
                         <i class="fas fa-arrow-right"></i>
                     </div>
@@ -190,8 +193,8 @@
                     <div class="tool-icon">
                         <i class="fas fa-list-ol"></i>
                     </div>
-                    <h3>Tạo Beat Sheet</h3>
-                    <p>Liệt kê các beat quan trọng theo mô hình Save the Cat</p>
+                    <h3 data-i18n="dash.tool6.title">Tạo Beat Sheet</h3>
+                    <p data-i18n="dash.tool6.desc">Liệt kê các beat quan trọng theo mô hình Save the Cat</p>
                     <div class="tool-arrow">
                         <i class="fas fa-arrow-right"></i>
                     </div>
@@ -202,8 +205,8 @@
                     <div class="tool-icon">
                         <i class="fas fa-th-list"></i>
                     </div>
-                    <h3>Danh sách Cảnh</h3>
-                    <p>Chia kịch bản thành 30-40 cảnh rõ ràng</p>
+                    <h3 data-i18n="dash.tool7.title">Danh sách Cảnh</h3>
+                    <p data-i18n="dash.tool7.desc">Chia kịch bản thành 30-40 cảnh rõ ràng</p>
                     <div class="tool-arrow">
                         <i class="fas fa-arrow-right"></i>
                     </div>
@@ -214,8 +217,8 @@
                     <div class="tool-icon">
                         <i class="fas fa-scroll"></i>
                     </div>
-                    <h3>Viết Kịch bản</h3>
-                    <p>Viết kịch bản chi tiết theo format Hollywood chuẩn</p>
+                    <h3 data-i18n="dash.tool8.title">Viết Kịch bản</h3>
+                    <p data-i18n="dash.tool8.desc">Viết kịch bản chi tiết theo format Hollywood chuẩn</p>
                     <div class="tool-arrow">
                         <i class="fas fa-arrow-right"></i>
                     </div>
@@ -227,8 +230,8 @@
         <!-- Recent Projects Section -->
         <section class="projects-section">
             <div class="section-header">
-                <h2><i class="fas fa-history"></i> Kịch bản gần đây</h2>
-                <a href="projects.html" class="view-all">Xem tất cả <i class="fas fa-arrow-right"></i></a>
+                <h2><i class="fas fa-history"></i> <span data-i18n="dash.recent.heading">Kịch bản gần đây</span></h2>
+                <a href="projects.html" class="view-all"><span data-i18n="dash.recent.view-all">Xem tất cả</span> <i class="fas fa-arrow-right"></i></a>
             </div>
             <div class="projects-grid" id="projectsGrid">
                 <!-- Projects will be loaded dynamically -->
@@ -236,10 +239,10 @@
                     <div class="empty-icon">
                         <i class="fas fa-folder-open"></i>
                     </div>
-                    <h3>Chưa có kịch bản nào</h3>
-                    <p>Bắt đầu tạo kịch bản đầu tiên của bạn!</p>
+                    <h3 data-i18n="dash.empty.title">Chưa có kịch bản nào</h3>
+                    <p data-i18n="dash.empty.sub">Bắt đầu tạo kịch bản đầu tiên của bạn!</p>
                     <button class="btn-create" onclick="startNewProject()">
-                        <i class="fas fa-plus"></i> Tạo kịch bản mới
+                        <i class="fas fa-plus"></i> <span data-i18n="dash.empty.btn">Tạo kịch bản mới</span>
                     </button>
                 </div>
             </div>
@@ -252,8 +255,8 @@
                     <i class="fas fa-lightbulb"></i>
                 </div>
                 <div class="tips-content">
-                    <h3>💡 Mẹo viết kịch bản</h3>
-                    <p>Bắt đầu với một Logline mạnh mẽ - đó là nền tảng cho toàn bộ kịch bản của bạn. Một Logline tốt sẽ giúp bạn giữ focus trong suốt quá trình viết.</p>
+                    <h3 data-i18n="dash.tips.title">💡 Mẹo viết kịch bản</h3>
+                    <p data-i18n="dash.tips.text">Bắt đầu với một Logline mạnh mẽ - đó là nền tảng cho toàn bộ kịch bản của bạn. Một Logline tốt sẽ giúp bạn giữ focus trong suốt quá trình viết.</p>
                 </div>
                 <button class="tips-close" onclick="this.parentElement.style.display='none'">
                     <i class="fas fa-times"></i>
@@ -264,13 +267,13 @@
 
     <!-- Footer -->
     <footer class="footer">
-        <p>&copy; 2026 AI Screenplay. Công cụ viết kịch bản phim với AI.</p>
+        <p data-i18n="dash.footer">&copy; 2026 AI Screenplay. Công cụ viết kịch bản phim với AI.</p>
     </footer>
 
     <div class="modal-overlay" id="upgradeModal">
         <div class="modal-container upgrade-modal-container">
             <div class="modal-header">
-                <h2><i class="fas fa-crown"></i> Nâng cấp PRO</h2>
+                <h2><i class="fas fa-crown"></i> <span data-i18n="modal.upgrade.title">Nâng cấp PRO</span></h2>
                 <button class="modal-close" onclick="closeUpgradeModal()">
                     <i class="fas fa-times"></i>
                 </button>
@@ -281,38 +284,73 @@
                     <span class="plan-badge free" id="planStatusBadge">Free</span>
                 </div>
                 <div class="package-grid">
-                    <article class="package-card">
-                        <h3>Gói 1 tháng</h3>
+                    <article class="package-card" id="pkg-pro_1m">
+                        <h3 data-i18n="modal.pkg.1m.title">Gói 1 tháng</h3>
                         <p class="price" id="price_display_pro_1m">199.000đ</p>
-                        <p class="package-note">Phù hợp để trải nghiệm PRO nhanh</p>
-                        <button class="btn-package" data-package="pro_1m" onclick="upgradePlan('pro_1m')">Nâng cấp ngay</button>
+                        <p class="package-note" data-i18n="modal.pkg.1m.note">Phù hợp để trải nghiệm PRO nhanh</p>
+                        <button class="btn-select-pkg" onclick="selectPackage('pro_1m')">
+                            <i class="fas fa-check-circle"></i> <span data-i18n="modal.pkg.select">Chọn gói này</span>
+                        </button>
                     </article>
 
-                    <article class="package-card featured">
-                        <span class="best-value">Phổ biến</span>
-                        <h3>Gói 3 tháng</h3>
+                    <article class="package-card featured" id="pkg-pro_3m">
+                        <span class="best-value" data-i18n="modal.pkg.popular">Phổ biến</span>
+                        <h3 data-i18n="modal.pkg.3m.title">Gói 3 tháng</h3>
                         <p class="price" id="price_display_pro_3m">250.000đ</p>
-                        <p class="package-note">Tiết kiệm hơn khi dùng lâu hơn</p>
-                        <button class="btn-package" data-package="pro_3m" onclick="upgradePlan('pro_3m')">Nâng cấp ngay</button>
+                        <p class="package-note" data-i18n="modal.pkg.3m.note">Tiết kiệm hơn khi dùng lâu hơn</p>
+                        <button class="btn-select-pkg" onclick="selectPackage('pro_3m')">
+                            <i class="fas fa-check-circle"></i> <span data-i18n="modal.pkg.select">Chọn gói này</span>
+                        </button>
                     </article>
 
-                    <article class="package-card">
-                        <h3>Gói 1 năm</h3>
+                    <article class="package-card" id="pkg-pro_1y">
+                        <h3 data-i18n="modal.pkg.1y.title">Gói 1 năm</h3>
                         <p class="price" id="price_display_pro_1y">800.000đ</p>
-                        <p class="package-note">Dùng dài hạn, không lo giới hạn</p>
-                        <button class="btn-package" data-package="pro_1y" onclick="upgradePlan('pro_1y')">Nâng cấp ngay</button>
+                        <p class="package-note" data-i18n="modal.pkg.1y.note">Dùng dài hạn, không lo giới hạn</p>
+                        <button class="btn-select-pkg" onclick="selectPackage('pro_1y')">
+                            <i class="fas fa-check-circle"></i> <span data-i18n="modal.pkg.select">Chọn gói này</span>
+                        </button>
                     </article>
                 </div>
+
+                <!-- Gói tùy chỉnh do admin tạo -->
+                <div class="package-grid" id="customPackageGrid" style="margin-top:8px;"></div>
+
+                <!-- Gateway selection area (legacy, hidden) -->
                 <div class="payment-methods-info">
-                    <span>Hỗ trợ thanh toán:</span>
+                    <span data-i18n="modal.pay.support">Hỗ trợ thanh toán:</span>
                     <span class="payment-method-badge"><i class="fas fa-university"></i> Ngân hàng</span>
                     <span class="payment-method-badge"><i class="fas fa-qrcode"></i> QR Code</span>
                     <span class="payment-method-badge"><img src="https://sepay.vn/favicon.ico" style="width:14px;height:14px;object-fit:contain;"> SePay</span>
+                    <span class="payment-method-badge vnpay-badge"><i class="fas fa-credit-card"></i> VNPAY</span>
                 </div>
                 <div class="secure-payment-note">
                     <i class="fas fa-shield-alt"></i>
-                    <span>Thanh toán an toàn qua SePay.vn — chuyển khoản ngân hàng xác nhận tự động</span>
+                    <span data-i18n="modal.pay.secure">Thanh toán an toàn qua SePay.vn (chuyển khoản) hoặc VNPAY (thẻ / QR) — xác nhận tự động</span>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Method Modal -->
+    <div class="modal-overlay pm-method-modal" id="paymentMethodModal">
+        <div class="modal-container modal-sm pm-method-container">
+            <div class="modal-header">
+                <h2><i class="fas fa-credit-card"></i> <span data-i18n="modal.pay.title">Chọn phương thức</span></h2>
+                <button class="modal-close" onclick="closePaymentMethodModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="padding:24px 28px;">
+                <div class="pm-method-plan-info">
+                    <span class="gateway-select-label" data-i18n="modal.pay.selected">Đã chọn:</span>
+                    <strong id="pmModalPlanTitle">—</strong>
+                </div>
+                <p class="gateway-select-prompt" style="margin:16px 0 12px;" data-i18n="modal.pay.gateway">Chọn cổng thanh toán:</p>
+                <div class="gateway-btns-row" id="pmModalGatewayRow"></div>
+                <button class="btn-gateway-back" style="margin-top:16px;" onclick="closePaymentMethodModal()">
+                    <i class="fas fa-chevron-left"></i> <span data-i18n="modal.pay.back">Quay lại chọn gói</span>
+                </button>
             </div>
         </div>
     </div>
@@ -321,7 +359,7 @@
     <div class="modal-overlay" id="profileModal">
         <div class="modal-container">
             <div class="modal-header">
-                <h2><i class="fas fa-user-circle"></i> Hồ sơ cá nhân</h2>
+                <h2><i class="fas fa-user-circle"></i> <span data-i18n="modal.profile.title">Hồ sơ cá nhân</span></h2>
                 <button class="modal-close" onclick="closeProfileModal()">
                     <i class="fas fa-times"></i>
                 </button>
@@ -329,13 +367,13 @@
             <!-- Tabs -->
             <div class="modal-tabs">
                 <button class="modal-tab active" id="tabProfile" onclick="switchTab('profile')">
-                    <i class="fas fa-id-card"></i> Thông tin cá nhân
+                    <i class="fas fa-id-card"></i> <span data-i18n="modal.tab.profile">Thông tin cá nhân</span>
                 </button>
                 <button class="modal-tab" id="tabPassword" onclick="switchTab('password')">
-                    <i class="fas fa-key"></i> Đổi mật khẩu
+                    <i class="fas fa-key"></i> <span data-i18n="modal.tab.password">Đổi mật khẩu</span>
                 </button>
                 <button class="modal-tab" id="tabPaymentHistory" onclick="switchTab('paymentHistory')">
-                    <i class="fas fa-receipt"></i> Lịch sử thanh toán
+                    <i class="fas fa-receipt"></i> <span data-i18n="modal.tab.history">Lịch sử thanh toán</span>
                 </button>
             </div>
             <div class="modal-body">
@@ -349,55 +387,55 @@
                         <div class="avatar-actions">
                             <!-- Nút upload avatar: dùng Flutter native picker trên app, fallback input file trên web -->
                             <button class="btn-upload" type="button" onclick="triggerAvatarPick()">
-                                <i class="fas fa-camera"></i> Thay ảnh đại diện
+                                <i class="fas fa-camera"></i> <span data-i18n="modal.profile.avatar-btn">Thay ảnh đại diện</span>
                             </button>
                             <!-- Input file fallback cho desktop/web thường (hidden properly) -->
                             <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/gif,image/webp"
                                 style="position: fixed; top: -9999px; left: -9999px; width: 1px; height: 1px; opacity: 0;"
                                 onchange="handleAvatarUploadFromInput(event)">
-                            <span class="avatar-hint">JPG, PNG, GIF, WEBP. Tối đa 2MB</span>
+                            <span class="avatar-hint" data-i18n="modal.profile.avatar-hint">JPG, PNG, GIF, WEBP. Tối đa 2MB</span>
                         </div>
                     </div>
                     <form id="profileForm" onsubmit="handleProfileUpdate(event)">
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="profileFullName">Họ và tên</label>
-                                <input type="text" id="profileFullName" placeholder="Nhập họ và tên">
+                                <label for="profileFullName" data-i18n="modal.profile.fullname">Họ và tên</label>
+                                <input type="text" id="profileFullName" data-i18n-ph="ph.profile-fullname" placeholder="Nhập họ và tên">
                             </div>
                             <div class="form-group">
-                                <label for="profileUsername">Tên đăng nhập</label>
-                                <input type="text" id="profileUsername" placeholder="Nhập tên đăng nhập">
+                                <label for="profileUsername" data-i18n="modal.profile.username">Tên đăng nhập</label>
+                                <input type="text" id="profileUsername" data-i18n-ph="ph.profile-username" placeholder="Nhập tên đăng nhập">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="profileGender">Giới tính</label>
+                                <label for="profileGender" data-i18n="modal.profile.gender">Giới tính</label>
                                 <select id="profileGender">
-                                    <option value="">-- Chọn giới tính --</option>
-                                    <option value="male">Nam</option>
-                                    <option value="female">Nữ</option>
-                                    <option value="other">Khác</option>
+                                    <option value="" data-i18n="opt.gender.choose">-- Chọn giới tính --</option>
+                                    <option value="male" data-i18n="opt.gender.male">Nam</option>
+                                    <option value="female" data-i18n="opt.gender.female">Nữ</option>
+                                    <option value="other" data-i18n="opt.gender.other">Khác</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="profileDob">Ngày sinh</label>
+                                <label for="profileDob" data-i18n="modal.profile.dob">Ngày sinh</label>
                                 <input type="date" id="profileDob">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="profilePhone">Số điện thoại</label>
-                                <input type="tel" id="profilePhone" placeholder="Nhập số điện thoại">
+                                <label for="profilePhone" data-i18n="modal.profile.phone">Số điện thoại</label>
+                                <input type="tel" id="profilePhone" data-i18n-ph="ph.profile-phone" placeholder="Nhập số điện thoại">
                             </div>
                             <div class="form-group">
-                                <label for="profileEmail">Email</label>
+                                <label for="profileEmail" data-i18n="modal.profile.email">Email</label>
                                 <input type="email" id="profileEmail" disabled>
                             </div>
                         </div>
                         <div class="form-actions">
-                            <button type="button" class="btn-cancel" onclick="closeProfileModal()">Hủy</button>
+                            <button type="button" class="btn-cancel" onclick="closeProfileModal()" data-i18n="modal.profile.cancel">Hủy</button>
                             <button type="submit" class="btn-save" id="profileSaveBtn">
-                                <i class="fas fa-save"></i> Lưu thay đổi
+                                <i class="fas fa-save"></i> <span data-i18n="modal.profile.save">Lưu thay đổi</span>
                             </button>
                         </div>
                     </form>
@@ -406,18 +444,18 @@
                 <div id="tabContentPassword" style="display:none;">
                     <form id="passwordForm" onsubmit="handlePasswordChange(event)">
                         <div class="form-group">
-                            <label for="currentPassword">Mật khẩu hiện tại</label>
+                            <label for="currentPassword" data-i18n="modal.pwd.current">Mật khẩu hiện tại</label>
                             <div class="password-input-wrap">
-                                <input type="password" id="currentPassword" placeholder="Nhập mật khẩu hiện tại">
+                                <input type="password" id="currentPassword" data-i18n-ph="ph.pwd-current" placeholder="Nhập mật khẩu hiện tại">
                                 <button type="button" class="toggle-password" onclick="togglePasswordVisibility('currentPassword', this)">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="newPassword">Mật khẩu mới</label>
+                            <label for="newPassword" data-i18n="modal.pwd.new">Mật khẩu mới</label>
                             <div class="password-input-wrap">
-                                <input type="password" id="newPassword" placeholder="Nhập mật khẩu mới (ít nhất 6 ký tự)">
+                                <input type="password" id="newPassword" data-i18n-ph="ph.pwd-new" placeholder="Nhập mật khẩu mới (ít nhất 6 ký tự)">
                                 <button type="button" class="toggle-password" onclick="togglePasswordVisibility('newPassword', this)">
                                     <i class="fas fa-eye"></i>
                                 </button>
@@ -425,18 +463,18 @@
                             <div class="password-strength" id="passwordStrength"></div>
                         </div>
                         <div class="form-group">
-                            <label for="confirmPassword">Xác nhận mật khẩu mới</label>
+                            <label for="confirmPassword" data-i18n="modal.pwd.confirm">Xác nhận mật khẩu mới</label>
                             <div class="password-input-wrap">
-                                <input type="password" id="confirmPassword" placeholder="Nhập lại mật khẩu mới">
+                                <input type="password" id="confirmPassword" data-i18n-ph="ph.pwd-confirm" placeholder="Nhập lại mật khẩu mới">
                                 <button type="button" class="toggle-password" onclick="togglePasswordVisibility('confirmPassword', this)">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </div>
                         </div>
                         <div class="form-actions">
-                            <button type="button" class="btn-cancel" onclick="closeProfileModal()">Hủy</button>
+                            <button type="button" class="btn-cancel" onclick="closeProfileModal()" data-i18n="modal.profile.cancel">Hủy</button>
                             <button type="submit" class="btn-save" id="passwordSaveBtn">
-                                <i class="fas fa-lock"></i> Đổi mật khẩu
+                                <i class="fas fa-lock"></i> <span data-i18n="modal.pwd.submit">Đổi mật khẩu</span>
                             </button>
                         </div>
                     </form>
@@ -446,7 +484,7 @@
                     <div class="payment-history-container" id="paymentHistoryContainer">
                         <div class="payment-history-empty">
                             <i class="fas fa-receipt"></i>
-                            <p>Đang tải lịch sử thanh toán...</p>
+                            <p data-i18n="modal.hist.loading">Đang tải lịch sử thanh toán...</p>
                         </div>
                     </div>
                 </div>
@@ -460,8 +498,8 @@
     <div class="payment-loading-overlay" id="paymentLoadingOverlay">
         <div class="payment-loading-card">
             <div class="payment-spinner"></div>
-            <h3>Đang tạo đơn thanh toán...</h3>
-            <p>Vui lòng chờ trong giây lát. Bạn sẽ được chuyển đến trang thanh toán.</p>
+            <h3 data-i18n="pay.loading.title">Đang tạo đơn thanh toán...</h3>
+            <p data-i18n="pay.loading.sub">Vui lòng chờ trong giây lát. Bạn sẽ được chuyển đến trang thanh toán.</p>
         </div>
     </div>
 
@@ -479,6 +517,8 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <script src="js/config.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/notify.js"></script>
     <script src="js/dashboard.js"></script>
 </body>
 </html>

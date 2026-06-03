@@ -2,6 +2,113 @@
  * AI Screenplay - Home Page JavaScript
  */
 
+// ── Landing Page Config ──────────────────────────────────────
+async function applyLandingConfig() {
+    try {
+        const apiBase = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
+            ? window.APP_CONFIG.API_BASE_URL.replace(/\/api$/, '') : '';
+        const res = await fetch(`${apiBase}/api/landing-config`);
+        const json = await res.json();
+        if (!json.success || !json.data || Object.keys(json.data).length === 0) return;
+        const c = json.data;
+        function set(sel, val) {
+            if (!val) return;
+            document.querySelectorAll(sel).forEach(el => { el.textContent = val; });
+        }
+        // General
+        if (c.site_name) document.querySelectorAll('[data-lp="site-name"]').forEach(el => { el.textContent = c.site_name; });
+        // Hero
+        const h = c.hero || {};
+        set('[data-lp="hero-badge"]', h.badge);
+        set('[data-lp="hero-title-before"]', h.title_before);
+        set('[data-lp="hero-title-gradient"]', h.title_gradient);
+        set('[data-lp="hero-title-after"]', h.title_after);
+        set('[data-lp="hero-subtitle"]', h.subtitle);
+        set('[data-lp="hero-cta-primary"]', h.cta_primary);
+        set('[data-lp="hero-cta-secondary"]', h.cta_secondary);
+        for (let i = 0; i < 3; i++) {
+            const countEl = document.querySelector(`[data-lp="hero-stat-${i}-count"]`);
+            const labelEl = document.querySelector(`[data-lp="hero-stat-${i}-label"]`);
+            if (countEl && h[`stat_${i}_count`] != null) {
+                countEl.dataset.count = h[`stat_${i}_count`];
+            }
+            if (labelEl && h[`stat_${i}_label`]) labelEl.textContent = h[`stat_${i}_label`];
+        }
+        // Features
+        const f = c.features || {};
+        set('[data-lp="features-badge"]', f.badge);
+        set('[data-lp="features-title"]', f.title);
+        set('[data-lp="features-subtitle"]', f.subtitle);
+        if (f.cards && Array.isArray(f.cards)) {
+            f.cards.forEach((card, i) => {
+                const cardEl = document.querySelector(`[data-lp-card="${i}"]`);
+                if (!cardEl) return;
+                const iconEl = cardEl.querySelector('[data-lp-card-icon]');
+                const titleEl = cardEl.querySelector('[data-lp-card-title]');
+                const descEl = cardEl.querySelector('[data-lp-card-desc]');
+                if (iconEl && card.icon) iconEl.className = `fas ${card.icon}`;
+                if (titleEl && card.title) titleEl.textContent = card.title;
+                if (descEl && card.desc) descEl.textContent = card.desc;
+            });
+        }
+        // Testimonials
+        const t = c.testimonials || {};
+        set('[data-lp="testimonials-badge"]', t.badge);
+        set('[data-lp="testimonials-title"]', t.title);
+        set('[data-lp="testimonials-subtitle"]', t.subtitle);
+        if (t.items && Array.isArray(t.items)) {
+            t.items.forEach((item, i) => {
+                const itemEl = document.querySelector(`[data-lp-testimonial="${i}"]`);
+                if (!itemEl) return;
+                const textEl = itemEl.querySelector('[data-lp-testimonial-text]');
+                const authorEl = itemEl.querySelector('[data-lp-testimonial-author]');
+                const roleEl = itemEl.querySelector('[data-lp-testimonial-role]');
+                if (textEl && item.text) textEl.textContent = item.text;
+                if (authorEl && item.author) authorEl.textContent = item.author;
+                if (roleEl && item.role) roleEl.textContent = item.role;
+            });
+        }
+        // CTA & Footer
+        const cta = c.cta || {};
+        set('[data-lp="cta-heading"]', cta.heading);
+        set('[data-lp="cta-subtext"]', cta.subtext);
+        const footer = c.footer || {};
+        set('[data-lp="footer-brand-desc"]', footer.brand_desc);
+        set('[data-lp="footer-copyright"]', footer.copyright);
+        // Workflow
+        const wf = c.workflow || {};
+        set('[data-lp="workflow-badge"]', wf.badge);
+        set('[data-lp="workflow-title"]', wf.title);
+        set('[data-lp="workflow-subtitle"]', wf.subtitle);
+        if (wf.steps && Array.isArray(wf.steps) && wf.steps.length > 0) {
+            const timeline = document.querySelector('.workflow-timeline');
+            if (timeline) {
+                timeline.innerHTML = '<div class="timeline-line"></div>' +
+                    wf.steps.map((step, i) => `
+                        <div class="workflow-step" data-step="${i + 1}" data-lp-step="${i}">
+                            <div class="step-icon">
+                                <i class="fas ${step.icon || 'fa-circle'}"></i>
+                            </div>
+                            <div class="step-content">
+                                <h3 data-lp-step-title>${step.title || ''}</h3>
+                                <p data-lp-step-desc>${step.desc || ''}</p>
+                            </div>
+                        </div>
+                    `).join('');
+            }
+        }
+        // Section visibility
+        const sv = c.sections_visible || {};
+        document.querySelectorAll('[data-lp-section]').forEach(el => {
+            const key = el.getAttribute('data-lp-section');
+            el.style.display = (sv[key] === false) ? 'none' : '';
+        });
+    } catch (e) {
+        console.warn('Could not apply landing config:', e.message);
+    }
+}
+applyLandingConfig();
+
 // Toggle mobile menu
 function toggleMobileMenu() {
     const mobileMenu = document.getElementById('mobileMenu');

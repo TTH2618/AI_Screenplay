@@ -1,0 +1,23 @@
+{
+	"appId": "com.aiscreenplaystudio.app",
+	"appName": "AI Screenplay Studio",
+	"webDir": "www",
+	"server": {
+		"androidScheme": "https",
+		"iosScheme": "capacitor"
+	},
+	"ios": {
+		"contentInset": "automatic",
+		"limitsNavigationsToAppBoundDomains": false
+	},
+	"plugins": {
+		"SplashScreen": {
+			"launchShowDuration": 2000,
+			"backgroundColor": "#0f172a",
+			"androidSplashResourceName": "splash",
+			"androidScaleType": "CENTER_CROP",
+			"showSpinner": false
+		}
+	},
+	"packageClassList": []
+}

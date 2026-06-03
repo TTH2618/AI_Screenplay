@@ -437,6 +437,7 @@ def validate_step(tool_id: str, generated_output: str, context: dict) -> dict:
             response.raise_for_status()
             data = response.json()
 
+        _val_usage = data.get('usage', {})
         raw = data['choices'][0]['message']['content'].strip()
 
         # Strip markdown fences if present
@@ -471,6 +472,8 @@ def validate_step(tool_id: str, generated_output: str, context: dict) -> dict:
             'issues': result.get('issues', []),
             'suggestions': result.get('suggestions', []),
             'reason': result.get('reason', ''),
+            'tokens_in':  int(_val_usage.get('prompt_tokens', 0)),
+            'tokens_out': int(_val_usage.get('completion_tokens', 0)),
         }
 
     except Exception as e:
@@ -482,4 +485,6 @@ def validate_step(tool_id: str, generated_output: str, context: dict) -> dict:
             'issues': [],
             'suggestions': [],
             'reason': f'Validator gặp lỗi kỹ thuật ({e}), chấp nhận kết quả.',
+            'tokens_in':  0,
+            'tokens_out': 0,
         }

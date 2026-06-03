@@ -8,7 +8,10 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from ai_service import generate_content, test_connection
 from config import HOST, PORT, DEBUG, AI_PROVIDER
-from db_runtime import log_generation, save_story_file_metadata, get_user_ai_quota_state
+from db_runtime import (
+    log_generation, save_story_file_metadata, get_user_ai_quota_state,
+    calculate_cost, deduct_user_balance, get_user_balance,
+)
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -104,6 +107,10 @@ def _run_job(job_id: str, data: dict):
             result           = None
             attempts         = 0
 
+            # ── Token accumulator (all generate + validate calls) ────────────
+            _total_tokens_in  = 0
+            _total_tokens_out = 0
+
             # ── Generate → Validate loop ────────────────────────────────────
             for attempt in range(1, MAX_RETRIES + 1):
                 attempts = attempt
@@ -111,6 +118,8 @@ def _run_job(job_id: str, data: dict):
                     _jobs[job_id]['progress'] = f'Tạo nội dung – lần {attempt}/{MAX_RETRIES}...'
 
                 result = generate_content(tool_id, form_data, project_id=project_id)
+                _total_tokens_in  += result.get('tokens_in', 0)
+                _total_tokens_out += result.get('tokens_out', 0)
 
                 if not result.get('success'):
                     break
@@ -119,6 +128,8 @@ def _run_job(job_id: str, data: dict):
                     _jobs[job_id]['progress'] = f'Xác thực kết quả – lần {attempt}/{MAX_RETRIES}...'
 
                 verdict = validate_step(tool_id, result.get('raw_content', ''), _validation_context)
+                _total_tokens_in  += verdict.get('tokens_in', 0)
+                _total_tokens_out += verdict.get('tokens_out', 0)
                 validation_history.append({
                     'attempt': attempt,
                     'valid':   verdict['valid'],
@@ -161,6 +172,11 @@ def _run_job(job_id: str, data: dict):
 
             elapsed_ms = int((time.perf_counter() - started_at) * 1000)
 
+            # ── Calculate cost and deduct from user balance ──────────────────
+            _cost_vnd = calculate_cost(_total_tokens_in, _total_tokens_out)
+            if user_id and _cost_vnd > 0:
+                deduct_user_balance(user_id, _cost_vnd)
+
             if result:
                 _passed     = any(v['valid'] for v in validation_history)
                 _best_score = max((v['score'] for v in validation_history), default=0)
@@ -187,12 +203,22 @@ def _run_job(job_id: str, data: dict):
                     'remaining':     None,
                 }
 
+            # Attach token/cost info to result so frontend can display it
+            result['tokens_in']  = _total_tokens_in
+            result['tokens_out'] = _total_tokens_out
+            result['cost_vnd']   = round(_cost_vnd, 4)
+            result['balance_vnd'] = get_user_balance(user_id) if user_id else None
+
             log_generation({
                 'user_id':       user_id,
                 'project_id':    project_id,
                 'tool_id':       tool_id,
                 'provider':      result.get('provider', AI_PROVIDER),
                 'model_name':    result.get('model'),
+                'tokens_in':     _total_tokens_in,
+                'tokens_out':    _total_tokens_out,
+                'cost_vnd':      _cost_vnd,
+                'call_type':     'generate',
                 'status':        'success' if result.get('success') else 'error',
                 'latency_ms':    elapsed_ms,
                 'error_type':    None if result.get('success') else 'api_error',
@@ -358,10 +384,16 @@ def generate():
         result = None
         attempts = 0
 
+        # ── Token accumulator (all generate + validate calls) ────────────────
+        _total_tokens_in  = 0
+        _total_tokens_out = 0
+
         for attempt in range(1, MAX_RETRIES + 1):
             attempts = attempt
             print(f"🔄 Attempt {attempt}/{MAX_RETRIES} for tool: {tool_id}")
             result = generate_content(tool_id, form_data, project_id=project_id)
+            _total_tokens_in  += result.get('tokens_in', 0)
+            _total_tokens_out += result.get('tokens_out', 0)
 
             if not result.get('success'):
                 # Generation itself failed – don't retry, surface the error
@@ -369,6 +401,8 @@ def generate():
 
             # Validate the raw output
             verdict = validate_step(tool_id, result.get('raw_content', ''), _validation_context)
+            _total_tokens_in  += verdict.get('tokens_in', 0)
+            _total_tokens_out += verdict.get('tokens_out', 0)
             validation_history.append({
                 'attempt': attempt,
                 'valid': verdict['valid'],
@@ -422,6 +456,11 @@ def generate():
 
         elapsed_ms = int((time.perf_counter() - started_at) * 1000)
 
+        # ── Calculate cost and deduct from user balance ──────────────────────
+        _cost_vnd = calculate_cost(_total_tokens_in, _total_tokens_out)
+        if user_id and _cost_vnd > 0:
+            deduct_user_balance(user_id, _cost_vnd)
+
         # Attach validation metadata to the result
         if result:
             _passed = any(v['valid'] for v in validation_history)
@@ -433,6 +472,10 @@ def generate():
                 'best_score': _best_score,
                 'used_best_of_retries': (not _passed and len(_all_results) > 0),
             }
+            result['tokens_in']   = _total_tokens_in
+            result['tokens_out']  = _total_tokens_out
+            result['cost_vnd']    = round(_cost_vnd, 4)
+            result['balance_vnd'] = get_user_balance(user_id) if user_id else None
 
         if not quota_state.get('is_pro_active'):
             result['quota'] = {
@@ -450,17 +493,21 @@ def generate():
             }
 
         log_generation({
-            'user_id': user_id,
-            'project_id': project_id,
-            'tool_id': tool_id,
-            'provider': result.get('provider', AI_PROVIDER),
-            'model_name': result.get('model'),
-            'status': 'success' if result.get('success') else 'error',
-            'latency_ms': elapsed_ms,
-            'error_type': None if result.get('success') else 'api_error',
+            'user_id':       user_id,
+            'project_id':    project_id,
+            'tool_id':       tool_id,
+            'provider':      result.get('provider', AI_PROVIDER),
+            'model_name':    result.get('model'),
+            'tokens_in':     _total_tokens_in,
+            'tokens_out':    _total_tokens_out,
+            'cost_vnd':      _cost_vnd,
+            'call_type':     'generate',
+            'status':        'success' if result.get('success') else 'error',
+            'latency_ms':    elapsed_ms,
+            'error_type':    None if result.get('success') else 'api_error',
             'error_message': None if result.get('success') else result.get('error'),
         })
-        
+
         if result['success']:
             return jsonify(result), 200
         else:

@@ -7,6 +7,9 @@ const API_BASE_URL = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
     ? window.APP_CONFIG.API_BASE_URL
     : `${window.location.protocol}//${window.location.host}/api`;
 
+// Trạng thái cổng thanh toán (load khi mở modal nâng cấp)
+let _gatewayStatus = { sepay: true, vnpay: true };
+
 let PLAN_PACKAGES = {
     pro_1m: { id: 'pro_1m', name: 'PRO 1 tháng', months: 1, price: 199000 },
     pro_3m: { id: 'pro_3m', name: 'PRO 3 tháng', months: 3, price: 250000 },
@@ -36,7 +39,7 @@ const toolOrder = ['logline', 'theme', 'character', 'synopsis', 'structure', 'be
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
-    // Tải giá gói từ server (admin có thể đã chỉnh)
+    // Tải giá gói và gói tùy chỉnh từ server
     try {
         const priceRes = await fetch(`${API_BASE_URL}/payment/prices`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
         const priceData = await priceRes.json();
@@ -57,6 +60,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 PLAN_PACKAGES.pro_1y.price = p.pro_1y;
                 const el = document.getElementById('price_display_pro_1y');
                 if (el) el.textContent = fmt(p.pro_1y);
+            }
+            // Render gói tùy chỉnh
+            if (priceData.packages) {
+                renderCustomPackages(priceData.packages);
             }
         }
     } catch (e) { /* dùng giá mặc định */ }
@@ -161,13 +168,105 @@ function renderSubscription(userData) {
         if (navLabel) navLabel.textContent = 'Nâng cấp PRO';
     }
 
-    document.querySelectorAll('.btn-package').forEach((btn) => {
-        btn.disabled = false;
-        const packageId = btn.dataset.package;
-        const packageInfo = PLAN_PACKAGES[packageId];
-        if (!packageInfo) return;
-        btn.textContent = proActive ? `Gia hạn ${packageInfo.name} (${formatVnd(packageInfo.price)}đ)` : `Nâng cấp ${formatVnd(packageInfo.price)}đ`;
-    });
+}
+
+async function fetchGatewayStatus() {
+    try {
+        const r = await fetch(`${API_BASE_URL}/payment/gateways`, { headers: getAuthHeaders() });
+        const d = await r.json();
+        if (d.success) {
+            return { sepay: !!d.sepay_enabled, vnpay: !!d.vnpay_enabled };
+        }
+    } catch (e) { /* fallback */ }
+    return { sepay: true, vnpay: true };
+}
+
+function renderCustomPackages(packages) {
+    const grid = document.getElementById('customPackageGrid');
+    if (!grid) return;
+    const customKeys = Object.keys(packages).filter(k => k.startsWith('custom_'));
+    if (customKeys.length === 0) {
+        grid.innerHTML = '';
+        return;
+    }
+    const fmt = (n) => Number(n).toLocaleString('vi-VN') + 'đ';
+    grid.innerHTML = customKeys.map(k => {
+        const pkg = packages[k];
+        PLAN_PACKAGES[k] = { id: k, name: pkg.name, months: pkg.months, price: pkg.price };
+        return `
+        <article class="package-card" id="pkg-${k}">
+            <h3>${escDash(pkg.name)}</h3>
+            <p class="price">${fmt(pkg.price)}</p>
+            <p class="package-note">${escDash(pkg.note || pkg.months + ' tháng sử dụng PRO')}</p>
+            <button class="btn-select-pkg" onclick="selectPackage('${k}')">
+                <i class="fas fa-check-circle"></i> Chọn gói này
+            </button>
+        </article>`;
+    }).join('');
+}
+
+function escDash(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function selectPackage(pkgId) {
+    const pkg = PLAN_PACKAGES[pkgId];
+    if (!pkg) return;
+
+    // Highlight card được chọn
+    document.querySelectorAll('.package-card').forEach(c => c.classList.remove('selected'));
+    const card = document.getElementById(`pkg-${pkgId}`);
+    if (card) card.classList.add('selected');
+
+    openPaymentMethodModal(pkgId);
+}
+
+function openPaymentMethodModal(pkgId) {
+    const pkg = PLAN_PACKAGES[pkgId];
+    if (!pkg) return;
+
+    // Cập nhật tên gói
+    const titleEl = document.getElementById('pmModalPlanTitle');
+    if (titleEl) titleEl.textContent = `${pkg.name} · ${formatVnd(pkg.price)}đ`;
+
+    // Build gateway buttons
+    const row = document.getElementById('pmModalGatewayRow');
+    if (!row) return;
+    row.innerHTML = '';
+
+    const hasAny = _gatewayStatus.sepay || _gatewayStatus.vnpay;
+    if (!hasAny) {
+        row.innerHTML = `<div class="gateway-none-msg"><i class="fas fa-triangle-exclamation"></i> Chưa có cổng thanh toán nào được kích hoạt. Vui lòng liên hệ Admin.</div>`;
+    } else {
+        if (_gatewayStatus.sepay) {
+            const btn = document.createElement('button');
+            btn.className = 'btn-gw btn-gw-sepay';
+            btn.innerHTML = `<i class="fas fa-university"></i><span>SePay</span><small>Chuyển khoản / QR</small>`;
+            btn.onclick = () => upgradePlan(pkgId);
+            row.appendChild(btn);
+        }
+        if (_gatewayStatus.vnpay) {
+            const btn = document.createElement('button');
+            btn.className = 'btn-gw btn-gw-vnpay';
+            btn.innerHTML = `<i class="fa fa-credit-card-alt"></i><span>VNPAY</span><small>Thẻ ATM / QR</small>`;
+            btn.onclick = () => upgradeVnpay(pkgId);
+            row.appendChild(btn);
+        }
+    }
+
+    const modal = document.getElementById('paymentMethodModal');
+    if (modal) modal.classList.add('active');
+}
+
+function closePaymentMethodModal() {
+    const modal = document.getElementById('paymentMethodModal');
+    if (modal) modal.classList.remove('active');
+    document.querySelectorAll('.package-card').forEach(c => c.classList.remove('selected'));
+}
+
+function clearPackageSelection() {
+    document.querySelectorAll('.package-card').forEach(c => c.classList.remove('selected'));
+    closePaymentMethodModal();
 }
 
 async function refreshCurrentUser() {
@@ -199,11 +298,7 @@ async function upgradePlan(packageId) {
         return;
     }
 
-    const buttons = document.querySelectorAll('.btn-package');
-    buttons.forEach((btn) => {
-        btn.disabled = true;
-    });
-
+    document.querySelectorAll('.btn-gw').forEach(b => { b.disabled = true; });
     showPaymentLoading();
 
     try {
@@ -227,26 +322,26 @@ async function upgradePlan(packageId) {
         hidePaymentLoading();
         showToast('Lỗi kết nối server', 'error');
     } finally {
-        document.querySelectorAll('.btn-package').forEach((btn) => {
-            btn.disabled = false;
-        });
+        document.querySelectorAll('.btn-gw').forEach(b => { b.disabled = false; });
     }
 }
 
-function openUpgradeModal() {
+async function openUpgradeModal() {
     const modal = document.getElementById('upgradeModal');
     if (!modal) return;
+    clearPackageSelection();
     modal.classList.add('active');
     const menu = document.getElementById('userMenu');
-    if (menu) {
-        menu.classList.remove('active');
-    }
+    if (menu) menu.classList.remove('active');
+    // Tải trạng thái cổng thanh toán
+    _gatewayStatus = await fetchGatewayStatus();
 }
 
 function closeUpgradeModal() {
     const modal = document.getElementById('upgradeModal');
     if (!modal) return;
     modal.classList.remove('active');
+    clearPackageSelection();
 }
 
 // Toggle user menu
@@ -266,8 +361,8 @@ document.addEventListener('click', (e) => {
 });
 
 // Handle logout
-function handleLogout() {
-    if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+async function handleLogout() {
+    if (await showConfirm('Bạn có chắc chắn muốn đăng xuất?')) {
         localStorage.removeItem('user');
         localStorage.removeItem('token');
         sessionStorage.removeItem('user');
@@ -984,10 +1079,53 @@ document.addEventListener('DOMContentLoaded', () => {
 window.upgradePlan = upgradePlan;
 window.openUpgradeModal = openUpgradeModal;
 window.closeUpgradeModal = closeUpgradeModal;
+window.selectPackage = selectPackage;
+window.clearPackageSelection = clearPackageSelection;
 
 // =====================================================
-// SePay Payment System
+// VNPAY Payment System
 // =====================================================
+
+/**
+ * Khởi tạo thanh toán VNPAY cho gói đã chọn
+ * @param {string} packageId - ID gói (pro_1m / pro_3m / pro_1y)
+ */
+async function upgradeVnpay(packageId) {
+    const packageInfo = PLAN_PACKAGES[packageId];
+    if (!packageInfo) {
+        showToast('Gói nâng cấp không hợp lệ', 'error');
+        return;
+    }
+
+    document.querySelectorAll('.btn-package').forEach(btn => { btn.disabled = true; });
+    showPaymentLoading();
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/payment/vnpay/create`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+            body: JSON.stringify({ package_id: packageId })
+        });
+        const data = await response.json();
+        hidePaymentLoading();
+
+        if (data.success && data.data?.payUrl) {
+            closeUpgradeModal();
+            // Redirect thẳng sang VNPAY sandbox / production
+            window.location.href = data.data.payUrl;
+        } else {
+            showToast(data.message || 'Không thể tạo đơn VNPAY. Vui lòng thử lại.', 'error');
+        }
+    } catch (error) {
+        console.error('Error creating VNPAY payment:', error);
+        hidePaymentLoading();
+        showToast('Lỗi kết nối server', 'error');
+    } finally {
+        document.querySelectorAll('.btn-package').forEach(btn => { btn.disabled = false; });
+    }
+}
+
+window.upgradeVnpay = upgradeVnpay;
 
 function showPaymentLoading() {
     const overlay = document.getElementById('paymentLoadingOverlay');

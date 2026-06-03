@@ -67,6 +67,21 @@ app.use((req, res, next) => {
     next();
 });
 
+// Public: landing page config (no auth required)
+const { pool: _pool } = require('./config/database');
+app.get('/api/landing-config', async (req, res) => {
+    try {
+        const [rows] = await _pool.execute(
+            "SELECT setting_value FROM payment_settings WHERE setting_key = 'landing_page_config' LIMIT 1"
+        );
+        const raw = rows[0]?.setting_value;
+        const config = raw ? JSON.parse(raw) : {};
+        return res.json({ success: true, data: config });
+    } catch (e) {
+        return res.json({ success: true, data: {} });
+    }
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);

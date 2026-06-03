@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AI Screenplay - Hệ thống tạo kịch bản phim tự động</title>
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -28,7 +28,7 @@
     <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
     <!-- Floating Open Button (when sidebar is closed) -->
-    <button class="sidebar-open-btn" id="sidebar-open-btn" onclick="toggleSidebar()" title="Mở thanh công cụ">
+    <button class="sidebar-open-btn" id="sidebar-open-btn" onclick="toggleSidebar()" data-i18n-title="side.open-title" title="Mở thanh công cụ">
         <i class="fas fa-bars"></i>
     </button>
 
@@ -40,7 +40,7 @@
                     <i class="fas fa-film"></i>
                     <span>AI Screenplay</span>
                 </div>
-                <button class="sidebar-toggle-btn" onclick="toggleSidebar()" title="Đóng thanh công cụ">
+                <button class="sidebar-toggle-btn" onclick="toggleSidebar()" data-i18n-title="side.close-title" title="Đóng thanh công cụ">
                     <i class="fas fa-chevron-left" id="sidebar-toggle-icon"></i>
                 </button>
             </div>
@@ -54,49 +54,49 @@
                 <div class="nav-section">
                     <a href="dashboard.html" class="nav-section-header dashboard-link">
                         <i class="fas fa-home"></i>
-                        <span>Trang chủ</span>
+                        <span data-i18n="side.home">Trang chủ</span>
                     </a>
                 </div>
 
                 <div class="nav-section">
                     <div class="nav-section-header active" onclick="toggleSection('tools')">
                         <i class="fas fa-heart"></i>
-                        <span>Công cụ viết kịch bản</span>
+                        <span data-i18n="side.tools-section">Công cụ viết kịch bản</span>
                         <span class="badge">8</span>
                         <i class="fas fa-chevron-up toggle-icon"></i>
                     </div>
                     <ul class="nav-list" id="tools-list">
                         <li class="nav-item active" data-tool="logline">
                             <i class="fas fa-pen-fancy"></i>
-                            <span>1. Tạo Logline</span>
+                            <span data-i18n="side.tool1">1. Tạo Logline</span>
                         </li>
                         <li class="nav-item" data-tool="theme">
                             <i class="fas fa-lightbulb"></i>
-                            <span>2. Xác định Chủ đề</span>
+                            <span data-i18n="side.tool2">2. Xác định Chủ đề</span>
                         </li>
                         <li class="nav-item" data-tool="character">
                             <i class="fas fa-users"></i>
-                            <span>3. Mô tả Nhân vật</span>
+                            <span data-i18n="side.tool3">3. Mô tả Nhân vật</span>
                         </li>
                         <li class="nav-item" data-tool="synopsis">
                             <i class="fas fa-file-alt"></i>
-                            <span>4. Viết Tóm tắt</span>
+                            <span data-i18n="side.tool4">4. Viết Tóm tắt</span>
                         </li>
                         <li class="nav-item" data-tool="structure">
                             <i class="fas fa-sitemap"></i>
-                            <span>5. Cấu trúc 4 Hồi</span>
+                            <span data-i18n="side.tool5">5. Cấu trúc 4 Hồi</span>
                         </li>
                         <li class="nav-item" data-tool="beatsheet">
                             <i class="fas fa-list-ol"></i>
-                            <span>6. Tạo Beat Sheet</span>
+                            <span data-i18n="side.tool6">6. Tạo Beat Sheet</span>
                         </li>
                         <li class="nav-item" data-tool="scenelist">
                             <i class="fas fa-th-list"></i>
-                            <span>7. Danh sách Cảnh</span>
+                            <span data-i18n="side.tool7">7. Danh sách Cảnh</span>
                         </li>
                         <li class="nav-item" data-tool="script">
                             <i class="fas fa-scroll"></i>
-                            <span>8. Viết Kịch bản</span>
+                            <span data-i18n="side.tool8">8. Viết Kịch bản</span>
                         </li>
                     </ul>
                 </div>
@@ -105,14 +105,14 @@
                 <div class="nav-section">
                     <div class="nav-section-header" onclick="toggleSection('history')">
                         <i class="fas fa-history"></i>
-                        <span>Lịch sử kịch bản</span>
+                        <span data-i18n="side.history-section">Lịch sử kịch bản</span>
                         <i class="fas fa-chevron-down toggle-icon" id="history-toggle-icon"></i>
                     </div>
                     <ul class="nav-list project-list" id="history-list" style="display: none;">
                         <!-- Projects will be loaded dynamically -->
                         <li class="no-projects" id="no-projects">
                             <i class="fas fa-folder-open"></i>
-                            <span>Chưa có kịch bản nào</span>
+                            <span data-i18n="side.no-projects">Chưa có kịch bản nào</span>
                         </li>
                     </ul>
                 </div>
@@ -122,7 +122,7 @@
             <div class="new-project-section">
                 <button class="btn-new-project" onclick="createNewProject()">
                     <i class="fas fa-plus"></i>
-                    <span>Tạo kịch bản mới</span>
+                    <span data-i18n="side.new-project">Tạo kịch bản mới</span>
                 </button>
             </div>
 
@@ -135,9 +135,9 @@
                     <span id="user-plan-badge" class="plan-badge free">FREE</span>
                 </div>
                 <div class="user-actions">
-                    <button class="btn-logout" onclick="handleLogout()" title="Đăng xuất">
+                    <button class="btn-logout" onclick="handleLogout()" data-i18n-title="side.logout" title="Đăng xuất">
                         <i class="fas fa-sign-out-alt"></i>
-                        <span>Đăng xuất</span>
+                        <span data-i18n="side.logout">Đăng xuất</span>
                     </button>
                 </div>
             </div>
@@ -174,11 +174,11 @@
         <!-- Result Panel -->
         <aside class="result-panel">
             <div class="result-header">
-                <h3>Kết quả của bạn</h3>
+                <h3 data-i18n="result.heading">Kết quả của bạn</h3>
                 <div class="result-actions">
                     <button class="btn-save" onclick="saveResult()">
                         <i class="fas fa-save"></i>
-                        Lưu
+                        <span data-i18n="result.save">Lưu</span>
                     </button>
                     <button class="btn-icon" onclick="copyResult()">
                         <i class="fas fa-copy"></i>
@@ -203,11 +203,11 @@
             </div>
 
             <div class="result-content" id="result-content" contenteditable="true">
-                <p class="placeholder-text">Kết quả sẽ hiển thị ở đây sau khi bạn tạo nội dung...</p>
+                <p class="placeholder-text" data-i18n="result.placeholder">Kết quả sẽ hiển thị ở đây sau khi bạn tạo nội dung...</p>
             </div>
 
             <div class="result-footer">
-                <p><i class="fas fa-info-circle"></i> AI có thể mắc lỗi. Vui lòng xem xét trước khi sử dụng.</p>
+                <p><i class="fas fa-info-circle"></i> <span data-i18n="result.footer">AI có thể mắc lỗi. Vui lòng xem xét trước khi sử dụng.</span></p>
             </div>
         </aside>
     </div>
@@ -216,7 +216,7 @@
     <div class="loading-overlay" id="loading-overlay">
         <div class="loading-spinner">
             <i class="fas fa-spinner fa-spin"></i>
-            <p>Đang tạo nội dung...</p>
+            <p data-i18n="loading.text">Đang tạo nội dung...</p>
         </div>
     </div>
 
@@ -231,15 +231,15 @@
         <div style="background:#1e293b; border:1px solid #ef4444; border-radius:12px; padding:28px 32px; max-width:440px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.5);">
             <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
                 <i class="fas fa-exclamation-triangle" style="color:#ef4444; font-size:22px;"></i>
-                <h3 style="color:#f8fafc; margin:0; font-size:17px;">Tạo lại từ đầu?</h3>
+                <h3 style="color:#f8fafc; margin:0; font-size:17px;" data-i18n="regen.title">Tạo lại từ đầu?</h3>
             </div>
             <p style="color:#94a3b8; margin:0 0 20px; font-size:14px; line-height:1.6;">
-                Dự án này đã có dữ liệu từ các bước trước.<br>
-                <strong style="color:#fca5a5;">Việc tạo lại sẽ xóa toàn bộ dữ liệu của tất cả các bước sau</strong> (chủ đề, nhân vật, synopsis, cấu trúc, beat sheet, danh sách cảnh, kịch bản).
+                <span data-i18n="regen.body1">Dự án này đã có dữ liệu từ các bước trước.</span><br>
+                <strong style="color:#fca5a5;"><span data-i18n="regen.body2">Việc tạo lại sẽ xóa toàn bộ dữ liệu của tất cả các bước sau</span></strong> <span data-i18n="regen.body3">(chủ đề, nhân vật, synopsis, cấu trúc, beat sheet, danh sách cảnh, kịch bản).</span>
             </p>
             <div style="display:flex; gap:12px; justify-content:flex-end;">
-                <button id="confirm-regen-cancel" style="padding:9px 20px; border-radius:8px; border:1px solid #475569; background:transparent; color:#94a3b8; cursor:pointer; font-size:14px;">Huỷ</button>
-                <button id="confirm-regen-ok" style="padding:9px 20px; border-radius:8px; border:none; background:#ef4444; color:#fff; cursor:pointer; font-size:14px; font-weight:600;">Xác nhận xóa &amp; Tạo lại</button>
+                <button id="confirm-regen-cancel" style="padding:9px 20px; border-radius:8px; border:1px solid #475569; background:transparent; color:#94a3b8; cursor:pointer; font-size:14px;" data-i18n="regen.cancel">Huỷ</button>
+                <button id="confirm-regen-ok" style="padding:9px 20px; border-radius:8px; border:none; background:#ef4444; color:#fff; cursor:pointer; font-size:14px; font-weight:600;" data-i18n="regen.confirm">Xác nhận xóa &amp; Tạo lại</button>
             </div>
         </div>
     </div>
@@ -249,7 +249,7 @@
         <div style="background:#1e293b; border:1px solid #7c3aed; border-radius:14px; padding:28px 32px; max-width:520px; width:93%; box-shadow:0 24px 64px rgba(0,0,0,0.6);">
             <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px;">
                 <i class="fas fa-film" style="color:#a78bfa; font-size:22px;"></i>
-                <h3 style="color:#f8fafc; margin:0; font-size:17px;">Tự động tạo tất cả cảnh</h3>
+                <h3 style="color:#f8fafc; margin:0; font-size:17px;" data-i18n="scene-auto.title">Tự động tạo tất cả cảnh</h3>
             </div>
             <p id="scene-auto-label" style="color:#94a3b8; font-size:14px; margin:0 0 12px;">Đang chuẩn bị...</p>
             <div style="background:#0f172a; border-radius:8px; height:10px; overflow:hidden; margin-bottom:16px;">
@@ -257,7 +257,33 @@
             </div>
             <div id="scene-auto-log" style="background:#0f172a; border-radius:8px; padding:10px 14px; max-height:220px; overflow-y:auto; font-size:13px; color:#cbd5e1; line-height:1.8;"></div>
             <div style="display:flex; justify-content:flex-end; margin-top:18px;">
-                <button id="scene-auto-cancel" style="padding:9px 22px; border-radius:8px; border:1px solid #475569; background:transparent; color:#94a3b8; cursor:pointer; font-size:14px;">Huỷ</button>
+                <button id="scene-auto-cancel" style="padding:9px 22px; border-radius:8px; border:1px solid #475569; background:transparent; color:#94a3b8; cursor:pointer; font-size:14px;" data-i18n="scene-auto.cancel">Huỷ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rename Project Modal -->
+    <div id="rename-project-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center;">
+        <div class="delete-confirm-card" style="width:420px; max-width:90vw;">
+            <div class="delete-confirm-icon" style="background:rgba(99,102,241,0.12); color:#6366f1;">
+                <i class="fas fa-edit"></i>
+            </div>
+            <h3 class="delete-confirm-title" data-i18n="rename.title">Đổi tên dự án</h3>
+            <div style="width:100%; margin: 4px 0 16px;">
+                <input id="rename-project-input" type="text"
+                    style="width:100%; padding:10px 14px; border:1.5px solid #e0e7ff; border-radius:8px; font-size:1rem; font-family:inherit; outline:none; box-sizing:border-box; transition:border-color 0.2s;"
+                    placeholder="Nhập tên mới..."
+                    data-i18n-ph="ph.rename"
+                    onfocus="this.style.borderColor='#6366f1'"
+                    onblur="this.style.borderColor='#e0e7ff'" />
+            </div>
+            <div class="delete-confirm-actions">
+                <button id="rename-project-cancel" class="delete-confirm-btn cancel">
+                    <i class="fas fa-times"></i> <span data-i18n="rename.cancel">Huỷ</span>
+                </button>
+                <button id="rename-project-ok" class="delete-confirm-btn" style="background:#6366f1; color:#fff; border-color:#6366f1;">
+                    <i class="fas fa-check"></i> <span data-i18n="rename.save">Lưu</span>
+                </button>
             </div>
         </div>
     </div>
@@ -272,15 +298,17 @@
             <p id="delete-confirm-message" class="delete-confirm-message">Bạn có chắc muốn xóa dự án này? Dữ liệu sẽ bị xóa vĩnh viễn khỏi database.</p>
             <div class="delete-confirm-actions">
                 <button id="delete-confirm-cancel" class="delete-confirm-btn cancel">
-                    <i class="fas fa-times"></i> Huỷ
+                    <i class="fas fa-times"></i> <span data-i18n="delete.cancel">Huỷ</span>
                 </button>
                 <button id="delete-confirm-ok" class="delete-confirm-btn danger">
-                    <i class="fas fa-trash-alt"></i> Xóa vĩnh viễn
+                    <i class="fas fa-trash-alt"></i> <span data-i18n="delete.confirm">Xóa vĩnh viễn</span>
                 </button>
             </div>
         </div>
     </div>
 
+    <script src="js/notify.js"></script>
+    <script src="js/i18n.js"></script>
     <script src="js/app.js"></script>
     <script src="js/projectManager.js"></script>
 </body>

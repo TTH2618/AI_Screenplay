@@ -548,6 +548,86 @@ const storyTools = {
     }
 };
 
+// ── Tool localization keys mapping ─────────────────────────
+const toolFieldKeys = {
+    logline:         { title: 'tool.logline.title', desc: 'tool.logline.desc',
+                       fields: [{ label: 'tool.logline.f1.label', ph: 'tool.logline.f1.ph' }] },
+    theme:           { title: 'tool.theme.title',   desc: 'tool.theme.desc',
+                       fields: [{ label: 'tool.theme.f1.label', ph: 'tool.theme.f1.ph' }] },
+    character:       { title: 'tool.char.title',    desc: 'tool.char.desc',
+                       fields: [
+                           { label: 'tool.char.f1.label', ph: 'tool.char.f1.ph' },
+                           { label: 'tool.char.f2.label', ph: 'tool.char.f2.ph' },
+                           { label: 'tool.char.f3.label', ph: 'tool.char.f3.ph' }
+                       ] },
+    synopsis:        { title: 'tool.synopsis.title', desc: 'tool.synopsis.desc',
+                       fields: [
+                           { label: 'tool.synopsis.f1.label', ph: 'tool.synopsis.f1.ph' },
+                           { label: 'tool.synopsis.f2.label', ph: 'tool.synopsis.f2.ph' },
+                           { label: 'tool.synopsis.f3.label', ph: 'tool.synopsis.f3.ph' }
+                       ] },
+    structure:       { title: 'tool.struct.title',  desc: 'tool.struct.desc',
+                       fields: [
+                           { label: 'tool.struct.f1.label', ph: 'tool.struct.f1.ph' },
+                           { label: 'tool.struct.f2.label', ph: 'tool.struct.f2.ph' },
+                           { label: 'tool.struct.f3.label', ph: 'tool.struct.f3.ph' }
+                       ] },
+    beatsheet:       { title: 'tool.beat.title',    desc: 'tool.beat.desc',
+                       fields: [
+                           { label: 'tool.beat.f1.label', ph: 'tool.beat.f1.ph' },
+                           { label: 'tool.beat.f2.label', ph: 'tool.beat.f2.ph' },
+                           { label: 'tool.beat.f3.label', ph: 'tool.beat.f3.ph' }
+                       ] },
+    scenelist:       { title: 'tool.scene.title',   desc: 'tool.scene.desc',
+                       fields: [
+                           { label: 'tool.scene.f1.label', ph: 'tool.scene.f1.ph' },
+                           { label: 'tool.scene.f2.label', ph: 'tool.scene.f2.ph' },
+                           { label: 'tool.scene.f3.label', ph: 'tool.scene.f3.ph' },
+                           { label: 'tool.scene.f4.label', ph: 'tool.scene.f4.ph' },
+                           { label: 'tool.scene.f5.label', ph: 'tool.scene.f5.ph' }
+                       ] },
+    script:          { title: 'tool.script.title',  desc: 'tool.script.desc',
+                       fields: [
+                           { label: 'tool.script.f1.label', ph: 'tool.script.f1.ph' },
+                           { label: 'tool.script.f2.label', ph: 'tool.script.f2.ph' },
+                           { label: 'tool.script.f3.label', ph: 'tool.script.f3.ph' },
+                           { label: 'tool.script.f4.label', ph: 'tool.script.f4.ph' },
+                           { label: 'tool.script.f5.label', ph: 'tool.script.f5.ph' },
+                           { label: 'tool.script.f6.label', ph: 'tool.script.f6.ph' }
+                       ] },
+    // Story tools share the same keys
+    story_theme:     { title: 'tool.theme.title',   desc: 'tool.theme.desc',   fields: [] },
+    story_character: { title: 'tool.char.title',    desc: 'tool.char.desc',    fields: [{ label: 'tool.char.f2.label', ph: 'tool.char.f2.ph' }] },
+    story_synopsis:  { title: 'tool.synopsis.title',desc: 'tool.synopsis.desc',fields: [{ label: 'tool.synopsis.f2.label', ph: 'tool.synopsis.f2.ph' }, { label: 'tool.synopsis.f3.label', ph: 'tool.synopsis.f3.ph' }] },
+    story_structure: { title: 'tool.struct.title',  desc: 'tool.struct.desc',  fields: [{ label: 'tool.struct.f1.label', ph: 'tool.struct.f1.ph' }, { label: 'tool.struct.f2.label', ph: 'tool.struct.f2.ph' }, { label: 'tool.struct.f3.label', ph: 'tool.struct.f3.ph' }] },
+    story_beatsheet: { title: 'tool.beat.title',    desc: 'tool.beat.desc',    fields: [{ label: 'tool.beat.f1.label', ph: 'tool.beat.f1.ph' }, { label: 'tool.beat.f2.label', ph: 'tool.beat.f2.ph' }, { label: 'tool.beat.f3.label', ph: 'tool.beat.f3.ph' }] },
+    story_scenelist: { title: 'tool.scene.title',   desc: 'tool.scene.desc',   fields: [{ label: 'tool.scene.f1.label', ph: 'tool.scene.f1.ph' }, { label: 'tool.scene.f2.label', ph: 'tool.scene.f2.ph' }, { label: 'tool.scene.f3.label', ph: 'tool.scene.f3.ph' }, { label: 'tool.scene.f4.label', ph: 'tool.scene.f4.ph' }, { label: 'tool.scene.f5.label', ph: 'tool.scene.f5.ph' }] },
+    story_script:    { title: 'tool.script.title',  desc: 'tool.script.desc',  fields: [{ label: 'tool.script.f1.label', ph: 'tool.script.f1.ph' }, { label: 'tool.script.f2.label', ph: 'tool.script.f2.ph' }, { label: 'tool.script.f3.label', ph: 'tool.script.f3.ph' }, { label: 'tool.script.f4.label', ph: 'tool.script.f4.ph' }, { label: 'tool.script.f5.label', ph: 'tool.script.f5.ph' }, { label: 'tool.script.f6.label', ph: 'tool.script.f6.ph' }] },
+};
+
+// Returns a tool definition with strings translated for the current language
+function getLocalizedTool(toolId) {
+    const base = tools[toolId] || storyTools[toolId];
+    if (!base) return null;
+    if (!window.t) return base;
+    const keys = toolFieldKeys[toolId];
+    if (!keys) return base;
+    const localized = Object.assign({}, base);
+    if (keys.title) localized.title = window.t(keys.title);
+    if (keys.desc)  localized.description = window.t(keys.desc);
+    if (keys.fields && keys.fields.length) {
+        localized.fields = base.fields.map((f, i) => {
+            const fk = keys.fields[i];
+            if (!fk) return f;
+            return Object.assign({}, f, {
+                label:       window.t(fk.label) || f.label,
+                placeholder: window.t(fk.ph)    || f.placeholder
+            });
+        });
+    }
+    return localized;
+}
+
 // Story analysis auto-fill mapping
 const storyAutoFillMapping = {
     story_character: {
@@ -612,7 +692,7 @@ function showUpgradePrompt(feature) {
     const featureText = feature ? `tính năng <strong>${feature}</strong>` : 'tính năng này';
     const modalOverlay = document.getElementById('modal-overlay');
     if (!modalOverlay) {
-        alert(`Nâng cấp PRO để sử dụng ${feature || 'tính năng này'}.`);
+        showToast(`Nâng cấp PRO để sử dụng ${feature || 'tính năng này'}.`, 'info');
         return;
     }
     modalOverlay.innerHTML = `
@@ -812,8 +892,8 @@ function checkUserAuth() {
 }
 
 // Handle logout
-function handleLogout() {
-    if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+async function handleLogout() {
+    if (await showConfirm('Bạn có chắc chắn muốn đăng xuất?')) {
         // Clear all auth data
         localStorage.removeItem('user');
         localStorage.removeItem('token');
@@ -1027,7 +1107,7 @@ function loadTool(toolId) {
     
     // Check if it's a story tool
     const isStoryTool = currentTool.startsWith('story_');
-    const tool = isStoryTool ? storyTools[currentTool] : tools[currentTool];
+    const tool = getLocalizedTool(currentTool) || (isStoryTool ? storyTools[currentTool] : tools[currentTool]);
     
     if (!tool) return;
     
@@ -1069,7 +1149,7 @@ function loadTool(toolId) {
                     <span class="step-number">${index + 1}</span>
                     <span class="label-icon">${field.labelIcon}</span>
                     <span>${field.label}</span>
-                    ${field.optional ? '<span class="optional">(tùy chọn)</span>' : ''}
+                    ${field.optional ? `<span class="optional">${window.t ? window.t('app.optional') : '(tùy chọn)'}</span>` : ''}
                 </label>
                 ${inputType}
             </div>
@@ -1080,8 +1160,8 @@ function loadTool(toolId) {
     const storyIndicator = isStoryTool && storyContent ? `
         <div class="story-indicator">
             <i class="fas fa-book-open"></i>
-            <span>📖 Truyện: <strong>${storyFileName || 'Nội dung đã dán'}</strong> (${storyContent.length.toLocaleString()} ký tự)</span>
-            <button class="btn-change-story" onclick="loadTool('story_upload')" title="Đổi truyện">
+            <span>📖 ${window.t ? window.t('app.story-label') : 'Truyện:'} <strong>${storyFileName || (window.t ? window.t('app.story-paste') : 'Nội dung đã dán')}</strong> (${storyContent.length.toLocaleString()} ký tự)</span>
+            <button class="btn-change-story" onclick="loadTool('story_upload')" title="${window.t ? window.t('app.change-story') : 'Đổi truyện'}">
                 <i class="fas fa-exchange-alt"></i>
             </button>
         </div>
@@ -1092,21 +1172,21 @@ function loadTool(toolId) {
             <h2 class="tool-title">
                 <i class="${tool.icon}"></i>
                 ${tool.title}
-                <span class="help-icon" title="Trợ giúp">?</span>
+                <span class="help-icon" title="${window.t ? window.t('app.help') : 'Trợ giúp'}">?</span>
             </h2>
             <p class="tool-description">${tool.description}</p>
-            <span class="more-link" onclick="toggleDescription(this)">xem thêm</span>
+            <span class="more-link" onclick="toggleDescription(this)">${window.t ? window.t('app.see-more') : 'xem thêm'}</span>
         </div>
         ${storyIndicator}
         <form id="tool-form" onsubmit="handleSubmit(event)">
             ${fieldsHTML}
             <button type="submit" class="submit-btn">
                 <i class="fas fa-magic"></i>
-                ${isStoryTool ? 'Phân tích' : 'Tạo Nội dung'}
+                ${isStoryTool ? (window.t ? window.t('app.btn.analyze') : 'Phân tích') : (window.t ? window.t('app.btn.create') : 'Tạo Nội dung')}
             </button>
             ${(currentTool === 'script' || currentTool === 'story_script') ? `
             <button type="button" class="submit-btn btn-auto-all-scenes" onclick="autoGenerateAllScripts()" style="margin-top:10px;background:linear-gradient(135deg,#7c3aed,#4f46e5);">
-                <i class="fas fa-film"></i> Tự động tạo tất cả cảnh
+                <i class="fas fa-film"></i> ${window.t ? window.t('app.btn.auto-scenes') : 'Tự động tạo tất cả cảnh'}
             </button>` : ''}
         </form>
         ${isCharTool ? '<div id="character-cards-container"></div>' : ''}
@@ -1121,8 +1201,8 @@ function loadTool(toolId) {
             sceneCountEl.min = '1';
             sceneCountEl.max = String(maxScenes);
             sceneCountEl.placeholder = _isProUser()
-                ? 'Ví dụ: 30 (tối đa 40 cảnh)'
-                : 'Ví dụ: 5 (tối đa 10 cảnh - Gói Free)';
+                ? (window.t ? window.t('app.limit.scenes') : 'Ví dụ: 30 (tối đa 40 cảnh)')
+                : (window.t ? window.t('app.limit.scenes-free') : 'Ví dụ: 5 (tối đa 10 cảnh - Gói Free)');
         }
     }
 
@@ -1244,22 +1324,23 @@ function loadInitProjectForm(container, tool) {
         ideaContent = inputData.movie_idea || '';
     }
 
+    const _t = window.t || (k => k);
     container.innerHTML = `
         <div class="tool-header">
             <h2 class="tool-title">
                 <i class="fas fa-pen-fancy"></i>
-                Khởi tạo Kịch bản
-                <span class="help-icon" title="Trợ giúp">?</span>
+                ${_t('init.title')}
+                <span class="help-icon" title="${_t('app.help')}">?</span>
             </h2>
-            <p class="tool-description">Bắt đầu bằng cách nhập ý tưởng phim của bạn hoặc tải lên một câu chuyện có sẵn.</p>
+            <p class="tool-description">${_t('init.desc')}</p>
         </div>
         
         <div class="init-project-tabs">
             <button class="btn-tab ${!isStoryMode ? 'active' : ''}" id="tab-idea" onclick="switchInitTab('idea')">
-                <i class="fas fa-lightbulb"></i> Nhập ý tưởng
+                <i class="fas fa-lightbulb"></i> ${_t('init.tab.idea')}
             </button>
             <button class="btn-tab ${isStoryMode ? 'active' : ''}" id="tab-story" onclick="switchInitTab('story')">
-                <i class="fas fa-file-upload"></i> Tải truyện lên
+                <i class="fas fa-file-upload"></i> ${_t('init.tab.story')}
             </button>
         </div>
 
@@ -1269,13 +1350,13 @@ function loadInitProjectForm(container, tool) {
                     <label class="form-label">
                         <span class="step-number">1</span>
                         <span class="label-icon">🎬</span>
-                        <span>Ý tưởng phim của bạn là gì?</span>
+                        <span>${_t('init.idea.label')}</span>
                     </label>
-                    <textarea class="form-textarea" id="movie_idea" placeholder="Ví dụ: Một thám tử săn lùng kẻ giết người hàng loạt trong một thành phố tương lai." required>${ideaContent}</textarea>
+                    <textarea class="form-textarea" id="movie_idea" placeholder="${_t('init.idea.ph')}" required>${ideaContent}</textarea>
                 </div>
                 <button type="submit" class="submit-btn">
                     <i class="fas fa-magic"></i>
-                    Tạo Nội dung
+                    ${_t('app.btn.create')}
                 </button>
             </form>
         </div>
@@ -1286,33 +1367,33 @@ function loadInitProjectForm(container, tool) {
                     <div class="upload-icon">
                         <i class="fas fa-cloud-upload-alt"></i>
                     </div>
-                    <p class="upload-text">Kéo thả file vào đây hoặc</p>
+                    <p class="upload-text">${_t('init.upload.drag')}</p>
                     <button class="upload-btn-label" type="button" onclick="triggerStoryFilePick()">
                         <i class="fas fa-folder-open"></i>
-                        Chọn file
+                        ${_t('init.upload.pick')}
                     </button>
                     <!-- Input file ẩn đúng cách: không dùng display:none mà đặt ra ngoài màn hình -->
                     <input type="file" id="story-file-input" accept=".txt,.pdf,.docx"
                         style="position: fixed; top: -9999px; left: -9999px; width: 1px; height: 1px; opacity: 0;">
-                    <p class="upload-hint">Hỗ trợ: .txt, .pdf, .docx</p>
+                    <p class="upload-hint">${_t('init.upload.hint')}</p>
                 </div>
                 
                 <div class="upload-divider">
-                    <span>hoặc dán nội dung truyện</span>
+                    <span>${_t('init.upload.or')}</span>
                 </div>
                 
                 <textarea class="form-textarea story-textarea" id="story-text-input" 
-                    placeholder="Dán nội dung truyện vào đây...">${hasStory ? storyContent : ''}</textarea>
+                    placeholder="${_t('init.upload.ph')}">${hasStory ? storyContent : ''}</textarea>
                 
                 ${hasStory ? `
                     <div class="story-loaded-info" style="margin-top: 10px; color: #10b981; font-weight: 500;">
-                        <i class="fas fa-check-circle"></i> Đã tải truyện thành công.
+                        <i class="fas fa-check-circle"></i> ${_t('init.upload.done')}
                     </div>
                 ` : ''}
                 
                 <button class="submit-btn" onclick="startStoryAnalysis()" style="margin-top: 15px;">
                     <i class="fas fa-search"></i>
-                    ${hasStory ? 'Cập nhật & Bắt đầu phân tích' : 'Bắt đầu phân tích'}
+                    ${hasStory ? _t('init.upload.update') : _t('init.upload.start')}
                 </button>
             </div>
         </div>
@@ -1347,8 +1428,8 @@ function loadInitProjectForm(container, tool) {
     
     if (!dataRestored) {
         // Clear result
-        document.getElementById('result-content').innerHTML = 
-            '<p class="placeholder-text">Kết quả sẽ hiển thị ở đây sau khi bạn tạo nội dung...</p>';
+        document.getElementById('result-content').innerHTML =
+            `<p class="placeholder-text">${window.t ? window.t('app.placeholder') : 'Kết quả sẽ hiển thị ở đây sau khi bạn tạo nội dung...'}</p>`;
         
         // Hide next step button when switching tools
         hideNextStepButton();
@@ -1366,12 +1447,12 @@ window.switchInitTab = function(tab) {
     const hasStorySteps = currProj && currProj.steps && currProj.steps['story_upload'];
     
     if (tab === 'story' && hasIdeaSteps) {
-        showConstraintPopup('Dự án này đang sử dụng chế độ "Nhập ý tưởng".<br><br>Vui lòng tạo kịch bản mới để sử dụng chế độ "Tải truyện lên"!');
+        showConstraintPopup(window.t ? window.t('init.constraint.idea') : 'Dự án này đang sử dụng chế độ "Nhập ý tưởng".<br><br>Vui lòng tạo kịch bản mới để sử dụng chế độ "Tải truyện lên"!');
         return;
     }
     
     if (tab === 'idea' && hasStorySteps) {
-        showConstraintPopup('Dự án này đang sử dụng chế độ "Tải truyện lên".<br><br>Vui lòng tạo kịch bản mới để sử dụng chế độ "Nhập ý tưởng"!');
+        showConstraintPopup(window.t ? window.t('init.constraint.story') : 'Dự án này đang sử dụng chế độ "Tải truyện lên".<br><br>Vui lòng tạo kịch bản mới để sử dụng chế độ "Nhập ý tưởng"!');
         return;
     }
 
@@ -1398,7 +1479,7 @@ window.switchInitTab = function(tab) {
     // Clear result panel and hide next step button (same as switching any other tool)
     const resultContent = document.getElementById('result-content');
     if (resultContent) {
-        resultContent.innerHTML = '<p class="placeholder-text">Kết quả sẽ hiển thị ở đây sau khi bạn tạo nội dung...</p>';
+        resultContent.innerHTML = `<p class="placeholder-text">${window.t ? window.t('app.placeholder') : 'Kết quả sẽ hiển thị ở đây sau khi bạn tạo nội dung...'}</p>`;
     }
     hideNextStepButton();
 }
@@ -1406,7 +1487,7 @@ window.switchInitTab = function(tab) {
 function showConstraintPopup(message) {
     const modalOverlay = document.getElementById('modal-overlay');
     if (!modalOverlay) {
-        alert(message.replace(/<br>/g, '\n'));
+        showToast(message.replace(/<br>/g, ' '), 'info');
         return;
     }
 
@@ -1546,7 +1627,7 @@ async function autoGeneratePipeline(mode, initialData) {
         if (error && error.code === 'FREE_DAILY_LIMIT') {
             showFreeLimitPopup();
         } else {
-            alert('Đã xảy ra lỗi khi tạo tự động: ' + error.message + '\\nBạn có thể thử tạo lại bước này thủ công.');
+            showToast('Đã xảy ra lỗi khi tạo tự động: ' + error.message + ' Bạn có thể thử tạo lại bước này thủ công.', 'error');
         }
         
         loadTool(currentTool);
@@ -1686,7 +1767,7 @@ async function handleIdeaSubmit(event) {
     const element = document.getElementById('movie_idea');
     const idea = element.value.trim();
     if (!idea) {
-        alert('Vui lòng điền ý tưởng phim!');
+        showToast('Vui lòng điền ý tưởng phim!', 'warning');
         element.style.borderColor = '#ef4444';
         return;
     }
@@ -1784,7 +1865,7 @@ async function handleStoryFileFromBase64(result) {
                 window.storyFileName = result.fileName;
                 showSaveNotification(`Đã đọc file: ${result.fileName}`, 'success');
             } catch(e2) {
-                alert('Lỗi đọc file text: ' + e2.message);
+                showToast('Lỗi đọc file text: ' + e2.message, 'error');
             }
         }
     } else if (filename.endsWith('.pdf') || filename.endsWith('.docx')) {
@@ -1823,16 +1904,16 @@ async function handleStoryFileFromBase64(result) {
                 window.storyFileName = result.fileName;
                 showSaveNotification(`Đã đọc file: ${result.fileName} (${data.length.toLocaleString()} ký tự)`, 'success');
             } else {
-                alert('Lỗi đọc file: ' + data.error);
+                showToast('Lỗi đọc file: ' + data.error, 'error');
             }
         } catch (error) {
             console.error('Error extracting text from base64:', error);
-            alert('Lỗi khi đọc file. Vui lòng thử lại.');
+            showToast('Lỗi khi đọc file. Vui lòng thử lại.', 'error');
         } finally {
             showLoading(false);
         }
     } else {
-        alert('Chỉ hỗ trợ file .txt, .pdf, .docx');
+        showToast('Chỉ hỗ trợ file .txt, .pdf, .docx', 'warning');
     }
 }
 
@@ -1878,16 +1959,16 @@ async function handleStoryFile(file) {
                 storyFileName = file.name;
                 showSaveNotification(`Đã đọc file: ${file.name} (${data.length.toLocaleString()} ký tự)`, 'success');
             } else {
-                alert('Lỗi đọc file: ' + data.error);
+                showToast('Lỗi đọc file: ' + data.error, 'error');
             }
         } catch (error) {
             console.error('Error extracting text:', error);
-            alert('Lỗi khi đọc file. Vui lòng thử lại.');
+            showToast('Lỗi khi đọc file. Vui lòng thử lại.', 'error');
         } finally {
             showLoading(false);
         }
     } else {
-        alert('Chỉ hỗ trợ file .txt, .pdf, .docx');
+        showToast('Chỉ hỗ trợ file .txt, .pdf, .docx', 'warning');
     }
 }
 
@@ -1897,7 +1978,7 @@ async function startStoryAnalysis() {
     const text = textInput ? textInput.value.trim() : '';
     
     if (!text) {
-        alert('Vui lòng tải file hoặc dán nội dung truyện!');
+        showToast('Vui lòng tải file hoặc dán nội dung truyện!', 'warning');
         return;
     }
 
@@ -2020,7 +2101,7 @@ async function autoGenerateAllScripts() {
 
     const sceneEntries = _parseSceneEntries(scenelistText);
     if (sceneEntries.length === 0) {
-        alert('Kh\u00f4ng t\u00ecm th\u1ea5y c\u1ea3nh n\u00e0o trong danh s\u00e1ch c\u1ea3nh. H\u00e3y t\u1ea1o danh s\u00e1ch c\u1ea3nh tr\u01b0\u1edbc.');
+        showToast('Không tìm thấy cảnh nào trong danh sách cảnh. Hãy tạo danh sách cảnh trước.', 'warning');
         return;
     }
 
@@ -2182,7 +2263,7 @@ async function handleSubmit(event) {
     });
 
     if (!isValid) {
-        alert('Vui lòng điền đầy đủ các trường bắt buộc!');
+        showToast('Vui lòng điền đầy đủ các trường bắt buộc!', 'warning');
         return;
     }
 
@@ -2352,7 +2433,7 @@ async function generateContent(toolId, formData) {
 function showFreeLimitPopup() {
     const modalOverlay = document.getElementById('modal-overlay');
     if (!modalOverlay) {
-        alert(FREE_DAILY_LIMIT_MESSAGE);
+        showToast(FREE_DAILY_LIMIT_MESSAGE, 'warning');
         return;
     }
 
@@ -3585,13 +3666,13 @@ async function saveResult() {
     
     // Check if content is empty or just placeholder
     if (!content || content.includes('placeholder-text')) {
-        alert('Chưa có nội dung để lưu!');
+        showToast('Chưa có nội dung để lưu!', 'warning');
         return;
     }
     
     // Check if there's a current project
     if (typeof ProjectManager === 'undefined' || !ProjectManager.getCurrentProject()) {
-        alert('Chưa có dự án. Vui lòng tạo nội dung trước!');
+        showToast('Chưa có dự án. Vui lòng tạo nội dung trước!', 'warning');
         return;
     }
     
@@ -3599,7 +3680,7 @@ async function saveResult() {
     
     // Check if this step has been generated before
     if (!project.steps || !project.steps[currentTool]) {
-        alert('Bước này chưa được tạo. Vui lòng tạo nội dung trước khi lưu!');
+        showToast('Bước này chưa được tạo. Vui lòng tạo nội dung trước khi lưu!', 'warning');
         return;
     }
     
@@ -3646,7 +3727,7 @@ async function saveResult() {
         }
     } catch (error) {
         console.error('❌ Lỗi lưu vào MySQL:', error);
-        alert('Lỗi khi lưu vào database: ' + error.message);
+        showToast('Lỗi khi lưu vào database: ' + error.message, 'error');
     }
 }
 
@@ -3679,7 +3760,7 @@ function showSaveNotification(message, type = 'success') {
 function copyResult() {
     const content = document.getElementById('result-content').innerText;
     navigator.clipboard.writeText(content).then(() => {
-        alert('Đã sao chép vào clipboard!');
+        showToast('Đã sao chép vào clipboard!', 'success');
     }).catch(err => {
         console.error('Lỗi khi sao chép:', err);
     });
@@ -3943,17 +4024,29 @@ async function downloadResult() {
         
         // Tạo blob và download
         const blob = await Packer.toBlob(doc);
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `screenplay_${currentTool}_${new Date().toISOString().split('T')[0]}.docx`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        const downloadFileName = `screenplay_${currentTool}_${new Date().toISOString().split('T')[0]}.docx`;
+
+        // Kiểm tra nếu đang chạy trong app Flutter — dùng bridge thay vì a.click()
+        if (typeof window.flutterDownloadFile === 'function') {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64 = e.target.result.split(',')[1];
+                window.flutterDownloadFile(base64, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', downloadFileName);
+            };
+            reader.readAsDataURL(blob);
+        } else {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = downloadFileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
     } catch (error) {
         console.error('Error creating DOCX:', error);
-        alert('Có lỗi khi tạo file DOCX. Vui lòng thử lại.');
+        showToast('Có lỗi khi tạo file DOCX. Vui lòng thử lại.', 'error');
     }
 }
 
@@ -4191,7 +4284,7 @@ function goToNextStep() {
 function loadToolWithAutoFill(toolId, projectData) {
     currentTool = toolId;
     const isStoryTool = toolId.startsWith('story_');
-    const tool = isStoryTool ? storyTools[toolId] : tools[toolId];
+    const tool = getLocalizedTool(toolId) || (isStoryTool ? storyTools[toolId] : tools[toolId]);
     const container = document.getElementById('tool-container');
     
     // Get auto-fill mapping for this tool
@@ -4228,8 +4321,7 @@ function loadToolWithAutoFill(toolId, projectData) {
                     <span class="step-number">${index + 1}</span>
                     <span class="label-icon">${field.labelIcon}</span>
                     <span>${field.label}</span>
-                    ${field.optional ? '<span class="optional">(tùy chọn)</span>' : ''}
-                    ${autoFillBadge}
+                    ${field.optional ? `<span class="optional">${window.t ? window.t('app.optional') : '(tùy chọn)'}</span>` : ''}
                 </label>
                 ${inputType}
             </div>
@@ -4240,8 +4332,8 @@ function loadToolWithAutoFill(toolId, projectData) {
     const storyIndicator = isStoryTool && storyContent ? `
         <div class="story-indicator">
             <i class="fas fa-book-open"></i>
-            <span>📖 Truyện: <strong>${storyFileName || 'Nội dung đã dán'}</strong> (${storyContent.length.toLocaleString()} ký tự)</span>
-            <button class="btn-change-story" onclick="loadTool('story_upload')" title="Đổi truyện">
+            <span>📖 ${window.t ? window.t('app.story-label') : 'Truyện:'} <strong>${storyFileName || (window.t ? window.t('app.story-paste') : 'Nội dung đã dán')}</strong> (${storyContent.length.toLocaleString()} ký tự)</span>
+            <button class="btn-change-story" onclick="loadTool('story_upload')" title="${window.t ? window.t('app.change-story') : 'Đổi truyện'}">
                 <i class="fas fa-exchange-alt"></i>
             </button>
         </div>
@@ -4252,17 +4344,17 @@ function loadToolWithAutoFill(toolId, projectData) {
             <h2 class="tool-title">
                 <i class="${tool.icon}"></i>
                 ${tool.title}
-                <span class="help-icon" title="Trợ giúp">?</span>
+                <span class="help-icon" title="${window.t ? window.t('app.help') : 'Trợ giúp'}">?</span>
             </h2>
             <p class="tool-description">${tool.description}</p>
-            <span class="more-link" onclick="toggleDescription(this)">xem thêm</span>
+            <span class="more-link" onclick="toggleDescription(this)">${window.t ? window.t('app.see-more') : 'xem thêm'}</span>
         </div>
         ${storyIndicator}
         <form id="tool-form" onsubmit="handleSubmit(event)">
             ${fieldsHTML}
             <button type="submit" class="submit-btn">
                 <i class="fas fa-magic"></i>
-                ${isStoryTool ? 'Phân tích' : 'Tạo Nội dung'}
+                ${isStoryTool ? (window.t ? window.t('app.btn.analyze') : 'Phân tích') : (window.t ? window.t('app.btn.create') : 'Tạo Nội dung')}
             </button>
         </form>
     `;
@@ -4276,8 +4368,8 @@ function loadToolWithAutoFill(toolId, projectData) {
             sceneCountEl.min = '1';
             sceneCountEl.max = String(maxScenes);
             sceneCountEl.placeholder = _isProUser()
-                ? 'Ví dụ: 30 (tối đa 40 cảnh)'
-                : 'Ví dụ: 5 (tối đa 10 cảnh - Gói Free)';
+                ? (window.t ? window.t('app.limit.scenes') : 'Ví dụ: 30 (tối đa 40 cảnh)')
+                : (window.t ? window.t('app.limit.scenes-free') : 'Ví dụ: 5 (tối đa 10 cảnh - Gói Free)');
         }
     }
 
@@ -4338,7 +4430,7 @@ window.setActiveNavItem = setActiveNavItem;
 // Expose story content getter/setter for projectManager
 window.setStoryContent = function(content, fileName) {
     storyContent = content || '';
-    storyFileName = fileName || 'Nội dung đã dán';
+    storyFileName = fileName || (window.t ? window.t('app.story-paste') : 'Nội dung đã dán');
 };
 window.getStoryContent = function() {
     return { content: storyContent, fileName: storyFileName };

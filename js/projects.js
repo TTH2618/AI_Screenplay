@@ -150,8 +150,8 @@ function doLogout() {
     window.location.href = 'auth.html';
 }
 
-function handleLogout() {
-    if (confirm('Bạn có chắc chắn muốn đăng xuất?')) doLogout();
+async function handleLogout() {
+    if (await showConfirm('Bạn có chắc chắn muốn đăng xuất?')) doLogout();
 }
 
 // ─── Navigation helpers ───────────────────────────────────────────────────────

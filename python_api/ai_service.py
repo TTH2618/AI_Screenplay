@@ -1,16 +1,33 @@
-# AI Service - Handles OpenRouter API calls
+# AI Service - Handles AI API calls
 import re
 import httpx
 from config import OPENROUTER_API_KEY, OPENROUTER_MODEL, AI_PROVIDER
 from prompts import get_system_prompt, build_user_prompt
-from db_runtime import get_active_api_key
+from db_runtime import get_active_api_key, get_active_model, get_active_provider
 from character_files import save_characters
 
 # Tools that produce character profiles and should trigger JSON file saving
 _CHARACTER_TOOLS = {'character', 'story_character'}
 
-# OpenRouter API endpoint
-OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
+# Provider → API base URL mapping
+_PROVIDER_URLS = {
+    'openrouter': 'https://openrouter.ai/api/v1/chat/completions',
+    'openai':     'https://api.openai.com/v1/chat/completions',
+    'anthropic':  'https://api.anthropic.com/v1/messages',
+    'google':     'https://generativelanguage.googleapis.com/v1beta/chat/completions',
+}
+
+# Fallback (legacy)
+OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions'
+
+
+def _get_runtime_config():
+    """Trả về (provider, model, api_key) từ DB hoặc env."""
+    provider = get_active_provider() or AI_PROVIDER
+    model    = get_active_model() or OPENROUTER_MODEL
+    api_key  = get_active_api_key(provider) or OPENROUTER_API_KEY
+    return provider, model, api_key
+
 
 
 def generate_content(tool_id: str, form_data: dict, project_id=None) -> dict:
@@ -31,9 +48,10 @@ def generate_content(tool_id: str, form_data: dict, project_id=None) -> dict:
         print(f"🎬 Generating content for tool: {tool_id}")
         print(f"📝 User prompt length: {len(user_prompt)} chars")
         
-        runtime_api_key = get_active_api_key(AI_PROVIDER) or OPENROUTER_API_KEY
+        provider, runtime_model, runtime_api_key = _get_runtime_config()
+        api_url = _PROVIDER_URLS.get(provider, OPENROUTER_API_URL)
 
-        # Call OpenRouter API using httpx
+        # Call AI API using httpx
         headers = {
             "Authorization": f"Bearer {runtime_api_key}",
             "Content-Type": "application/json",
@@ -42,7 +60,7 @@ def generate_content(tool_id: str, form_data: dict, project_id=None) -> dict:
         }
         
         payload = {
-            "model": OPENROUTER_MODEL,
+            "model": runtime_model,
             "messages": [
                 {
                     "role": "system",
@@ -58,12 +76,17 @@ def generate_content(tool_id: str, form_data: dict, project_id=None) -> dict:
         }
         
         with httpx.Client(timeout=120.0) as client:
-            response = client.post(OPENROUTER_API_URL, headers=headers, json=payload)
+            response = client.post(api_url, headers=headers, json=payload)
             response.raise_for_status()
             data = response.json()
         
         # Extract content
         content = data['choices'][0]['message']['content']
+
+        # Extract token usage (OpenAI-compatible format)
+        _usage = data.get('usage', {})
+        tokens_in  = int(_usage.get('prompt_tokens', 0))
+        tokens_out = int(_usage.get('completion_tokens', 0))
         
         # Format to HTML
         html_content = format_response_to_html(content)
@@ -74,7 +97,7 @@ def generate_content(tool_id: str, form_data: dict, project_id=None) -> dict:
         if tool_id in _CHARACTER_TOOLS:
             saved_files, characters_data = save_characters(content, project_id=project_id)
         
-        print(f"✅ Content generated successfully: {len(content)} chars")
+        print(f"✅ Content generated successfully: {len(content)} chars | tokens in={tokens_in} out={tokens_out}")
         
         return {
             'success': True,
@@ -83,6 +106,8 @@ def generate_content(tool_id: str, form_data: dict, project_id=None) -> dict:
             'model': OPENROUTER_MODEL,
             'tool_id': tool_id,
             'provider': AI_PROVIDER,
+            'tokens_in':  tokens_in,
+            'tokens_out': tokens_out,
             'character_files': saved_files,
             'characters_data': characters_data,
         }
@@ -92,7 +117,9 @@ def generate_content(tool_id: str, form_data: dict, project_id=None) -> dict:
         return {
             'success': False,
             'error': str(e),
-            'tool_id': tool_id
+            'tool_id': tool_id,
+            'tokens_in': 0,
+            'tokens_out': 0,
         }
 
 
@@ -158,6 +185,7 @@ Trả lời bằng tiếng Việt. Chỉ trả về JSON, không có markdown, k
             response.raise_for_status()
             data = response.json()
 
+        _usage_c = data.get('usage', {})
         raw = data['choices'][0]['message']['content'].strip()
 
         # Strip possible markdown code fences
@@ -170,7 +198,12 @@ Trả lời bằng tiếng Việt. Chỉ trả về JSON, không có markdown, k
         character = {k: character.get(k, '') for k in allowed}
 
         print(f"✅ Generated single character: {character.get('ho_ten', '?')}")
-        return {'success': True, 'character': character}
+        return {
+            'success': True,
+            'character': character,
+            'tokens_in':  int(_usage_c.get('prompt_tokens', 0)),
+            'tokens_out': int(_usage_c.get('completion_tokens', 0)),
+        }
 
     except Exception as e:
         print(f"❌ Error generating single character: {e}")
@@ -229,13 +262,11 @@ def format_response_to_html(content: str) -> str:
 
 def test_connection() -> dict:
     """
-    Test connection to OpenRouter API
-    
-    Returns:
-        Dictionary with connection status
+    Test connection to the configured AI API
     """
     try:
-        runtime_api_key = get_active_api_key(AI_PROVIDER) or OPENROUTER_API_KEY
+        provider, runtime_model, runtime_api_key = _get_runtime_config()
+        api_url = _PROVIDER_URLS.get(provider, OPENROUTER_API_URL)
 
         headers = {
             "Authorization": f"Bearer {runtime_api_key}",
@@ -245,7 +276,7 @@ def test_connection() -> dict:
         }
         
         payload = {
-            "model": OPENROUTER_MODEL,
+            "model": runtime_model,
             "messages": [
                 {"role": "user", "content": "Hello"}
             ],
@@ -253,14 +284,14 @@ def test_connection() -> dict:
         }
         
         with httpx.Client(timeout=30.0) as client:
-            response = client.post(OPENROUTER_API_URL, headers=headers, json=payload)
+            response = client.post(api_url, headers=headers, json=payload)
             response.raise_for_status()
         
         return {
             'success': True,
-            'message': 'Kết nối OpenRouter API thành công!',
-            'model': OPENROUTER_MODEL,
-            'provider': AI_PROVIDER
+            'message': f'Kết nối {provider} API thành công!',
+            'model': runtime_model,
+            'provider': provider
         }
         
     except Exception as e:
