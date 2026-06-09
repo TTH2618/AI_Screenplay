@@ -550,59 +550,75 @@ const storyTools = {
 
 // ── Tool localization keys mapping ─────────────────────────
 const toolFieldKeys = {
-    logline:         { title: 'tool.logline.title', desc: 'tool.logline.desc',
-                       fields: [{ label: 'tool.logline.f1.label', ph: 'tool.logline.f1.ph' }] },
-    theme:           { title: 'tool.theme.title',   desc: 'tool.theme.desc',
-                       fields: [{ label: 'tool.theme.f1.label', ph: 'tool.theme.f1.ph' }] },
-    character:       { title: 'tool.char.title',    desc: 'tool.char.desc',
-                       fields: [
-                           { label: 'tool.char.f1.label', ph: 'tool.char.f1.ph' },
-                           { label: 'tool.char.f2.label', ph: 'tool.char.f2.ph' },
-                           { label: 'tool.char.f3.label', ph: 'tool.char.f3.ph' }
-                       ] },
-    synopsis:        { title: 'tool.synopsis.title', desc: 'tool.synopsis.desc',
-                       fields: [
-                           { label: 'tool.synopsis.f1.label', ph: 'tool.synopsis.f1.ph' },
-                           { label: 'tool.synopsis.f2.label', ph: 'tool.synopsis.f2.ph' },
-                           { label: 'tool.synopsis.f3.label', ph: 'tool.synopsis.f3.ph' }
-                       ] },
-    structure:       { title: 'tool.struct.title',  desc: 'tool.struct.desc',
-                       fields: [
-                           { label: 'tool.struct.f1.label', ph: 'tool.struct.f1.ph' },
-                           { label: 'tool.struct.f2.label', ph: 'tool.struct.f2.ph' },
-                           { label: 'tool.struct.f3.label', ph: 'tool.struct.f3.ph' }
-                       ] },
-    beatsheet:       { title: 'tool.beat.title',    desc: 'tool.beat.desc',
-                       fields: [
-                           { label: 'tool.beat.f1.label', ph: 'tool.beat.f1.ph' },
-                           { label: 'tool.beat.f2.label', ph: 'tool.beat.f2.ph' },
-                           { label: 'tool.beat.f3.label', ph: 'tool.beat.f3.ph' }
-                       ] },
-    scenelist:       { title: 'tool.scene.title',   desc: 'tool.scene.desc',
-                       fields: [
-                           { label: 'tool.scene.f1.label', ph: 'tool.scene.f1.ph' },
-                           { label: 'tool.scene.f2.label', ph: 'tool.scene.f2.ph' },
-                           { label: 'tool.scene.f3.label', ph: 'tool.scene.f3.ph' },
-                           { label: 'tool.scene.f4.label', ph: 'tool.scene.f4.ph' },
-                           { label: 'tool.scene.f5.label', ph: 'tool.scene.f5.ph' }
-                       ] },
-    script:          { title: 'tool.script.title',  desc: 'tool.script.desc',
-                       fields: [
-                           { label: 'tool.script.f1.label', ph: 'tool.script.f1.ph' },
-                           { label: 'tool.script.f2.label', ph: 'tool.script.f2.ph' },
-                           { label: 'tool.script.f3.label', ph: 'tool.script.f3.ph' },
-                           { label: 'tool.script.f4.label', ph: 'tool.script.f4.ph' },
-                           { label: 'tool.script.f5.label', ph: 'tool.script.f5.ph' },
-                           { label: 'tool.script.f6.label', ph: 'tool.script.f6.ph' }
-                       ] },
+    logline: {
+        title: 'tool.logline.title', desc: 'tool.logline.desc',
+        fields: [{ label: 'tool.logline.f1.label', ph: 'tool.logline.f1.ph' }]
+    },
+    theme: {
+        title: 'tool.theme.title', desc: 'tool.theme.desc',
+        fields: [{ label: 'tool.theme.f1.label', ph: 'tool.theme.f1.ph' }]
+    },
+    character: {
+        title: 'tool.char.title', desc: 'tool.char.desc',
+        fields: [
+            { label: 'tool.char.f1.label', ph: 'tool.char.f1.ph' },
+            { label: 'tool.char.f2.label', ph: 'tool.char.f2.ph' },
+            { label: 'tool.char.f3.label', ph: 'tool.char.f3.ph' }
+        ]
+    },
+    synopsis: {
+        title: 'tool.synopsis.title', desc: 'tool.synopsis.desc',
+        fields: [
+            { label: 'tool.synopsis.f1.label', ph: 'tool.synopsis.f1.ph' },
+            { label: 'tool.synopsis.f2.label', ph: 'tool.synopsis.f2.ph' },
+            { label: 'tool.synopsis.f3.label', ph: 'tool.synopsis.f3.ph' }
+        ]
+    },
+    structure: {
+        title: 'tool.struct.title', desc: 'tool.struct.desc',
+        fields: [
+            { label: 'tool.struct.f1.label', ph: 'tool.struct.f1.ph' },
+            { label: 'tool.struct.f2.label', ph: 'tool.struct.f2.ph' },
+            { label: 'tool.struct.f3.label', ph: 'tool.struct.f3.ph' }
+        ]
+    },
+    beatsheet: {
+        title: 'tool.beat.title', desc: 'tool.beat.desc',
+        fields: [
+            { label: 'tool.beat.f1.label', ph: 'tool.beat.f1.ph' },
+            { label: 'tool.beat.f2.label', ph: 'tool.beat.f2.ph' },
+            { label: 'tool.beat.f3.label', ph: 'tool.beat.f3.ph' }
+        ]
+    },
+    scenelist: {
+        title: 'tool.scene.title', desc: 'tool.scene.desc',
+        fields: [
+            { label: 'tool.scene.f1.label', ph: 'tool.scene.f1.ph' },
+            { label: 'tool.scene.f2.label', ph: 'tool.scene.f2.ph' },
+            { label: 'tool.scene.f3.label', ph: 'tool.scene.f3.ph' },
+            { label: 'tool.scene.f4.label', ph: 'tool.scene.f4.ph' },
+            { label: 'tool.scene.f5.label', ph: 'tool.scene.f5.ph' }
+        ]
+    },
+    script: {
+        title: 'tool.script.title', desc: 'tool.script.desc',
+        fields: [
+            { label: 'tool.script.f1.label', ph: 'tool.script.f1.ph' },
+            { label: 'tool.script.f2.label', ph: 'tool.script.f2.ph' },
+            { label: 'tool.script.f3.label', ph: 'tool.script.f3.ph' },
+            { label: 'tool.script.f4.label', ph: 'tool.script.f4.ph' },
+            { label: 'tool.script.f5.label', ph: 'tool.script.f5.ph' },
+            { label: 'tool.script.f6.label', ph: 'tool.script.f6.ph' }
+        ]
+    },
     // Story tools share the same keys
-    story_theme:     { title: 'tool.theme.title',   desc: 'tool.theme.desc',   fields: [] },
-    story_character: { title: 'tool.char.title',    desc: 'tool.char.desc',    fields: [{ label: 'tool.char.f2.label', ph: 'tool.char.f2.ph' }] },
-    story_synopsis:  { title: 'tool.synopsis.title',desc: 'tool.synopsis.desc',fields: [{ label: 'tool.synopsis.f2.label', ph: 'tool.synopsis.f2.ph' }, { label: 'tool.synopsis.f3.label', ph: 'tool.synopsis.f3.ph' }] },
-    story_structure: { title: 'tool.struct.title',  desc: 'tool.struct.desc',  fields: [{ label: 'tool.struct.f1.label', ph: 'tool.struct.f1.ph' }, { label: 'tool.struct.f2.label', ph: 'tool.struct.f2.ph' }, { label: 'tool.struct.f3.label', ph: 'tool.struct.f3.ph' }] },
-    story_beatsheet: { title: 'tool.beat.title',    desc: 'tool.beat.desc',    fields: [{ label: 'tool.beat.f1.label', ph: 'tool.beat.f1.ph' }, { label: 'tool.beat.f2.label', ph: 'tool.beat.f2.ph' }, { label: 'tool.beat.f3.label', ph: 'tool.beat.f3.ph' }] },
-    story_scenelist: { title: 'tool.scene.title',   desc: 'tool.scene.desc',   fields: [{ label: 'tool.scene.f1.label', ph: 'tool.scene.f1.ph' }, { label: 'tool.scene.f2.label', ph: 'tool.scene.f2.ph' }, { label: 'tool.scene.f3.label', ph: 'tool.scene.f3.ph' }, { label: 'tool.scene.f4.label', ph: 'tool.scene.f4.ph' }, { label: 'tool.scene.f5.label', ph: 'tool.scene.f5.ph' }] },
-    story_script:    { title: 'tool.script.title',  desc: 'tool.script.desc',  fields: [{ label: 'tool.script.f1.label', ph: 'tool.script.f1.ph' }, { label: 'tool.script.f2.label', ph: 'tool.script.f2.ph' }, { label: 'tool.script.f3.label', ph: 'tool.script.f3.ph' }, { label: 'tool.script.f4.label', ph: 'tool.script.f4.ph' }, { label: 'tool.script.f5.label', ph: 'tool.script.f5.ph' }, { label: 'tool.script.f6.label', ph: 'tool.script.f6.ph' }] },
+    story_theme: { title: 'tool.theme.title', desc: 'tool.theme.desc', fields: [] },
+    story_character: { title: 'tool.char.title', desc: 'tool.char.desc', fields: [{ label: 'tool.char.f2.label', ph: 'tool.char.f2.ph' }] },
+    story_synopsis: { title: 'tool.synopsis.title', desc: 'tool.synopsis.desc', fields: [{ label: 'tool.synopsis.f2.label', ph: 'tool.synopsis.f2.ph' }, { label: 'tool.synopsis.f3.label', ph: 'tool.synopsis.f3.ph' }] },
+    story_structure: { title: 'tool.struct.title', desc: 'tool.struct.desc', fields: [{ label: 'tool.struct.f1.label', ph: 'tool.struct.f1.ph' }, { label: 'tool.struct.f2.label', ph: 'tool.struct.f2.ph' }, { label: 'tool.struct.f3.label', ph: 'tool.struct.f3.ph' }] },
+    story_beatsheet: { title: 'tool.beat.title', desc: 'tool.beat.desc', fields: [{ label: 'tool.beat.f1.label', ph: 'tool.beat.f1.ph' }, { label: 'tool.beat.f2.label', ph: 'tool.beat.f2.ph' }, { label: 'tool.beat.f3.label', ph: 'tool.beat.f3.ph' }] },
+    story_scenelist: { title: 'tool.scene.title', desc: 'tool.scene.desc', fields: [{ label: 'tool.scene.f1.label', ph: 'tool.scene.f1.ph' }, { label: 'tool.scene.f2.label', ph: 'tool.scene.f2.ph' }, { label: 'tool.scene.f3.label', ph: 'tool.scene.f3.ph' }, { label: 'tool.scene.f4.label', ph: 'tool.scene.f4.ph' }, { label: 'tool.scene.f5.label', ph: 'tool.scene.f5.ph' }] },
+    story_script: { title: 'tool.script.title', desc: 'tool.script.desc', fields: [{ label: 'tool.script.f1.label', ph: 'tool.script.f1.ph' }, { label: 'tool.script.f2.label', ph: 'tool.script.f2.ph' }, { label: 'tool.script.f3.label', ph: 'tool.script.f3.ph' }, { label: 'tool.script.f4.label', ph: 'tool.script.f4.ph' }, { label: 'tool.script.f5.label', ph: 'tool.script.f5.ph' }, { label: 'tool.script.f6.label', ph: 'tool.script.f6.ph' }] },
 };
 
 // Returns a tool definition with strings translated for the current language
@@ -614,14 +630,14 @@ function getLocalizedTool(toolId) {
     if (!keys) return base;
     const localized = Object.assign({}, base);
     if (keys.title) localized.title = window.t(keys.title);
-    if (keys.desc)  localized.description = window.t(keys.desc);
+    if (keys.desc) localized.description = window.t(keys.desc);
     if (keys.fields && keys.fields.length) {
         localized.fields = base.fields.map((f, i) => {
             const fk = keys.fields[i];
             if (!fk) return f;
             return Object.assign({}, f, {
-                label:       window.t(fk.label) || f.label,
-                placeholder: window.t(fk.ph)    || f.placeholder
+                label: window.t(fk.label) || f.label,
+                placeholder: window.t(fk.ph) || f.placeholder
             });
         });
     }
@@ -745,22 +761,22 @@ async function handleDashboardRedirect() {
     const newProjectLoaded = sessionStorage.getItem('newProjectLoaded');
     // State lưu trước khi reload
     const lastStateRaw = sessionStorage.getItem('lastState');
-    
+
     if (newProjectLoaded) {
         sessionStorage.removeItem('newProjectLoaded');
         sessionStorage.removeItem('openProject');
         const projectId = parseInt(openProject);
-        
+
         // Wait for projects to load from DB
         if (typeof waitForProjectsLoaded === 'function') {
             await waitForProjectsLoaded();
         }
-        
+
         // Load the project
         if (typeof loadProject === 'function') {
             await loadProject(projectId);
         }
-        
+
         // Load the logline tool
         loadTool('logline');
     } else if (newProject) {
@@ -774,17 +790,17 @@ async function handleDashboardRedirect() {
         sessionStorage.removeItem('openProject');
         // Load specific project and show its history
         const projectId = parseInt(openProject);
-        
+
         // Wait for projects to load from DB
         if (typeof waitForProjectsLoaded === 'function') {
             await waitForProjectsLoaded();
         }
-        
+
         // Load the project
         if (typeof loadProject === 'function') {
             await loadProject(projectId);
         }
-        
+
         // If there's also an openTool request, show the tool detail directly
         if (openTool) {
             sessionStorage.removeItem('openTool');
@@ -795,7 +811,7 @@ async function handleDashboardRedirect() {
     } else if (openTool) {
         sessionStorage.removeItem('openTool');
         loadTool(openTool);
-        
+
         // Update nav item - use unified sidebar
         const storyToNavMap = {
             'story_theme': 'theme',
@@ -808,7 +824,7 @@ async function handleDashboardRedirect() {
             'story_upload': 'logline'
         };
         const navToolId = openTool.startsWith('story_') ? (storyToNavMap[openTool] || openTool) : openTool;
-        
+
         const navItems = document.querySelectorAll('#tools-list .nav-item[data-tool]');
         navItems.forEach(item => {
             item.classList.remove('active');
@@ -821,7 +837,7 @@ async function handleDashboardRedirect() {
         try {
             const lastState = JSON.parse(lastStateRaw);
             const { projectId, toolId } = lastState;
-            
+
             if (projectId) {
                 // Wait for projects to load from DB
                 if (typeof waitForProjectsLoaded === 'function') {
@@ -832,7 +848,7 @@ async function handleDashboardRedirect() {
                     await loadProject(projectId);
                 }
             }
-            
+
             if (toolId) {
                 loadTool(toolId);
                 // Update nav active state
@@ -863,13 +879,13 @@ async function handleDashboardRedirect() {
 // Check user authentication
 function checkUserAuth() {
     const user = localStorage.getItem('user') || sessionStorage.getItem('user');
-    
+
     if (!user) {
         // Not logged in, redirect to auth page
         window.location.href = 'auth.html';
         return;
     }
-    
+
     // Display user info
     try {
         const userData = JSON.parse(user);
@@ -899,7 +915,7 @@ async function handleLogout() {
         localStorage.removeItem('token');
         sessionStorage.removeItem('user');
         sessionStorage.removeItem('token');
-        
+
         // Redirect to auth page
         window.location.href = 'auth.html';
     }
@@ -923,7 +939,7 @@ function setupNavigation() {
             });
         });
     }
-    
+
     // Setup story nav items
     setupStoryNavigation();
 }
@@ -934,7 +950,7 @@ function setupStoryNavigation() {
     storyNavItems.forEach(item => {
         item.addEventListener('click', () => {
             const toolId = item.dataset.tool;
-            
+
             // Check if story is loaded for non-upload tools
             if (toolId !== 'story_upload' && !storyContent) {
                 loadTool('story_upload');
@@ -942,7 +958,7 @@ function setupStoryNavigation() {
                 showSaveNotification('Vui lòng tải truyện trước!', 'error');
                 return;
             }
-            
+
             setActiveStoryNavItem(toolId);
             loadTool(toolId);
         });
@@ -1042,7 +1058,7 @@ function _applySidebarState() {
 function toggleSection(sectionId) {
     const list = document.getElementById(`${sectionId}-list`);
     const toggleIcon = document.getElementById(`${sectionId}-toggle-icon`);
-    
+
     if (list) {
         if (list.style.display === 'none') {
             list.style.display = 'block';
@@ -1070,7 +1086,7 @@ function loadTool(toolId) {
         return;
     }
     let actualToolId = toolId;
-    
+
     // Determine project type from currentProject steps
     let projectType = 'idea';
     const currProj = window.ProjectManager ? window.ProjectManager.getCurrentProject() : null;
@@ -1079,7 +1095,7 @@ function loadTool(toolId) {
             projectType = 'story';
         }
     }
-    
+
     // Redirect standard tools to story tools if project type is story
     if (projectType === 'story' && toolId !== 'logline') {
         const storyMapping = {
@@ -1104,13 +1120,13 @@ function loadTool(toolId) {
     };
     sessionStorage.setItem('lastState', JSON.stringify(stateToSave));
     currentTool = actualToolId;
-    
+
     // Check if it's a story tool
     const isStoryTool = currentTool.startsWith('story_');
     const tool = getLocalizedTool(currentTool) || (isStoryTool ? storyTools[currentTool] : tools[currentTool]);
-    
+
     if (!tool) return;
-    
+
     const container = document.getElementById('tool-container');
 
     // Show/hide result panel based on tool type
@@ -1119,30 +1135,30 @@ function loadTool(toolId) {
     if (resultPanel) {
         resultPanel.style.display = (isCharTool || currentTool === 'story_upload') ? 'none' : '';
     }
-    
+
     // Special handling for step 1 (logline)
     if (currentTool === 'logline') {
         loadInitProjectForm(container, tool);
         return;
     }
-    
+
     // Special handling for story upload (backward compatibility)
     if (currentTool === 'story_upload') {
         loadInitProjectForm(container, storyTools['story_upload']);
         return;
     }
-    
+
     let fieldsHTML = tool.fields.map((field, index) => {
-        const inputType = field.type === 'textarea' 
+        const inputType = field.type === 'textarea'
             ? `<textarea class="form-textarea" id="${field.id}" placeholder="${field.placeholder}" ${field.required ? 'required' : ''}></textarea>`
             : `<input type="text" class="form-input" id="${field.id}" placeholder="${field.placeholder}" ${field.required ? 'required' : ''}>`;
-        
+
         let hideClass = '';
         // Hide inputs for step 2-8 (except scene_number and scene_count)
         if (currentTool !== 'logline' && currentTool !== 'story_upload' && field.id !== 'scene_number' && field.id !== 'scene_count') {
             hideClass = ' style="display: none;"';
         }
-        
+
         return `
             <div class="form-group"${hideClass}>
                 <label class="form-label">
@@ -1209,10 +1225,10 @@ function loadTool(toolId) {
     // Check if we have saved data for this tool in the current project
     let dataRestored = false;
     const currProjForRestore = window.ProjectManager ? window.ProjectManager.getCurrentProject() : null;
-    
+
     if (currProjForRestore && currProjForRestore.steps && currProjForRestore.steps[actualToolId]) {
         const step = currProjForRestore.steps[actualToolId];
-        
+
         // Restore inputs
         if (step.input) {
             setTimeout(() => {
@@ -1246,7 +1262,7 @@ function loadTool(toolId) {
                 });
             }, 50);
         }
-        
+
         // Restore output
         if (step.output) {
             if (isCharTool) {
@@ -1316,7 +1332,7 @@ function loadInitProjectForm(container, tool) {
     const hasStory = storyContent && storyContent.trim().length > 0;
     const currProj = window.ProjectManager ? window.ProjectManager.getCurrentProject() : null;
     const isStoryMode = (currProj && currProj.steps && currProj.steps['story_upload']) || hasStory;
-    
+
     // Check if we have logline output
     let ideaContent = '';
     if (currProj && currProj.steps && currProj.steps['logline']) {
@@ -1411,10 +1427,10 @@ function loadInitProjectForm(container, tool) {
     // Check if we have saved data for this tool in the current project
     let dataRestored = false;
     const currProjForRestore = window.ProjectManager ? window.ProjectManager.getCurrentProject() : null;
-    
+
     if (currProjForRestore && currProjForRestore.steps && currProjForRestore.steps[currentTool]) {
         const step = currProjForRestore.steps[currentTool];
-        
+
         // Restore output
         if (step.output) {
             document.getElementById('result-content').innerHTML = step.output;
@@ -1425,32 +1441,32 @@ function loadInitProjectForm(container, tool) {
             dataRestored = true;
         }
     }
-    
+
     if (!dataRestored) {
         // Clear result
         document.getElementById('result-content').innerHTML =
             `<p class="placeholder-text">${window.t ? window.t('app.placeholder') : 'Kết quả sẽ hiển thị ở đây sau khi bạn tạo nội dung...'}</p>`;
-        
+
         // Hide next step button when switching tools
         hideNextStepButton();
     }
 }
 
-window.switchInitTab = function(tab) {
+window.switchInitTab = function (tab) {
     const btnIdea = document.getElementById('tab-idea');
     const btnStory = document.getElementById('tab-story');
     const secIdea = document.getElementById('init-idea-section');
     const secStory = document.getElementById('init-story-section');
-    
+
     const currProj = window.ProjectManager ? window.ProjectManager.getCurrentProject() : null;
     const hasIdeaSteps = currProj && currProj.steps && currProj.steps['logline'];
     const hasStorySteps = currProj && currProj.steps && currProj.steps['story_upload'];
-    
+
     if (tab === 'story' && hasIdeaSteps) {
         showConstraintPopup(window.t ? window.t('init.constraint.idea') : 'Dự án này đang sử dụng chế độ "Nhập ý tưởng".<br><br>Vui lòng tạo kịch bản mới để sử dụng chế độ "Tải truyện lên"!');
         return;
     }
-    
+
     if (tab === 'idea' && hasStorySteps) {
         showConstraintPopup(window.t ? window.t('init.constraint.story') : 'Dự án này đang sử dụng chế độ "Tải truyện lên".<br><br>Vui lòng tạo kịch bản mới để sử dụng chế độ "Nhập ý tưởng"!');
         return;
@@ -1529,7 +1545,7 @@ function showConstraintPopup(message) {
     const closeBtn = document.getElementById('constraint-close-btn');
     const cancelBtn = document.getElementById('constraint-cancel-btn');
     const newBtn = document.getElementById('constraint-new-btn');
-    
+
     if (closeBtn) closeBtn.addEventListener('click', closePopup);
     if (cancelBtn) cancelBtn.addEventListener('click', closePopup);
     if (newBtn) {
@@ -1547,31 +1563,31 @@ function showConstraintPopup(message) {
 
 async function autoGeneratePipeline(mode, initialData) {
     const isStory = mode === 'story';
-    const pipeline = isStory ? 
-        ['story_theme', 'story_character', 'story_synopsis', 'story_structure', 'story_beatsheet'] : 
+    const pipeline = isStory ?
+        ['story_theme', 'story_character', 'story_synopsis', 'story_structure', 'story_beatsheet'] :
         ['logline', 'theme', 'character', 'synopsis', 'structure', 'beatsheet'];
-    
+
     const loadingOverlay = document.getElementById('loading-overlay');
     const loadingMessage = loadingOverlay.querySelector('p');
-    
+
     loadingOverlay.classList.add('active');
-    
+
     try {
         for (let i = 0; i < pipeline.length; i++) {
             const toolId = pipeline[i];
             currentTool = toolId;
-            
+
             const tool = isStory ? storyTools[toolId] : tools[toolId];
             const toolName = tool ? tool.title : toolId;
-            loadingMessage.textContent = `Đang tự động tạo: ${toolName} (Bước ${i+1}/${pipeline.length})...`;
-            
+            loadingMessage.textContent = `Đang tự động tạo: ${toolName} (Bước ${i + 1}/${pipeline.length})...`;
+
             const formData = {};
             if (i === 0 && !isStory) {
                 formData['movie_idea'] = initialData.movie_idea;
             } else {
                 const mapping = isStory ? storyAutoFillMapping[toolId] : autoFillMapping[toolId];
                 const currProj = ProjectManager ? ProjectManager.getCurrentProject() : currentProject;
-                
+
                 if (mapping && currProj && currProj.steps) {
                     for (const [sourceTool, targetField] of Object.entries(mapping)) {
                         if (currProj.steps[sourceTool]) {
@@ -1579,7 +1595,7 @@ async function autoGeneratePipeline(mode, initialData) {
                         }
                     }
                 }
-                
+
                 if (toolId === 'character' || toolId === 'story_character') {
                     formData['character_count'] = '5';
                     // Inject original movie_idea so character names in the idea are preserved
@@ -1590,14 +1606,14 @@ async function autoGeneratePipeline(mode, initialData) {
                         }
                     }
                 }
-                
+
                 if (isStory && storyContent) {
                     formData['story_content'] = storyContent;
                 }
             }
-            
+
             await new Promise(resolve => setTimeout(resolve, 300));
-            
+
             console.log(`Auto-generating ${toolId}...`);
             const apiResult = await generateContent(toolId, formData);
             const result = apiResult.content;
@@ -1605,23 +1621,23 @@ async function autoGeneratePipeline(mode, initialData) {
             if (toolId === 'character' || toolId === 'story_character') {
                 currentCharacters = apiResult.characters_data || [];
             }
-            
+
             if (typeof saveStepToProject === 'function') {
                 await saveStepToProject(toolId, formData, result);
             }
         }
-        
+
         loadingMessage.textContent = 'Hoàn tất tự động tạo kịch bản!';
         await new Promise(resolve => setTimeout(resolve, 800));
-        
+
         const finalTool = pipeline[pipeline.length - 1];
         loadTool(finalTool);
         if (window.setActiveNavItem) {
             window.setActiveNavItem('beatsheet');
         }
-        
+
         showSaveNotification("Tạo kịch bản tự động hoàn tất!", "success");
-        
+
     } catch (error) {
         console.error('Lỗi trong quá trình tự động tạo:', error);
         if (error && error.code === 'FREE_DAILY_LIMIT') {
@@ -1629,7 +1645,7 @@ async function autoGeneratePipeline(mode, initialData) {
         } else {
             showToast('Đã xảy ra lỗi khi tạo tự động: ' + error.message + ' Bạn có thể thử tạo lại bước này thủ công.', 'error');
         }
-        
+
         loadTool(currentTool);
         if (window.setActiveNavItem) {
             const navId = currentTool.replace('story_', '');
@@ -1763,7 +1779,7 @@ async function _clearDownstreamSteps() {
 
 async function handleIdeaSubmit(event) {
     event.preventDefault();
-    
+
     const element = document.getElementById('movie_idea');
     const idea = element.value.trim();
     if (!idea) {
@@ -1788,7 +1804,7 @@ async function handleIdeaSubmit(event) {
         if (!confirmed) return;
         await _clearDownstreamSteps();
     }
-    
+
     await autoGeneratePipeline('idea', { movie_idea: idea });
 }
 
@@ -1797,25 +1813,25 @@ async function handleIdeaSubmit(event) {
 function setupStoryUpload() {
     const uploadArea = document.getElementById('upload-area');
     const fileInput = document.getElementById('story-file-input');
-    
+
     if (!uploadArea || !fileInput) return;
-    
+
     uploadArea.addEventListener('dragover', (e) => {
         e.preventDefault();
         uploadArea.classList.add('drag-over');
     });
-    
+
     uploadArea.addEventListener('dragleave', () => {
         uploadArea.classList.remove('drag-over');
     });
-    
+
     uploadArea.addEventListener('drop', (e) => {
         e.preventDefault();
         uploadArea.classList.remove('drag-over');
         const file = e.dataTransfer.files[0];
         if (file) handleStoryFile(file);
     });
-    
+
     fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (file) handleStoryFile(file);
@@ -1825,10 +1841,10 @@ function setupStoryUpload() {
 /**
  * Trigger chọn file truyện: dùng Flutter bridge nếu chạy trong app, fallback về input file
  */
-window.triggerStoryFilePick = function() {
+window.triggerStoryFilePick = function () {
     if (typeof FlutterBridge !== 'undefined' && typeof window.flutterPickFile === 'function') {
         // Dùng Flutter native file picker (hoạt động trên Android)
-        window.flutterPickFile(function(result) {
+        window.flutterPickFile(function (result) {
             if (!result) {
                 console.log('[Story] User hủy chọn file');
                 return;
@@ -1856,7 +1872,7 @@ async function handleStoryFileFromBase64(result) {
             document.getElementById('story-text-input').value = text;
             window.storyFileName = result.fileName;
             showSaveNotification(`Đã đọc file: ${result.fileName}`, 'success');
-        } catch(e) {
+        } catch (e) {
             // Nếu UTF-8 bị lỗi, dùng TextDecoder
             try {
                 const bytes = Uint8Array.from(atob(result.base64), c => c.charCodeAt(0));
@@ -1864,7 +1880,7 @@ async function handleStoryFileFromBase64(result) {
                 document.getElementById('story-text-input').value = text;
                 window.storyFileName = result.fileName;
                 showSaveNotification(`Đã đọc file: ${result.fileName}`, 'success');
-            } catch(e2) {
+            } catch (e2) {
                 showToast('Lỗi đọc file text: ' + e2.message, 'error');
             }
         }
@@ -1889,16 +1905,16 @@ async function handleStoryFileFromBase64(result) {
                 try {
                     const userData = JSON.parse(userRaw);
                     if (userData?.id) formData.append('user_id', String(userData.id));
-                } catch (e) {}
+                } catch (e) { }
             }
-            
+
             const response = await fetch(`${PYTHON_API_URL}/extract-text`, {
                 method: 'POST',
                 body: formData
             });
-            
+
             const data = await response.json();
-            
+
             if (data.success) {
                 document.getElementById('story-text-input').value = data.text;
                 window.storyFileName = result.fileName;
@@ -1920,7 +1936,7 @@ async function handleStoryFileFromBase64(result) {
 // Handle uploaded story file
 async function handleStoryFile(file) {
     const filename = file.name.toLowerCase();
-    
+
     if (filename.endsWith('.txt')) {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -1946,14 +1962,14 @@ async function handleStoryFile(file) {
                     console.warn('Cannot parse current user for upload metadata');
                 }
             }
-            
+
             const response = await fetch(`${PYTHON_API_URL}/extract-text`, {
                 method: 'POST',
                 body: formData
             });
-            
+
             const data = await response.json();
-            
+
             if (data.success) {
                 document.getElementById('story-text-input').value = data.text;
                 storyFileName = file.name;
@@ -1976,7 +1992,7 @@ async function handleStoryFile(file) {
 async function startStoryAnalysis() {
     const textInput = document.getElementById('story-text-input');
     const text = textInput ? textInput.value.trim() : '';
-    
+
     if (!text) {
         showToast('Vui lòng tải file hoặc dán nội dung truyện!', 'warning');
         return;
@@ -1997,10 +2013,10 @@ async function startStoryAnalysis() {
         if (!confirmed) return;
         await _clearStoryDownstreamSteps();
     }
-    
+
     storyContent = text;
     if (!storyFileName) storyFileName = 'Nội dung đã dán';
-    
+
     // Lưu truyện vào database
     try {
         if (typeof saveStepToProject === 'function') {
@@ -2012,13 +2028,13 @@ async function startStoryAnalysis() {
     } catch (error) {
         console.error('Lỗi lưu truyện vào database:', error);
     }
-    
+
     // Start auto pipeline
     await autoGeneratePipeline('story', {});
 }
 
 // Set active nav item
-window.setActiveNavItem = function(toolId) {
+window.setActiveNavItem = function (toolId) {
     document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.remove('active');
         if (item.dataset.tool === toolId) {
@@ -2117,7 +2133,7 @@ async function autoGenerateAllScripts() {
                     method: 'DELETE',
                     headers: getAuthHeaders ? { ...getAuthHeaders() } : {}
                 });
-            } catch(e) {}
+            } catch (e) { }
         }
         if (project && project.steps) delete project.steps[scriptTool];
     }
@@ -2253,7 +2269,7 @@ async function handleSubmit(event) {
     tool.fields.forEach(field => {
         const element = document.getElementById(field.id);
         formData[field.id] = element.value.trim();
-        
+
         if (field.required && !formData[field.id]) {
             isValid = false;
             element.style.borderColor = '#ef4444';
@@ -2392,7 +2408,7 @@ async function generateContent(toolId, formData) {
         const currentProject = (typeof ProjectManager !== 'undefined' && ProjectManager.getCurrentProject)
             ? ProjectManager.getCurrentProject()
             : null;
-        
+
         const response = await fetch(`${PYTHON_API_URL}/generate`, {
             method: 'POST',
             headers: {
@@ -2423,7 +2439,7 @@ async function generateContent(toolId, formData) {
             characters_data: data.characters_data || [],
             validation: data.validation || null,
         };
-        
+
     } catch (error) {
         console.error('Python API Error:', error);
         throw error;
@@ -2687,7 +2703,7 @@ function formatResponseToHTML(content) {
 
     // Clean up empty paragraphs
     html = html.replace(/<p><\/p>/g, '');
-    
+
     // Group list items
     html = html.replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
     html = html.replace(/<\/ul><ul>/g, '');
@@ -3241,22 +3257,22 @@ function displayCharacterCards(characters) {
  */
 function _buildCharModalFieldsHTML(char) {
     const fields = [
-        { key: 'ho_ten',     label: 'Họ và tên',   icon: '👤' },
-        { key: 'vai_tro',    label: 'Vai trò',      icon: '🎭' },
-        { key: 'gioi_tinh',  label: 'Giới tính',    icon: '⚧' },
-        { key: 'tuoi',       label: 'Tuổi',         icon: '🎂' },
-        { key: 'quoc_tich',  label: 'Quốc tịch',    icon: '🌍' },
-        { key: 'ngoai_hinh', label: 'Ngoại hình',   icon: '🪞', multiline: true },
-        { key: 'tinh_cach',  label: 'Tính cách',    icon: '💡', multiline: true },
-        { key: 'background', label: 'Background',   icon: '📖', multiline: true },
+        { key: 'ho_ten', label: 'Họ và tên', icon: '👤' },
+        { key: 'vai_tro', label: 'Vai trò', icon: '🎭' },
+        { key: 'gioi_tinh', label: 'Giới tính', icon: '⚧' },
+        { key: 'tuoi', label: 'Tuổi', icon: '🎂' },
+        { key: 'quoc_tich', label: 'Quốc tịch', icon: '🌍' },
+        { key: 'ngoai_hinh', label: 'Ngoại hình', icon: '🪞', multiline: true },
+        { key: 'tinh_cach', label: 'Tính cách', icon: '💡', multiline: true },
+        { key: 'background', label: 'Background', icon: '📖', multiline: true },
     ];
     return fields.map(f => `
         <div class="char-modal-field">
             <label class="char-modal-label">${f.icon} ${f.label}</label>
             ${f.multiline
-                ? `<textarea id="char-field-${f.key}" class="char-modal-input char-modal-textarea">${char[f.key] != null ? char[f.key] : ''}</textarea>`
-                : `<input type="text" id="char-field-${f.key}" class="char-modal-input" value="${String(char[f.key] != null ? char[f.key] : '').replace(/"/g, '&quot;')}">`
-            }
+            ? `<textarea id="char-field-${f.key}" class="char-modal-input char-modal-textarea">${char[f.key] != null ? char[f.key] : ''}</textarea>`
+            : `<input type="text" id="char-field-${f.key}" class="char-modal-input" value="${String(char[f.key] != null ? char[f.key] : '').replace(/"/g, '&quot;')}">`
+        }
         </div>
     `).join('');
 }
@@ -3488,41 +3504,6 @@ function _showValidationBadge(validation) {
     // Remove any existing badge
     const old = document.getElementById('validation-badge');
     if (old) old.remove();
-    if (!validation) return;
-
-    const { attempts, passed, history } = validation;
-    const lastRound = history && history.length ? history[history.length - 1] : null;
-    const score = lastRound ? lastRound.score : null;
-    const issues = lastRound ? (lastRound.issues || []) : [];
-
-    const isOk = passed;
-    const color = isOk ? '#10b981' : '#ef4444';
-    const icon = isOk ? 'fa-check-circle' : 'fa-exclamation-circle';
-    const label = isOk
-        ? `Đã kiểm tra ✓ (${attempts} lần thử, điểm: ${score}/10)`
-        : `Không đạt sau ${attempts} lần thử (điểm: ${score}/10)`;
-
-    const issueHTML = issues.length
-        ? `<ul style="margin:4px 0 0 16px;padding:0;font-size:0.78rem;color:#6b7280;">${issues.map(i => `<li>${i}</li>`).join('')}</ul>`
-        : '';
-
-    const badge = document.createElement('div');
-    badge.id = 'validation-badge';
-    badge.style.cssText = `
-        display:flex;flex-direction:column;gap:2px;
-        padding:6px 12px;margin:8px 0 0 0;
-        background:${isOk ? '#f0fdf4' : '#fef2f2'};
-        border:1px solid ${isOk ? '#bbf7d0' : '#fecaca'};
-        border-radius:8px;font-size:0.82rem;color:${color};
-    `;
-    badge.innerHTML = `<span><i class="fas ${icon}" style="margin-right:5px;"></i>${label}</span>${issueHTML}`;
-
-    const resultPanel = document.querySelector('.result-panel');
-    if (resultPanel) {
-        const header = resultPanel.querySelector('.result-header') || resultPanel.firstElementChild;
-        if (header) header.after(badge);
-        else resultPanel.prepend(badge);
-    }
 }
 
 // ===================== Unsaved Changes Guard =====================
@@ -3627,7 +3608,7 @@ window._updateContentSnapshot = _updateContentSnapshot;
 // Display result
 function displayResult(content) {
     const resultContent = document.getElementById('result-content');
-    
+
     // Nếu đang ở bước viết kịch bản (script), thêm kết quả mới vào sau kết quả cũ
     if (currentTool === 'script' || currentTool === 'story_script') {
         // Xóa placeholder text nếu có
@@ -3635,12 +3616,12 @@ function displayResult(content) {
         if (placeholder) {
             placeholder.remove();
         }
-        
+
         // Thêm separator nếu đã có nội dung
         if (resultContent.innerHTML.trim() !== '') {
             resultContent.innerHTML += '<hr style="margin: 2rem 0; border: none; border-top: 2px solid #e5e7eb;">';
         }
-        
+
         // Thêm kết quả mới vào cuối
         resultContent.innerHTML += content;
     } else {
@@ -3663,35 +3644,35 @@ function showLoading(show) {
 // Save result to database
 async function saveResult() {
     const content = document.getElementById('result-content').innerHTML;
-    
+
     // Check if content is empty or just placeholder
     if (!content || content.includes('placeholder-text')) {
         showToast('Chưa có nội dung để lưu!', 'warning');
         return;
     }
-    
+
     // Check if there's a current project
     if (typeof ProjectManager === 'undefined' || !ProjectManager.getCurrentProject()) {
         showToast('Chưa có dự án. Vui lòng tạo nội dung trước!', 'warning');
         return;
     }
-    
+
     const project = ProjectManager.getCurrentProject();
-    
+
     // Check if this step has been generated before
     if (!project.steps || !project.steps[currentTool]) {
         showToast('Bước này chưa được tạo. Vui lòng tạo nội dung trước khi lưu!', 'warning');
         return;
     }
-    
+
     try {
         // Get the original input data for this step
         const inputData = project.steps[currentTool].input || {};
-        
+
         // Update local project data with edited content
         project.steps[currentTool].output = content;
         project.steps[currentTool].updated_at = new Date().toISOString();
-        
+
         // Save to MySQL via API (script tools: overwrite with current result panel content)
         const requestBody = {
             project_id: project.id,
@@ -3714,9 +3695,9 @@ async function saveResult() {
             },
             body: JSON.stringify(requestBody)
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             console.log('✅ Đã lưu kết quả chỉnh sửa vào MySQL');
             _updateContentSnapshot();
@@ -3736,19 +3717,19 @@ function showSaveNotification(message, type = 'success') {
     // Remove existing notification
     const existing = document.querySelector('.save-notification');
     if (existing) existing.remove();
-    
+
     const notification = document.createElement('div');
     notification.className = `save-notification ${type}`;
     notification.innerHTML = `
         <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
         <span>${message}</span>
     `;
-    
+
     document.body.appendChild(notification);
-    
+
     // Animate in
     setTimeout(() => notification.classList.add('show'), 10);
-    
+
     // Remove after 3 seconds
     setTimeout(() => {
         notification.classList.remove('show');
@@ -3770,27 +3751,27 @@ function copyResult() {
 async function downloadResult() {
     const content = document.getElementById('result-content');
     const htmlContent = content.innerHTML;
-    
+
     try {
         // Sử dụng docx library để tạo file DOCX
         const { Document, Packer, Paragraph, TextRun, HeadingLevel } = docx;
-        
+
         // Parse HTML content và chuyển thành docx paragraphs
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = htmlContent;
-        
+
         // Loại bỏ placeholder text nếu có
         const placeholder = tempDiv.querySelector('.placeholder-text');
         if (placeholder) {
             placeholder.remove();
         }
-        
+
         const paragraphs = [];
-        
+
         // Hàm đệ quy để xử lý text runs với formatting
         const processTextNode = (node, formatting = {}) => {
             const runs = [];
-            
+
             if (node.nodeType === Node.TEXT_NODE) {
                 const text = node.textContent;
                 if (text) {
@@ -3804,7 +3785,7 @@ async function downloadResult() {
             } else if (node.nodeType === Node.ELEMENT_NODE) {
                 const tagName = node.tagName;
                 const newFormatting = { ...formatting };
-                
+
                 if (tagName === 'B' || tagName === 'STRONG') {
                     newFormatting.bold = true;
                 } else if (tagName === 'I' || tagName === 'EM') {
@@ -3816,16 +3797,16 @@ async function downloadResult() {
                     runs.push(new TextRun({ text: '', break: 1 }));
                     return runs;
                 }
-                
+
                 // Xử lý các child nodes
                 node.childNodes.forEach(child => {
                     runs.push(...processTextNode(child, newFormatting));
                 });
             }
-            
+
             return runs;
         };
-        
+
         // Duyệt qua tất cả các nodes (bao gồm cả text nodes)
         const processNode = (node) => {
             // Text node trực tiếp
@@ -3839,13 +3820,13 @@ async function downloadResult() {
                 }
                 return;
             }
-            
+
             if (node.nodeType !== Node.ELEMENT_NODE) {
                 return;
             }
-            
+
             const tagName = node.tagName;
-            
+
             // Xử lý HR (separator)
             if (tagName === 'HR') {
                 paragraphs.push(new Paragraph({
@@ -3862,7 +3843,7 @@ async function downloadResult() {
                 }));
                 return;
             }
-            
+
             // Xử lý các heading
             if (tagName === 'H1') {
                 paragraphs.push(new Paragraph({
@@ -3907,13 +3888,13 @@ async function downloadResult() {
                 }));
                 return;
             }
-            
+
             // Xử lý paragraph
             if (tagName === 'P') {
                 // Xử lý nội dung của paragraph, bao gồm cả BR tags
                 const childNodes = Array.from(node.childNodes);
                 let currentRuns = [];
-                
+
                 const flushParagraph = () => {
                     if (currentRuns.length > 0) {
                         paragraphs.push(new Paragraph({
@@ -3923,7 +3904,7 @@ async function downloadResult() {
                         currentRuns = [];
                     }
                 };
-                
+
                 childNodes.forEach(childNode => {
                     if (childNode.nodeType === Node.ELEMENT_NODE && childNode.tagName === 'BR') {
                         // Khi gặp BR, tạo paragraph mới
@@ -3934,12 +3915,12 @@ async function downloadResult() {
                         currentRuns.push(...runs);
                     }
                 });
-                
+
                 // Flush paragraph cuối cùng
                 flushParagraph();
                 return;
             }
-            
+
             // Xử lý list items
             if (tagName === 'LI') {
                 const runs = processTextNode(node);
@@ -3952,7 +3933,7 @@ async function downloadResult() {
                 }
                 return;
             }
-            
+
             // Xử lý ul/ol - duyệt qua các li
             if (tagName === 'UL' || tagName === 'OL') {
                 Array.from(node.children).forEach(child => {
@@ -3962,7 +3943,7 @@ async function downloadResult() {
                 });
                 return;
             }
-            
+
             // Xử lý div - duyệt qua các child
             if (tagName === 'DIV') {
                 Array.from(node.childNodes).forEach(child => {
@@ -3970,9 +3951,9 @@ async function downloadResult() {
                 });
                 return;
             }
-            
+
             // Xử lý span và các inline elements - extract text với formatting
-            if (tagName === 'SPAN' || tagName === 'STRONG' || tagName === 'B' || 
+            if (tagName === 'SPAN' || tagName === 'STRONG' || tagName === 'B' ||
                 tagName === 'EM' || tagName === 'I' || tagName === 'U') {
                 const runs = processTextNode(node);
                 if (runs.length > 0) {
@@ -3984,12 +3965,12 @@ async function downloadResult() {
                 return;
             }
         };
-        
+
         // Xử lý tất cả các child nodes
         Array.from(tempDiv.childNodes).forEach(node => {
             processNode(node);
         });
-        
+
         // Nếu không có paragraphs, fallback to plain text
         if (paragraphs.length === 0) {
             const textContent = tempDiv.textContent || '';
@@ -4006,14 +3987,14 @@ async function downloadResult() {
                 });
             }
         }
-        
+
         // Nếu vẫn không có gì, thêm thông báo
         if (paragraphs.length === 0) {
             paragraphs.push(new Paragraph({
                 children: [new TextRun('Không có nội dung')]
             }));
         }
-        
+
         // Tạo document
         const doc = new Document({
             sections: [{
@@ -4021,7 +4002,7 @@ async function downloadResult() {
                 children: paragraphs
             }]
         });
-        
+
         // Tạo blob và download
         const blob = await Packer.toBlob(doc);
         const downloadFileName = `screenplay_${currentTool}_${new Date().toISOString().split('T')[0]}.docx`;
@@ -4029,7 +4010,7 @@ async function downloadResult() {
         // Kiểm tra nếu đang chạy trong app Flutter — dùng bridge thay vì a.click()
         if (typeof window.flutterDownloadFile === 'function') {
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 const base64 = e.target.result.split(',')[1];
                 window.flutterDownloadFile(base64, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', downloadFileName);
             };
@@ -4064,7 +4045,7 @@ function formatHeading() {
     if (selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
         const selectedText = range.toString();
-        
+
         if (selectedText) {
             // Wrap in h3 tag
             document.execCommand('formatBlock', false, 'h3');
@@ -4107,7 +4088,7 @@ function formatQuote() {
     if (selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
         const selectedText = range.toString();
-        
+
         if (selectedText) {
             document.execCommand('formatBlock', false, 'blockquote');
         } else {
@@ -4121,16 +4102,16 @@ function formatQuote() {
 function formatTable() {
     const rows = prompt('Số hàng:', '3');
     const cols = prompt('Số cột:', '3');
-    
+
     if (rows && cols) {
         let tableHTML = '<table class="result-table"><thead><tr>';
-        
+
         // Header row
         for (let j = 0; j < parseInt(cols); j++) {
             tableHTML += `<th>Cột ${j + 1}</th>`;
         }
         tableHTML += '</tr></thead><tbody>';
-        
+
         // Data rows
         for (let i = 0; i < parseInt(rows) - 1; i++) {
             tableHTML += '<tr>';
@@ -4140,7 +4121,7 @@ function formatTable() {
             tableHTML += '</tr>';
         }
         tableHTML += '</tbody></table><p></p>';
-        
+
         document.execCommand('insertHTML', false, tableHTML);
     }
     document.getElementById('result-content').focus();
@@ -4149,14 +4130,14 @@ function formatTable() {
 // Initialize toolbar buttons
 function initToolbar() {
     const toolbarButtons = document.querySelectorAll('.toolbar-btn');
-    
+
     toolbarButtons.forEach((btn, index) => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
-            
+
             const title = btn.getAttribute('title');
-            
-            switch(title) {
+
+            switch (title) {
                 case 'Tiêu đề':
                     formatHeading();
                     break;
@@ -4217,12 +4198,12 @@ function goToNextStep() {
     const currentOrder = isStoryTool ? storyToolOrder : toolOrder;
     const currentIndex = currentOrder.indexOf(currentTool);
     if (currentIndex >= currentOrder.length - 1) return;
-    
+
     const nextTool = currentOrder[currentIndex + 1];
-    
+
     // Get the CURRENT content from result-content (may have been edited by user)
     const editedContent = document.getElementById('result-content').innerHTML;
-    
+
     // Update the current step's output with edited content
     if (typeof ProjectManager !== 'undefined' && ProjectManager.getCurrentProject()) {
         const project = ProjectManager.getCurrentProject();
@@ -4232,7 +4213,7 @@ function goToNextStep() {
             console.log('📝 Đã cập nhật nội dung đã chỉnh sửa cho bước:', currentTool);
         }
     }
-    
+
     // Get current project data for auto-fill
     let projectData = {};
     if (typeof ProjectManager !== 'undefined' && ProjectManager.getCurrentProject()) {
@@ -4248,10 +4229,10 @@ function goToNextStep() {
             });
         }
     }
-    
+
     // Load next tool
     loadToolWithAutoFill(nextTool, projectData);
-    
+
     // Update nav items - use unified sidebar for both idea and story tools
     const storyToNavMap = {
         'story_theme': 'theme',
@@ -4270,11 +4251,11 @@ function goToNextStep() {
             item.classList.add('active');
         }
     });
-    
+
     // Remove next step button and clear result panel
     const nextStepContainer = document.querySelector('.next-step-container');
     if (nextStepContainer) nextStepContainer.remove();
-    
+
     // Clear result panel
     document.getElementById('result-content').innerHTML =
         '<p class="placeholder-text">Kết quả sẽ hiển thị ở đây sau khi bạn tạo nội dung...</p>';
@@ -4286,17 +4267,17 @@ function loadToolWithAutoFill(toolId, projectData) {
     const isStoryTool = toolId.startsWith('story_');
     const tool = getLocalizedTool(toolId) || (isStoryTool ? storyTools[toolId] : tools[toolId]);
     const container = document.getElementById('tool-container');
-    
+
     // Get auto-fill mapping for this tool
-    const fillMapping = isStoryTool 
+    const fillMapping = isStoryTool
         ? (storyAutoFillMapping[toolId] || {})
         : (autoFillMapping[toolId] || {});
-    
+
     let fieldsHTML = tool.fields.map((field, index) => {
         // Check if this field should be auto-filled
         let autoFillValue = '';
         let autoFillSource = '';
-        
+
         // Find which previous step provides data for this field
         Object.keys(fillMapping).forEach(stepTool => {
             if (fillMapping[stepTool] === field.id && projectData[stepTool]) {
@@ -4308,13 +4289,13 @@ function loadToolWithAutoFill(toolId, projectData) {
                 autoFillSource = toolSet[stepTool]?.title || stepTool;
             }
         });
-        
-        const inputType = field.type === 'textarea' 
+
+        const inputType = field.type === 'textarea'
             ? `<textarea class="form-textarea" id="${field.id}" placeholder="${field.placeholder}" ${field.required ? 'required' : ''}>${autoFillValue}</textarea>`
             : `<input type="text" class="form-input" id="${field.id}" placeholder="${field.placeholder}" ${field.required ? 'required' : ''} value="${autoFillValue}">`;
-        
+
         const autoFillBadge = autoFillValue ? '' : '';
-        
+
         return `
             <div class="form-group ${autoFillValue ? 'auto-filled' : ''}">
                 <label class="form-label">
@@ -4376,10 +4357,10 @@ function loadToolWithAutoFill(toolId, projectData) {
     // Check if we have saved data for this tool in the current project
     let dataRestored = false;
     const currProjForRestore = window.ProjectManager ? window.ProjectManager.getCurrentProject() : null;
-    
+
     if (currProjForRestore && currProjForRestore.steps && currProjForRestore.steps[toolId]) {
         const step = currProjForRestore.steps[toolId];
-        
+
         // Restore output
         if (step.output) {
             document.getElementById('result-content').innerHTML = step.output;
@@ -4400,7 +4381,7 @@ function loadToolWithAutoFill(toolId, projectData) {
             }
         }
     }
-    
+
     if (!dataRestored) {
         // Clear result panel and hide next step button
         document.getElementById('result-content').innerHTML =
@@ -4428,10 +4409,10 @@ window.handleStoryFile = handleStoryFile;
 window.setActiveNavItem = setActiveNavItem;
 
 // Expose story content getter/setter for projectManager
-window.setStoryContent = function(content, fileName) {
+window.setStoryContent = function (content, fileName) {
     storyContent = content || '';
     storyFileName = fileName || (window.t ? window.t('app.story-paste') : 'Nội dung đã dán');
 };
-window.getStoryContent = function() {
+window.getStoryContent = function () {
     return { content: storyContent, fileName: storyFileName };
 };

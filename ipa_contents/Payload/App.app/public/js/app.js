@@ -3356,41 +3356,6 @@ function _showValidationBadge(validation) {
     // Remove any existing badge
     const old = document.getElementById('validation-badge');
     if (old) old.remove();
-    if (!validation) return;
-
-    const { attempts, passed, history } = validation;
-    const lastRound = history && history.length ? history[history.length - 1] : null;
-    const score = lastRound ? lastRound.score : null;
-    const issues = lastRound ? (lastRound.issues || []) : [];
-
-    const isOk = passed;
-    const color = isOk ? '#10b981' : '#ef4444';
-    const icon = isOk ? 'fa-check-circle' : 'fa-exclamation-circle';
-    const label = isOk
-        ? `Đã kiểm tra ✓ (${attempts} lần thử, điểm: ${score}/10)`
-        : `Không đạt sau ${attempts} lần thử (điểm: ${score}/10)`;
-
-    const issueHTML = issues.length
-        ? `<ul style="margin:4px 0 0 16px;padding:0;font-size:0.78rem;color:#6b7280;">${issues.map(i => `<li>${i}</li>`).join('')}</ul>`
-        : '';
-
-    const badge = document.createElement('div');
-    badge.id = 'validation-badge';
-    badge.style.cssText = `
-        display:flex;flex-direction:column;gap:2px;
-        padding:6px 12px;margin:8px 0 0 0;
-        background:${isOk ? '#f0fdf4' : '#fef2f2'};
-        border:1px solid ${isOk ? '#bbf7d0' : '#fecaca'};
-        border-radius:8px;font-size:0.82rem;color:${color};
-    `;
-    badge.innerHTML = `<span><i class="fas ${icon}" style="margin-right:5px;"></i>${label}</span>${issueHTML}`;
-
-    const resultPanel = document.querySelector('.result-panel');
-    if (resultPanel) {
-        const header = resultPanel.querySelector('.result-header') || resultPanel.firstElementChild;
-        if (header) header.after(badge);
-        else resultPanel.prepend(badge);
-    }
 }
 
 // ===================== Unsaved Changes Guard =====================
