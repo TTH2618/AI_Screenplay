@@ -1,9 +1,8 @@
 # AI Service - Handles AI API calls
 import re
 import httpx
-from config import OPENROUTER_API_KEY, OPENROUTER_MODEL, AI_PROVIDER
+import config as _cfg
 from prompts import get_system_prompt, build_user_prompt
-from db_runtime import get_active_api_key, get_active_model, get_active_provider
 from character_files import save_characters
 
 # Tools that produce character profiles and should trigger JSON file saving
@@ -22,10 +21,10 @@ OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions'
 
 
 def _get_runtime_config():
-    """Trả về (provider, model, api_key) từ DB hoặc env."""
-    provider = get_active_provider() or AI_PROVIDER
-    model    = get_active_model() or OPENROUTER_MODEL
-    api_key  = get_active_api_key(provider) or OPENROUTER_API_KEY
+    """Trả về (provider, model, api_key) trực tiếp từ .env (qua config module)."""
+    provider = _cfg.AI_PROVIDER or 'openrouter'
+    model    = _cfg.OPENROUTER_MODEL or 'google/gemini-2.0-flash-001'
+    api_key  = _cfg.OPENROUTER_API_KEY or ''
     return provider, model, api_key
 
 
@@ -103,9 +102,9 @@ def generate_content(tool_id: str, form_data: dict, project_id=None) -> dict:
             'success': True,
             'content': html_content,
             'raw_content': content,
-            'model': OPENROUTER_MODEL,
+            'model': runtime_model,
             'tool_id': tool_id,
-            'provider': AI_PROVIDER,
+            'provider': provider,
             'tokens_in':  tokens_in,
             'tokens_out': tokens_out,
             'character_files': saved_files,
@@ -163,7 +162,8 @@ Trả về DUY NHẤT một đối tượng JSON hợp lệ (không có text nà
 
 Trả lời bằng tiếng Việt. Chỉ trả về JSON, không có markdown, không có text giải thích."""
 
-        runtime_api_key = get_active_api_key(AI_PROVIDER) or OPENROUTER_API_KEY
+        provider, runtime_model, runtime_api_key = _get_runtime_config()
+        api_url = _PROVIDER_URLS.get(provider, OPENROUTER_API_URL)
         headers = {
             "Authorization": f"Bearer {runtime_api_key}",
             "Content-Type": "application/json",
@@ -171,7 +171,7 @@ Trả lời bằng tiếng Việt. Chỉ trả về JSON, không có markdown, k
             "X-Title": "AI Screenplay"
         }
         payload = {
-            "model": OPENROUTER_MODEL,
+            "model": runtime_model,
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
@@ -181,7 +181,7 @@ Trả lời bằng tiếng Việt. Chỉ trả về JSON, không có markdown, k
         }
 
         with httpx.Client(timeout=60.0) as client:
-            response = client.post(OPENROUTER_API_URL, headers=headers, json=payload)
+            response = client.post(api_url, headers=headers, json=payload)
             response.raise_for_status()
             data = response.json()
 
@@ -324,16 +324,18 @@ def generate_story_analysis(tool_id: str, story_content: str, story_title: str, 
         print(f"📝 Story length: {len(story_content)} chars")
         print(f"📝 User prompt length: {len(user_prompt)} chars")
         
-        # Call OpenRouter API using httpx
+        # Call AI API using runtime config
+        provider, runtime_model, runtime_api_key = _get_runtime_config()
+        api_url = _PROVIDER_URLS.get(provider, OPENROUTER_API_URL)
         headers = {
-            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+            "Authorization": f"Bearer {runtime_api_key}",
             "Content-Type": "application/json",
             "HTTP-Referer": "http://localhost:5000",
             "X-Title": "AI Screenplay"
         }
         
         payload = {
-            "model": OPENROUTER_MODEL,
+            "model": runtime_model,
             "messages": [
                 {
                     "role": "system",
@@ -349,7 +351,7 @@ def generate_story_analysis(tool_id: str, story_content: str, story_title: str, 
         }
         
         with httpx.Client(timeout=180.0) as client:  # Longer timeout for story analysis
-            response = client.post(OPENROUTER_API_URL, headers=headers, json=payload)
+            response = client.post(api_url, headers=headers, json=payload)
             response.raise_for_status()
             data = response.json()
         
@@ -365,8 +367,9 @@ def generate_story_analysis(tool_id: str, story_content: str, story_title: str, 
             'success': True,
             'content': html_content,
             'raw_content': content,
-            'model': OPENROUTER_MODEL,
-            'tool_id': tool_id
+            'model': runtime_model,
+            'tool_id': tool_id,
+            'provider': provider
         }
         
     except Exception as e:

@@ -346,7 +346,7 @@ function renderProjects(projects) {
     
     const projectsHTML = recentProjects.map(project => {
         const stepsCount = Object.keys(project.steps || {}).length;
-        const progress = Math.round((stepsCount / 9) * 100);
+        const progress = Math.round((stepsCount / 8) * 100);
         const status = getProjectStatus(project, stepsCount);
         const lastStep = getLastCompletedStep(project.steps);
         const date = formatDate(project.updated_at);
@@ -362,7 +362,7 @@ function renderProjects(projects) {
                 <h3 class="project-title">${escapeHtml(project.title || 'Dự án không tên')}</h3>
                 <div class="project-meta">
                     <span><i class="fas fa-clock"></i> ${date}</span>
-                    <span><i class="fas fa-tasks"></i> ${stepsCount}/9 bước</span>
+                    <span><i class="fas fa-tasks"></i> ${stepsCount}/8 bước</span>
                 </div>
                 <div class="project-progress">
                     <div class="progress-bar">
@@ -382,7 +382,7 @@ function renderProjects(projects) {
 
 // Get project status
 function getProjectStatus(project, stepsCount) {
-    if (stepsCount === 9) {
+    if (stepsCount >= 8) {
         return { text: 'Hoàn thành', class: 'completed' };
     } else if (stepsCount > 0) {
         return { text: 'Đang thực hiện', class: 'in-progress' };
@@ -433,10 +433,10 @@ function formatDate(dateString) {
 // Update stats
 function updateStats(projects) {
     const total = projects.length;
-    const completed = projects.filter(p => Object.keys(p.steps || {}).length === 9).length;
+    const completed = projects.filter(p => Object.keys(p.steps || {}).length >= 8).length;
     const inProgress = projects.filter(p => {
         const steps = Object.keys(p.steps || {}).length;
-        return steps > 0 && steps < 9;
+        return steps > 0 && steps < 8;
     }).length;
     
     let totalGenerated = 0;

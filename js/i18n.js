@@ -99,6 +99,10 @@
             'dash.tips.title': '💡 Mẹo viết kịch bản',
             'dash.tips.text': 'Bắt đầu với một Logline mạnh mẽ - đó là nền tảng cho toàn bộ kịch bản của bạn. Một Logline tốt sẽ giúp bạn giữ focus trong suốt quá trình viết.',
             'dash.footer': '© 2026 AI Screenplay. Công cụ viết kịch bản phim với AI.',
+            'footer.privacy': 'Chính sách bảo mật',
+            'footer.terms': 'Điều khoản sử dụng',
+            'footer.deletion': 'Xóa dữ liệu',
+            'footer.support': 'Hỗ trợ',
 
             /* ── Upgrade modal ───────────────────────────────── */
             'modal.upgrade.title': 'Nâng cấp PRO',
@@ -296,6 +300,22 @@
             'tool.script.f5.ph': 'Cung cấp danh sách các cảnh của phìm.',
             'tool.script.f6.label': 'Bạn muốn viết kịch bản cho cảnh nào?',
             'tool.script.f6.ph': 'Nhập số cảnh, ví dụ: Cảnh 3',
+            'app.btn.auto-range': 'Tạo kịch bản',
+            'app.range.label': 'Tạo kịch bản bắt đầu từ cảnh:',
+            'app.range.to': 'tới cảnh',
+            'app.range.placeholder.start': 'Bắt đầu',
+            'app.range.placeholder.end': 'Kết thúc',
+            'error.validation.title': 'Lỗi nhập liệu',
+            'error.validation.ok': 'Đồng ý',
+            'error.validation.no_scenes': 'Không tìm thấy danh sách cảnh. Hãy tạo danh sách cảnh ở bước trước.',
+            'error.validation.empty': 'Vui lòng nhập cả số cảnh bắt đầu và số cảnh kết thúc.',
+            'error.validation.invalid_number': 'Số cảnh nhập không hợp lệ. Cảnh bắt đầu và cảnh kết thúc phải là số nguyên dương.',
+            'error.validation.start_greater_than_end': 'Số cảnh bắt đầu không được lớn hơn số cảnh kết thúc.',
+            'error.validation.start_not_exist': 'Cảnh bắt đầu (Cảnh {num}) không tồn tại trong danh sách cảnh.',
+            'error.validation.end_not_exist': 'Cảnh kết thúc (Cảnh {num}) không tồn tại trong danh sách cảnh.',
+            'success.modal.title': 'Thông báo',
+            'success.modal.ok': 'Đồng ý',
+            'success.range.created': 'Đã tạo thành công {count} cảnh!',
 
             /* ── Projects page (á bảng chưa dịch) ──────────────── */
             'proj.stat.total': 'Tổng kịch bản',
@@ -380,6 +400,37 @@
             'admin.tab.landing': 'Landing Page',
             'admin.tab.token': 'Token & Credits',
             'admin.nav.lang': 'Ngôn ngữ',
+
+            /* ── Translation for renew / upgrade description ───────────────── */
+            'dash.plan.free.desc': 'Tài khoản Free: tối đa 10 lượt AI/ngày. PRO: không giới hạn lượt dùng.',
+            'dash.plan.pro.desc': 'Bạn đang dùng gói PRO đến {expiry}. Tài khoản PRO được dùng AI không giới hạn.',
+            'dash.nav.renew': 'Gia hạn PRO',
+            'pkg.name.pro_1m': 'PRO 1 tháng',
+            'pkg.name.pro_3m': 'PRO 3 tháng',
+            'pkg.name.pro_1y': 'PRO 1 năm',
+            'pkg.btn.renew': 'Gia hạn {name} ({price}đ)',
+            'pkg.btn.upgrade': 'Nâng cấp {price}đ',
+
+            /* ── Project status & statistics ───────────────── */
+            'proj.status.completed': 'Hoàn thành',
+            'proj.status.in-progress': 'Đang thực hiện',
+            'proj.status.draft': 'Bản nháp',
+            'proj.status.unstarted': 'Chưa bắt đầu',
+            'proj.count.scripts': '{count} kịch bản',
+            'proj.count.steps': '{count}/8 bước',
+            'proj.no-results.title': 'Không tìm thấy kịch bản',
+            'proj.no-results.desc': 'Thử thay đổi từ khoá tìm kiếm hoặc bộ lọc',
+            'proj.no-results.btn': 'Tạo kịch bản mới',
+            'proj.untitled': 'Dự án không tên',
+
+            /* ── Time formatting ───────────────────────────── */
+            'time.just_now': 'Vừa xong',
+            'time.minutes_ago': '{count} phút trước',
+            'time.hours_ago': '{count} giờ trước',
+            'time.days_ago': '{count} ngày trước',
+            'time.locale': 'vi-VN',
+            'time.no-expiry': 'không thời hạn',
+            'time.undefined-expiry': 'không xác định',
         },
 
         /* ════════════════════════════════════════════════════════ */
@@ -478,6 +529,10 @@
             'dash.tips.title': '💡 Screenwriting Tips',
             'dash.tips.text': 'Start with a strong Logline — it is the foundation of your entire screenplay. A good Logline will keep you focused throughout the writing process.',
             'dash.footer': '© 2026 AI Screenplay. AI-powered screenplay writing tool.',
+            'footer.privacy': 'Privacy Policy',
+            'footer.terms': 'Terms of Service',
+            'footer.deletion': 'Data Deletion',
+            'footer.support': 'Support',
 
             /* ── Upgrade modal ───────────────────────────────── */
             'modal.upgrade.title': 'Upgrade PRO',
@@ -675,6 +730,22 @@
             'tool.script.f5.ph': 'Provide the list of scenes in the film.',
             'tool.script.f6.label': 'Which scene do you want to write?',
             'tool.script.f6.ph': 'Enter scene number, e.g.: Scene 3',
+            'app.btn.auto-range': 'Generate Script',
+            'app.range.label': 'Generate screenplay starting from scene:',
+            'app.range.to': 'to scene',
+            'app.range.placeholder.start': 'Start',
+            'app.range.placeholder.end': 'End',
+            'error.validation.title': 'Validation Error',
+            'error.validation.ok': 'OK',
+            'error.validation.no_scenes': 'Scene list not found. Please create the scene list in the previous step.',
+            'error.validation.empty': 'Please enter both start and end scene numbers.',
+            'error.validation.invalid_number': 'Invalid scene numbers. Start and end scenes must be positive integers.',
+            'error.validation.start_greater_than_end': 'Start scene number cannot be greater than end scene number.',
+            'error.validation.start_not_exist': 'Start scene (Scene {num}) does not exist in the scene list.',
+            'error.validation.end_not_exist': 'End scene (Scene {num}) does not exist in the scene list.',
+            'success.modal.title': 'Success',
+            'success.modal.ok': 'OK',
+            'success.range.created': 'Successfully generated {count} scenes!',
 
             /* ── Projects page (untranslated parts) ─────────── */
             'proj.stat.total': 'Total Scripts',
@@ -759,6 +830,37 @@
             'admin.tab.landing': 'Landing Page',
             'admin.tab.token': 'Token & Credits',
             'admin.nav.lang': 'Language',
+
+            /* ── Translation for renew / upgrade description ───────────────── */
+            'dash.plan.free.desc': 'Free Plan: max 10 AI requests/day. PRO: unlimited usage.',
+            'dash.plan.pro.desc': 'You are using PRO plan until {expiry}. PRO account has unlimited AI usage.',
+            'dash.nav.renew': 'Renew PRO',
+            'pkg.name.pro_1m': 'PRO 1 Month',
+            'pkg.name.pro_3m': 'PRO 3 Months',
+            'pkg.name.pro_1y': 'PRO 1 Year',
+            'pkg.btn.renew': 'Renew {name} ({price}đ)',
+            'pkg.btn.upgrade': 'Upgrade {price}đ',
+
+            /* ── Project status & statistics ───────────────── */
+            'proj.status.completed': 'Completed',
+            'proj.status.in-progress': 'In Progress',
+            'proj.status.draft': 'Draft',
+            'proj.status.unstarted': 'Not started',
+            'proj.count.scripts': '{count} screenplays',
+            'proj.count.steps': '{count}/8 steps',
+            'proj.no-results.title': 'No screenplays found',
+            'proj.no-results.desc': 'Try changing your search terms or filters',
+            'proj.no-results.btn': 'Create New Script',
+            'proj.untitled': 'Untitled Project',
+
+            /* ── Time formatting ───────────────────────────── */
+            'time.just_now': 'Just now',
+            'time.minutes_ago': '{count} minutes ago',
+            'time.hours_ago': '{count} hours ago',
+            'time.days_ago': '{count} days ago',
+            'time.locale': 'en-US',
+            'time.no-expiry': 'no expiry date',
+            'time.undefined-expiry': 'undefined',
         }
     };
 
@@ -812,10 +914,16 @@
     window.getCurrentLang = function () { return getLang(); };
 
     /* ── t() helper — use in JS files for dynamic text ──────── */
-    window.t = function (key) {
+    window.t = function (key, replacements) {
         const lang = getLang();
         const dict = TRANSLATIONS[lang] || TRANSLATIONS.vi;
-        return dict[key] !== undefined ? dict[key] : (TRANSLATIONS.vi[key] || key);
+        let text = dict[key] !== undefined ? dict[key] : (TRANSLATIONS.vi[key] || key);
+        if (replacements && typeof replacements === 'object') {
+            for (const [k, v] of Object.entries(replacements)) {
+                text = text.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+            }
+        }
+        return text;
     };
 
     window._i18n = { getLang, applyTranslations, TRANSLATIONS };

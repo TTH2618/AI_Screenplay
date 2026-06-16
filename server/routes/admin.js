@@ -1,6 +1,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const { saveToEnv, readEnvFile } = require('../config/envWriter');
 const router = express.Router();
 
 const { pool } = require('../config/database');
@@ -199,31 +200,21 @@ router.get('/generation-logs', async (req, res) => {
 });
 
 // ============================================================
-// GET /api/admin/ai-config — Lấy cấu hình provider/model/key hiện tại
+// GET /api/admin/ai-config — Lấy cấu hình provider/model/key từ .env
 // ============================================================
 router.get('/ai-config', async (req, res) => {
     try {
-        const [settingRows] = await pool.execute(
-            "SELECT setting_key, setting_value FROM payment_settings WHERE setting_key IN ('ai_provider','ai_model')"
-        );
-        const settings = {};
-        settingRows.forEach(r => { settings[r.setting_key] = r.setting_value; });
+        const provider = process.env.AI_PROVIDER || 'openrouter';
+        const model = process.env.OPENROUTER_MODEL || '';
+        const apiKey = process.env.OPENROUTER_API_KEY || '';
 
-        const provider = settings.ai_provider || 'openrouter';
-        const model = settings.ai_model || '';
-
-        const [keyRows] = await pool.execute(
-            'SELECT api_key, updated_at FROM api_credentials WHERE provider = ? AND is_active = 1 LIMIT 1',
-            [provider]
-        );
-        const keyRow = keyRows[0];
         return res.json({
             success: true,
             data: {
                 provider,
                 model,
-                api_key_masked: keyRow ? maskApiKey(keyRow.api_key) : null,
-                updated_at: keyRow ? keyRow.updated_at : null
+                api_key_masked: apiKey ? maskApiKey(apiKey) : null,
+                updated_at: null
             }
         });
     } catch (e) {
@@ -232,7 +223,7 @@ router.get('/ai-config', async (req, res) => {
 });
 
 // ============================================================
-// PUT /api/admin/ai-config — Cập nhật provider, model, api_key
+// PUT /api/admin/ai-config — Cập nhật provider, model, api_key vào .env
 // ============================================================
 router.put('/ai-config', async (req, res) => {
     try {
@@ -243,31 +234,26 @@ router.put('/ai-config', async (req, res) => {
         if (!provider) return res.status(400).json({ success: false, message: 'provider không được trống' });
         if (!model) return res.status(400).json({ success: false, message: 'model không được trống' });
 
-        // Lưu provider và model vào payment_settings
-        for (const [k, v] of [['ai_provider', provider], ['ai_model', model]]) {
-            await pool.execute(
-                `INSERT INTO payment_settings (setting_key, setting_value)
-                 VALUES (?, ?)
-                 ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_at = CURRENT_TIMESTAMP`,
-                [k, v]
-            );
-        }
-
-        // Nếu có key mới thì cập nhật
+        // Ghi vào .env + cập nhật process.env runtime
+        const updates = {
+            AI_PROVIDER: provider,
+            OPENROUTER_MODEL: model
+        };
         if (apiKey) {
-            await pool.execute(
-                `INSERT INTO api_credentials (provider, api_key, is_active, updated_by)
-                 VALUES (?, ?, 1, ?)
-                 ON DUPLICATE KEY UPDATE
-                   api_key = VALUES(api_key),
-                   is_active = 1,
-                   updated_by = VALUES(updated_by),
-                   updated_at = CURRENT_TIMESTAMP`,
-                [provider, apiKey, req.user.id]
-            );
+            updates.OPENROUTER_API_KEY = apiKey;
         }
+        saveToEnv(updates);
 
-        return res.json({ success: true, message: 'Đã lưu cấu hình AI' });
+        // Thông báo Python API reload config (non-fatal)
+        try {
+            const pythonPort = process.env.PYTHON_API_PORT || 5000;
+            await fetch(`http://localhost:${pythonPort}/api/reload-config`, {
+                method: 'POST',
+                signal: AbortSignal.timeout(3000)
+            });
+        } catch (_) { /* Python API chưa chạy hoặc lỗi — bỏ qua */ }
+
+        return res.json({ success: true, message: 'Đã lưu cấu hình AI vào .env' });
     } catch (e) {
         return res.status(500).json({ success: false, message: 'Lỗi cập nhật cấu hình AI', error: e.message });
     }
@@ -278,7 +264,7 @@ router.put('/ai-config', async (req, res) => {
 // ============================================================
 router.get('/test-ai', async (req, res) => {
     try {
-        const pythonPort = process.env.PYTHON_PORT || 5000;
+        const pythonPort = process.env.PYTHON_API_PORT || process.env.PYTHON_PORT || 5000;
         let result;
         try {
             const resp = await fetch(
@@ -333,15 +319,21 @@ router.put('/system-prompts/:toolId', async (req, res) => {
 
 router.get('/api-keys', async (req, res) => {
     try {
-        const [rows] = await pool.execute(
-            'SELECT provider, api_key, updated_at FROM api_credentials WHERE is_active = 1 ORDER BY provider ASC'
-        );
+        // Đọc API keys từ process.env
+        const envKeyMap = {
+            openrouter: 'OPENROUTER_API_KEY',
+            payos_client: 'PAYOS_CLIENT_ID',
+            payos_api: 'PAYOS_API_KEY',
+            payos_checksum: 'PAYOS_CHECKSUM_KEY'
+        };
 
-        const masked = rows.map((row) => ({
-            provider: row.provider,
-            api_key_masked: maskApiKey(row.api_key),
-            updated_at: row.updated_at
-        }));
+        const masked = Object.entries(envKeyMap)
+            .filter(([, envKey]) => process.env[envKey])
+            .map(([provider, envKey]) => ({
+                provider,
+                api_key_masked: maskApiKey(process.env[envKey]),
+                updated_at: null
+            }));
 
         return res.json({ success: true, data: masked });
     } catch (error) {
@@ -357,18 +349,22 @@ router.put('/api-keys/:provider', async (req, res) => {
             return res.status(400).json({ success: false, message: 'api_key không được trống' });
         }
 
-        await pool.execute(
-            `INSERT INTO api_credentials (provider, api_key, is_active, updated_by)
-             VALUES (?, ?, 1, ?)
-             ON DUPLICATE KEY UPDATE
-               api_key = VALUES(api_key),
-               is_active = 1,
-               updated_by = VALUES(updated_by),
-               updated_at = CURRENT_TIMESTAMP`,
-            [provider, apiKey, req.user.id]
-        );
+        // Map provider → tên biến .env
+        const envKeyMap = {
+            openrouter: 'OPENROUTER_API_KEY',
+            payos_client: 'PAYOS_CLIENT_ID',
+            payos_api: 'PAYOS_API_KEY',
+            payos_checksum: 'PAYOS_CHECKSUM_KEY'
+        };
 
-        return res.json({ success: true, message: 'Đã cập nhật API key' });
+        const envKey = envKeyMap[provider];
+        if (!envKey) {
+            return res.status(400).json({ success: false, message: `Provider "${provider}" không được hỗ trợ` });
+        }
+
+        saveToEnv({ [envKey]: apiKey });
+
+        return res.json({ success: true, message: 'Đã cập nhật API key vào .env' });
     } catch (error) {
         return res.status(500).json({ success: false, message: 'Lỗi cập nhật API key', error: error.message });
     }
@@ -423,18 +419,41 @@ router.delete('/story-files/:id', async (req, res) => {
 });
 
 // ============================================================
-// GET /api/admin/payment-settings — Lấy cấu hình cổng thanh toán
+// GET /api/admin/payment-settings — Lấy cấu hình cổng thanh toán từ .env + DB
 // ============================================================
 router.get('/payment-settings', async (req, res) => {
     try {
-        const [rows] = await pool.execute('SELECT setting_key, setting_value FROM payment_settings');
-        const settings = {};
-        rows.forEach(r => { settings[r.setting_key] = r.setting_value; });
-        // Ẩn secret_key thật
-        if (settings.secret_key) {
-            settings.secret_key_masked = maskApiKey(settings.secret_key);
-            delete settings.secret_key;
+        // Đọc cấu hình SePay/PayOS từ .env
+        const settings = {
+            merchant_id: process.env.PAYOS_CLIENT_ID || '',
+            env: process.env.PAYOS_ENV || 'sandbox',
+            app_url: process.env.APP_URL || ''
+        };
+
+        // Ẩn secret_key thật (PAYOS_CHECKSUM_KEY)
+        const secretKey = process.env.PAYOS_CHECKSUM_KEY || '';
+        if (secretKey) {
+            settings.secret_key_masked = maskApiKey(secretKey);
         }
+
+        // Đọc cấu hình VNPAY từ .env
+        settings.vnpay_tmn_code = process.env.VNPAY_TMN_CODE || '';
+        settings.vnpay_url = process.env.VNPAY_URL || 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
+        settings.vnpay_return_url = process.env.VNPAY_RETURN_URL || '';
+        // Ẩn vnpay_hash_secret
+        const vnpaySecret = process.env.VNPAY_HASH_SECRET || '';
+        if (vnpaySecret) {
+            settings.vnpay_hash_secret_masked = maskApiKey(vnpaySecret);
+        }
+
+        // Đọc trạng thái bật/tắt cổng từ DB (business logic)
+        try {
+            const [rows] = await pool.execute(
+                "SELECT setting_key, setting_value FROM payment_settings WHERE setting_key IN ('sepay_enabled','vnpay_enabled')"
+            );
+            rows.forEach(r => { settings[r.setting_key] = r.setting_value; });
+        } catch (_) { /* bảng chưa tồn tại — mặc định tắt */ }
+
         return res.json({ success: true, data: settings });
     } catch (e) {
         return res.status(500).json({ success: false, message: 'Lỗi lấy cấu hình thanh toán', error: e.message });
@@ -442,18 +461,48 @@ router.get('/payment-settings', async (req, res) => {
 });
 
 // ============================================================
-// PUT /api/admin/payment-settings — Cập nhật cấu hình cổng thanh toán
+// PUT /api/admin/payment-settings — Cập nhật cấu hình cổng thanh toán vào .env + DB
 // ============================================================
 router.put('/payment-settings', async (req, res) => {
     try {
-        // SePay settings
-        const allowedSepay = ['merchant_id', 'secret_key', 'env', 'app_url', 'sepay_enabled'];
-        // VNPAY settings
-        const allowedVnpay = ['vnpay_tmn_code', 'vnpay_hash_secret', 'vnpay_url', 'vnpay_return_url', 'vnpay_enabled'];
-        const allowed = [...allowedSepay, ...allowedVnpay];
+        const envUpdates = {};
 
-        for (const key of allowed) {
-            // Cho phép lưu giá trị '0' (tắt cổng), chỉ bỏ qua undefined/null thật sự
+        // SePay/PayOS → ghi vào .env
+        if (req.body.merchant_id !== undefined && req.body.merchant_id !== null) {
+            envUpdates.PAYOS_CLIENT_ID = String(req.body.merchant_id).trim();
+        }
+        if (req.body.secret_key !== undefined && req.body.secret_key !== null) {
+            envUpdates.PAYOS_CHECKSUM_KEY = String(req.body.secret_key).trim();
+        }
+        if (req.body.env !== undefined && req.body.env !== null) {
+            envUpdates.PAYOS_ENV = String(req.body.env).trim();
+        }
+        if (req.body.app_url !== undefined && req.body.app_url !== null) {
+            envUpdates.APP_URL = String(req.body.url || req.body.app_url).trim();
+        }
+
+        // VNPAY → ghi vào .env
+        if (req.body.vnpay_tmn_code !== undefined && req.body.vnpay_tmn_code !== null) {
+            envUpdates.VNPAY_TMN_CODE = String(req.body.vnpay_tmn_code).trim();
+        }
+        if (req.body.vnpay_hash_secret !== undefined && req.body.vnpay_hash_secret !== null) {
+            envUpdates.VNPAY_HASH_SECRET = String(req.body.vnpay_hash_secret).trim();
+        }
+        if (req.body.vnpay_url !== undefined && req.body.vnpay_url !== null) {
+            envUpdates.VNPAY_URL = String(req.body.vnpay_url).trim();
+        }
+        if (req.body.vnpay_return_url !== undefined && req.body.vnpay_return_url !== null) {
+            envUpdates.VNPAY_RETURN_URL = String(req.body.vnpay_return_url).trim();
+        }
+
+        // Ghi vào .env + cập nhật process.env
+        if (Object.keys(envUpdates).length > 0) {
+            saveToEnv(envUpdates);
+        }
+
+        // Toggle bật/tắt cổng → vẫn lưu DB
+        const dbKeys = ['sepay_enabled', 'vnpay_enabled'];
+        for (const key of dbKeys) {
             if (req.body[key] !== undefined && req.body[key] !== null) {
                 const val = String(req.body[key]).trim();
                 await pool.execute(
@@ -464,6 +513,7 @@ router.put('/payment-settings', async (req, res) => {
                 );
             }
         }
+
         return res.json({ success: true, message: 'Đã cập nhật cấu hình thanh toán' });
     } catch (e) {
         return res.status(500).json({ success: false, message: 'Lỗi cập nhật cấu hình thanh toán', error: e.message });

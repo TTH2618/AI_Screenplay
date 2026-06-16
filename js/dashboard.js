@@ -140,10 +140,11 @@ function formatVnd(amount) {
 }
 
 function formatExpiry(dateValue) {
-    if (!dateValue) return 'không thời hạn';
+    if (!dateValue) return window.t ? window.t('time.no-expiry') : 'không thời hạn';
     const d = new Date(dateValue);
-    if (Number.isNaN(d.getTime())) return 'không xác định';
-    return d.toLocaleDateString('vi-VN');
+    if (Number.isNaN(d.getTime())) return window.t ? window.t('time.undefined-expiry') : 'không xác định';
+    const locale = window.t ? window.t('time.locale') : 'vi-VN';
+    return d.toLocaleDateString(locale);
 }
 
 function renderSubscription(userData) {
@@ -157,15 +158,15 @@ function renderSubscription(userData) {
     if (proActive) {
         badge.textContent = 'PRO';
         badge.className = 'plan-badge pro';
-        description.textContent = `Bạn đang dùng gói PRO đến ${formatExpiry(userData.pro_expires_at)}. Tài khoản PRO được dùng AI không giới hạn.`;
+        description.textContent = window.t ? window.t('dash.plan.pro.desc', { expiry: formatExpiry(userData.pro_expires_at) }) : `Bạn đang dùng gói PRO đến ${formatExpiry(userData.pro_expires_at)}. Tài khoản PRO được dùng AI không giới hạn.`;
         if (navBtn) navBtn.classList.add('pro-active');
-        if (navLabel) navLabel.textContent = 'Gia hạn PRO';
+        if (navLabel) navLabel.textContent = window.t ? window.t('dash.nav.renew') : 'Gia hạn PRO';
     } else {
         badge.textContent = 'FREE';
         badge.className = 'plan-badge free';
-        description.textContent = 'Tài khoản Free: tối đa 10 lượt AI/ngày. PRO: không giới hạn lượt dùng.';
+        description.textContent = window.t ? window.t('dash.plan.free.desc') : 'Tài khoản Free: tối đa 10 lượt AI/ngày. PRO: không giới hạn lượt dùng.';
         if (navBtn) navBtn.classList.remove('pro-active');
-        if (navLabel) navLabel.textContent = 'Nâng cấp PRO';
+        if (navLabel) navLabel.textContent = window.t ? window.t('dash.nav.upgrade') : 'Nâng cấp PRO';
     }
 
 }
@@ -193,13 +194,17 @@ function renderCustomPackages(packages) {
     grid.innerHTML = customKeys.map(k => {
         const pkg = packages[k];
         PLAN_PACKAGES[k] = { id: k, name: pkg.name, months: pkg.months, price: pkg.price };
+        const selectText = window.t ? window.t('modal.pkg.select') : 'Chọn gói này';
+        const monthsNote = window.t && window.t('time.locale') === 'en-US' 
+            ? `${pkg.months} months of PRO usage` 
+            : `${pkg.months} tháng sử dụng PRO`;
         return `
         <article class="package-card" id="pkg-${k}">
             <h3>${escDash(pkg.name)}</h3>
             <p class="price">${fmt(pkg.price)}</p>
-            <p class="package-note">${escDash(pkg.note || pkg.months + ' tháng sử dụng PRO')}</p>
+            <p class="package-note">${escDash(pkg.note || monthsNote)}</p>
             <button class="btn-select-pkg" onclick="selectPackage('${k}')">
-                <i class="fas fa-check-circle"></i> Chọn gói này
+                <i class="fas fa-check-circle"></i> ${selectText}
             </button>
         </article>`;
     }).join('');
@@ -459,10 +464,10 @@ function renderProjects(projects) {
                     </div>
                     <span class="project-status ${status.class}">${status.text}</span>
                 </div>
-                <h3 class="project-title">${escapeHtml(project.title || 'Dự án không tên')}</h3>
+                <h3 class="project-title">${escapeHtml(project.title || (window.t ? window.t('proj.untitled') : 'Dự án không tên'))}</h3>
                 <div class="project-meta">
                     <span><i class="fas fa-clock"></i> ${date}</span>
-                    <span><i class="fas fa-tasks"></i> ${stepsCount}/8 bước</span>
+                    <span><i class="fas fa-tasks"></i> ${window.t ? window.t('proj.count.steps', { count: stepsCount }) : `${stepsCount}/8 bước`}</span>
                 </div>
                 <div class="project-progress">
                     <div class="progress-bar">
@@ -482,12 +487,12 @@ function renderProjects(projects) {
 
 // Get project status
 function getProjectStatus(project, stepsCount) {
-    if (stepsCount === 9) {
-        return { text: 'Hoàn thành', class: 'completed' };
+    if (stepsCount >= 8) {
+        return { text: window.t ? window.t('proj.status.completed') : 'Hoàn thành', class: 'completed' };
     } else if (stepsCount > 0) {
-        return { text: 'Đang thực hiện', class: 'in-progress' };
+        return { text: window.t ? window.t('proj.status.in-progress') : 'Đang thực hiện', class: 'in-progress' };
     } else {
-        return { text: 'Bản nháp', class: 'draft' };
+        return { text: window.t ? window.t('proj.status.draft') : 'Bản nháp', class: 'draft' };
     }
 }
 
@@ -522,21 +527,22 @@ function formatDate(dateString) {
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return 'Vừa xong';
-    if (minutes < 60) return `${minutes} phút trước`;
-    if (hours < 24) return `${hours} giờ trước`;
-    if (days < 7) return `${days} ngày trước`;
+    if (minutes < 1) return window.t ? window.t('time.just_now') : 'Vừa xong';
+    if (minutes < 60) return window.t ? window.t('time.minutes_ago', { count: minutes }) : `${minutes} phút trước`;
+    if (hours < 24) return window.t ? window.t('time.hours_ago', { count: hours }) : `${hours} giờ trước`;
+    if (days < 7) return window.t ? window.t('time.days_ago', { count: days }) : `${days} ngày trước`;
 
-    return date.toLocaleDateString('vi-VN');
+    const locale = window.t ? window.t('time.locale') : 'vi-VN';
+    return date.toLocaleDateString(locale);
 }
 
 // Update stats
 function updateStats(projects) {
     const total = projects.length;
-    const completed = projects.filter(p => Object.keys(p.steps || {}).length === 9).length;
+    const completed = projects.filter(p => Object.keys(p.steps || {}).length >= 8).length;
     const inProgress = projects.filter(p => {
         const steps = Object.keys(p.steps || {}).length;
-        return steps > 0 && steps < 9;
+        return steps > 0 && steps < 8;
     }).length;
 
     let totalGenerated = 0;

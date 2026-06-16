@@ -768,8 +768,77 @@ function checkUserAuth() {
             planBadge.textContent = isProActive ? 'PRO' : 'FREE';
             planBadge.className = `plan-badge ${isProActive ? 'pro' : 'free'}`;
         }
+
+        if (userData.avatar) {
+            updateNavbarAvatar(userData.avatar);
+        }
+
+        // Refresh dynamically from backend
+        refreshCurrentUser();
     } catch (e) {
         console.error('Error parsing user data:', e);
+    }
+}
+
+const API_BASE_URL_LOCAL = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
+    ? window.APP_CONFIG.API_BASE_URL
+    : `${window.location.protocol}//${window.location.host}/api`;
+
+function getAuthHeadersLocal() {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    const headers = { 'ngrok-skip-browser-warning': 'true' };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return headers;
+}
+
+function getFullAvatarUrl(avatarUrl) {
+    if (!avatarUrl) return '';
+    if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://') || avatarUrl.startsWith('data:')) {
+        return avatarUrl;
+    }
+    const backendDomain = API_BASE_URL_LOCAL.replace(/\/api$/, '');
+    return `${backendDomain}${avatarUrl.startsWith('/') ? '' : '/'}${avatarUrl}`;
+}
+
+function updateNavbarAvatar(avatarUrl) {
+    const avatarDiv = document.querySelector('#user-info .avatar') || document.querySelector('.user-avatar') || document.querySelector('.avatar');
+    if (avatarDiv && avatarUrl) {
+        const fullUrl = getFullAvatarUrl(avatarUrl);
+        avatarDiv.innerHTML = `<img src="${fullUrl}?t=${Date.now()}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    }
+}
+
+async function refreshCurrentUser() {
+    try {
+        const response = await fetch(`${API_BASE_URL_LOCAL}/auth/me`, {
+            headers: { 'Content-Type': 'application/json', ...getAuthHeadersLocal() }
+        });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (!data.success || !data.user) return;
+
+        const storage = localStorage.getItem('user') ? localStorage : sessionStorage;
+        storage.setItem('user', JSON.stringify(data.user));
+        
+        const displayName = document.getElementById('user-display-name');
+        const planBadge = document.getElementById('user-plan-badge');
+        const isProActive = data.user.plan_type === 'pro'
+            && (!data.user.pro_expires_at || new Date(data.user.pro_expires_at) > new Date());
+
+        if (displayName) {
+            displayName.textContent = data.user.full_name || data.user.username || 'Người dùng';
+        }
+
+        if (planBadge) {
+            planBadge.textContent = isProActive ? 'PRO' : 'FREE';
+            planBadge.className = `plan-badge ${isProActive ? 'pro' : 'free'}`;
+        }
+
+        if (data.user.avatar) {
+            updateNavbarAvatar(data.user.avatar);
+        }
+    } catch (error) {
+        console.error('Error refreshing current user:', error);
     }
 }
 
@@ -1056,7 +1125,18 @@ function loadTool(toolId) {
             ${(currentTool === 'script' || currentTool === 'story_script') ? `
             <button type="button" class="submit-btn btn-auto-all-scenes" onclick="autoGenerateAllScripts()" style="margin-top:10px;background:linear-gradient(135deg,#7c3aed,#4f46e5);">
                 <i class="fas fa-film"></i> Tự động tạo tất cả cảnh
-            </button>` : ''}
+            </button>
+            <div class="scene-range-container" style="margin-top: 15px; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; background: #f9fafb; display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.9rem; color: #374151; font-weight: 500;">
+                    <span>Tạo kịch bản bắt đầu từ cảnh:</span>
+                    <input type="text" class="form-input" id="start-scene-input" placeholder="Bắt đầu" style="width: 80px; padding: 8px 12px; margin: 0; text-align: center;">
+                    <span>tới cảnh</span>
+                    <input type="text" class="form-input" id="end-scene-input" placeholder="Kết thúc" style="width: 80px; padding: 8px 12px; margin: 0; text-align: center;">
+                </div>
+                <button type="button" class="submit-btn btn-auto-range-scenes" onclick="generateScriptRange()" style="margin: 0; padding: 12px; background: linear-gradient(135deg, #06b6d4, #0891b2);">
+                    <i class="fas fa-play-circle"></i> Tạo kịch bản
+                </button>
+            </div>` : ''}
         </form>
         ${isCharTool ? '<div id="character-cards-container"></div>' : ''}
     `;
@@ -2073,16 +2153,299 @@ async function autoGenerateAllScripts() {
     }
 
     progressBar.style.width = '100%';
-    progressLabel.textContent = cancelled ? 'D\u1eebng l\u1ea1i.' : `\u2705 \u0110\u00e3 t\u1ea1o xong t\u1ea5t c\u1ea3 ${total} c\u1ea3nh!`;
-    cancelBtn.textContent = '\u0110\u00f3ng';
     cancelBtn.removeEventListener('click', onCancel);
-    cancelBtn.addEventListener('click', () => {
+
+    if (cancelled) {
+        progressLabel.textContent = 'Dừng lại.';
+        cancelBtn.textContent = 'Đóng';
+        cancelBtn.addEventListener('click', () => {
+            overlay.style.display = 'none';
+            loadTool(scriptTool);
+        }, { once: true });
+    } else {
         overlay.style.display = 'none';
         loadTool(scriptTool);
-    }, { once: true });
+        const successMsg = window.t 
+            ? window.t('success.range.created', { count: total }) 
+            : `Đã tạo thành công ${total} cảnh!`;
+        showSuccessModal(successMsg);
+    }
+}
 
-    if (!cancelled) {
-        showSaveNotification(`\u0110\u00e3 t\u1ea1o xong ${total} c\u1ea3nh!`, 'success');
+// Show error validation modal using modal-overlay
+function showValidationErrorModal(message) {
+    const modalOverlay = document.getElementById('modal-overlay');
+    if (!modalOverlay) {
+        if (typeof showToast !== 'undefined') {
+            showToast(message, 'error');
+        } else {
+            alert(message);
+        }
+        return;
+    }
+
+    const titleText = window.t ? window.t('error.validation.title') : 'Lỗi nhập liệu';
+    const btnText = window.t ? window.t('error.validation.ok') : 'Đồng ý';
+
+    modalOverlay.innerHTML = `
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-exclamation-circle" style="color: #ef4444; margin-right: 8px;"></i> ${titleText}</h3>
+                <button class="btn-close" id="validation-close-btn" aria-label="Đóng">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="content-section" style="padding: 10px 0 20px 0;">
+                    <p style="font-size: 1.05rem; line-height: 1.5; color: #374151; margin: 0; text-align: center;">${message}</p>
+                </div>
+                <div style="display:flex; justify-content:center; gap: 10px;">
+                    <button class="btn-cancel" id="validation-ok-btn" style="padding: 8px 20px; border-radius: 6px; background: #ef4444; border-color: #ef4444; color: white; cursor: pointer; font-weight: 500;">${btnText}</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const closePopup = () => {
+        modalOverlay.classList.remove('active');
+        modalOverlay.innerHTML = '';
+        modalOverlay.onclick = null;
+    };
+
+    modalOverlay.classList.add('active');
+    modalOverlay.onclick = (event) => {
+        if (event.target === modalOverlay) {
+            closePopup();
+        }
+    };
+
+    const closeBtn = document.getElementById('validation-close-btn');
+    const okBtn = document.getElementById('validation-ok-btn');
+
+    if (closeBtn) closeBtn.addEventListener('click', closePopup);
+    if (okBtn) okBtn.addEventListener('click', closePopup);
+}
+
+// Show success notification modal using modal-overlay
+function showSuccessModal(message) {
+    const modalOverlay = document.getElementById('modal-overlay');
+    if (!modalOverlay) {
+        if (typeof showToast !== 'undefined') {
+            showToast(message, 'success');
+        } else {
+            alert(message);
+        }
+        return;
+    }
+
+    const titleText = window.t ? window.t('success.modal.title') : 'Thông báo';
+    const btnText = window.t ? window.t('success.modal.ok') : 'Đồng ý';
+
+    modalOverlay.innerHTML = `
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> ${titleText}</h3>
+                <button class="btn-close" id="success-close-btn" aria-label="Đóng">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="content-section" style="padding: 10px 0 20px 0;">
+                    <p style="font-size: 1.05rem; line-height: 1.5; color: #374151; margin: 0; text-align: center;">${message}</p>
+                </div>
+                <div style="display:flex; justify-content:center; gap: 10px;">
+                    <button class="btn-cancel" id="success-ok-btn" style="padding: 8px 20px; border-radius: 6px; background: #10b981; border-color: #10b981; color: white; cursor: pointer; font-weight: 500;">${btnText}</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const closePopup = () => {
+        modalOverlay.classList.remove('active');
+        modalOverlay.innerHTML = '';
+        modalOverlay.onclick = null;
+    };
+
+    modalOverlay.classList.add('active');
+    modalOverlay.onclick = (event) => {
+        if (event.target === modalOverlay) {
+            closePopup();
+        }
+    };
+
+    const closeBtn = document.getElementById('success-close-btn');
+    const okBtn = document.getElementById('success-ok-btn');
+
+    if (closeBtn) closeBtn.addEventListener('click', closePopup);
+    if (okBtn) okBtn.addEventListener('click', closePopup);
+}
+
+// Auto-generate scripts for a range of scenes in the scenelist
+async function generateScriptRange() {
+    const isStory = currentTool === 'story_script';
+    const scriptTool = isStory ? 'story_script' : 'script';
+    const scenelistTool = isStory ? 'story_scenelist' : 'scenelist';
+
+    const project = (typeof ProjectManager !== 'undefined' && ProjectManager.getCurrentProject)
+        ? ProjectManager.getCurrentProject() : null;
+
+    // Get scenelist from current form or from saved project
+    let scenelistText = '';
+    const scenelistEl = document.getElementById('scenelist');
+    if (scenelistEl && scenelistEl.value.trim()) {
+        scenelistText = scenelistEl.value.trim();
+    } else if (project && project.steps && project.steps[scenelistTool]) {
+        scenelistText = (project.steps[scenelistTool].output || '').replace(/<[^>]*>/g, '').trim();
+    }
+
+    const sceneEntries = _parseSceneEntries(scenelistText);
+    if (sceneEntries.length === 0) {
+        showValidationErrorModal(window.t ? window.t('error.validation.no_scenes') : 'Không tìm thấy danh sách cảnh. Hãy tạo danh sách cảnh ở bước trước.');
+        return;
+    }
+
+    // Get input values
+    const startValEl = document.getElementById('start-scene-input');
+    const endValEl = document.getElementById('end-scene-input');
+    const startVal = startValEl ? startValEl.value.trim() : '';
+    const endVal = endValEl ? endValEl.value.trim() : '';
+
+    if (!startVal || !endVal) {
+        showValidationErrorModal(window.t ? window.t('error.validation.empty') : 'Vui lòng nhập cả số cảnh bắt đầu và số cảnh kết thúc.');
+        return;
+    }
+
+    if (!/^\d+$/.test(startVal) || !/^\d+$/.test(endVal)) {
+        showValidationErrorModal(window.t ? window.t('error.validation.invalid_number') : 'Số cảnh nhập không hợp lệ. Cảnh bắt đầu và cảnh kết thúc phải là số nguyên dương.');
+        return;
+    }
+
+    const startNum = parseInt(startVal);
+    const endNum = parseInt(endVal);
+
+    if (startNum > endNum) {
+        showValidationErrorModal(window.t ? window.t('error.validation.start_greater_than_end') : 'Số cảnh bắt đầu không được lớn hơn số cảnh kết thúc.');
+        return;
+    }
+
+    const startExists = sceneEntries.some(e => e.num === startNum);
+    if (!startExists) {
+        const msg = window.t 
+            ? window.t('error.validation.start_not_exist', { num: startNum }) 
+            : `Cảnh bắt đầu (Cảnh ${startNum}) không tồn tại trong danh sách cảnh.`;
+        showValidationErrorModal(msg);
+        return;
+    }
+
+    const endExists = sceneEntries.some(e => e.num === endNum);
+    if (!endExists) {
+        const msg = window.t 
+            ? window.t('error.validation.end_not_exist', { num: endNum }) 
+            : `Cảnh kết thúc (Cảnh ${endNum}) không tồn tại trong danh sách cảnh.`;
+        showValidationErrorModal(msg);
+        return;
+    }
+
+    const selectedEntries = sceneEntries.filter(e => e.num >= startNum && e.num <= endNum);
+    const total = selectedEntries.length;
+
+    // Collect base form data (synopsis, characters, structure, beatsheet, scenelist)
+    const baseFormData = {};
+    const mapping = isStory ? storyAutoFillMapping[scriptTool] : autoFillMapping['script'];
+    if (mapping && project && project.steps) {
+        for (const [sourceTool, targetField] of Object.entries(mapping)) {
+            if (project.steps[sourceTool]) {
+                baseFormData[targetField] = (project.steps[sourceTool].output || '').replace(/<[^>]*>/g, '').trim();
+            }
+        }
+    }
+    // Also fill from current visible form fields (in case they're not yet saved)
+    const tool = isStory ? storyTools[scriptTool] : tools['script'];
+    if (tool) {
+        tool.fields.forEach(field => {
+            if (field.id === 'scene_number') return;
+            const el = document.getElementById(field.id);
+            if (el && el.value.trim()) baseFormData[field.id] = el.value.trim();
+        });
+    }
+    if (isStory && storyContent) baseFormData.story_content = storyContent;
+    if (!baseFormData.scenelist) baseFormData.scenelist = scenelistText;
+
+    // Show the scene-progress overlay
+    let cancelled = false;
+    const overlay = document.getElementById('scene-auto-overlay');
+    const progressBar = document.getElementById('scene-auto-progress-bar');
+    const progressLabel = document.getElementById('scene-auto-label');
+    const progressLog = document.getElementById('scene-auto-log');
+    const cancelBtn = document.getElementById('scene-auto-cancel');
+    overlay.style.display = 'flex';
+    progressLog.innerHTML = '';
+    const onCancel = () => { cancelled = true; };
+    cancelBtn.addEventListener('click', onCancel, { once: true });
+    cancelBtn.textContent = 'Hủy';
+
+    let previousScript = '';
+
+    for (let idx = 0; idx < total; idx++) {
+        if (cancelled) break;
+        const entry = selectedEntries[idx];
+        const sceneLabel = entry.description
+            ? `${entry.label}: ${entry.description}`
+            : entry.label;
+        const pct = Math.round((idx / total) * 100);
+        progressBar.style.width = pct + '%';
+        progressLabel.textContent = `Đang tạo ${entry.label} (${idx + 1}/${total})...`;
+
+        const logEntry = document.createElement('div');
+        logEntry.className = 'scene-log-entry';
+        logEntry.textContent = `⏳ ${entry.label}: đang tạo...`;
+        progressLog.appendChild(logEntry);
+        progressLog.scrollTop = progressLog.scrollHeight;
+
+        const formData = { ...baseFormData, scene_number: sceneLabel };
+        if (previousScript) formData.previous_script = previousScript;
+
+        try {
+            const apiResult = await generateContent(scriptTool, formData);
+            const scriptContent = apiResult.content;
+
+            // Save to project (append mode for scripts)
+            if (typeof saveStepToProject === 'function') {
+                await saveStepToProject(scriptTool, formData, scriptContent);
+            }
+
+            previousScript = scriptContent.replace(/<[^>]*>/g, '').trim().slice(-2000);
+
+            logEntry.textContent = `✅ ${entry.label}: xong`;
+            logEntry.style.color = '#4ade80';
+        } catch (err) {
+            logEntry.textContent = `❌ ${entry.label}: lỗi - ${err.message}`;
+            logEntry.style.color = '#f87171';
+            if (err && err.code === 'FREE_DAILY_LIMIT') {
+                cancelled = true;
+                showFreeLimitPopup();
+                break;
+            }
+        }
+    }
+
+    progressBar.style.width = '100%';
+    cancelBtn.removeEventListener('click', onCancel);
+
+    if (cancelled) {
+        progressLabel.textContent = 'Dừng lại.';
+        cancelBtn.textContent = 'Đóng';
+        cancelBtn.addEventListener('click', () => {
+            overlay.style.display = 'none';
+            loadTool(scriptTool);
+        }, { once: true });
+    } else {
+        overlay.style.display = 'none';
+        loadTool(scriptTool);
+        const successMsg = window.t 
+            ? window.t('success.range.created', { count: total }) 
+            : `Đã tạo thành công ${total} cảnh!`;
+        showSuccessModal(successMsg);
     }
 }
 

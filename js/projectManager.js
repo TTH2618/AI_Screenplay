@@ -754,9 +754,36 @@ function showProjectHistory() {
     toolContainer.innerHTML = historyHTML;
 }
 
+function getToolName(toolType) {
+    const map = {
+        logline: 'side.tool1',
+        theme: 'side.tool2',
+        character: 'side.tool3',
+        synopsis: 'side.tool4',
+        structure: 'side.tool5',
+        beatsheet: 'side.tool6',
+        scenelist: 'side.tool7',
+        script: 'side.tool8',
+        story_upload: 'tool.map.upload',
+        story_theme: 'tool.map.story-theme',
+        story_character: 'tool.map.story-char',
+        story_synopsis: 'tool.map.story-synopsis',
+        story_structure: 'tool.map.story-struct',
+        story_beatsheet: 'tool.map.story-beat',
+        story_scenelist: 'tool.map.story-scene',
+        story_script: 'tool.map.story-script'
+    };
+    const key = map[toolType];
+    if (key && window.t) {
+        return window.t(key);
+    }
+    return toolTypeMap[toolType] ? toolTypeMap[toolType].name : toolType;
+}
+
 // Render a single history item
 function renderHistoryItem(toolType, step) {
     const toolInfo = toolTypeMap[toolType] || { name: toolType, icon: 'fas fa-cog' };
+    const toolName = getToolName(toolType);
     const stepDate = new Date(step.created_at).toLocaleDateString(window.getCurrentLang && window.getCurrentLang() === 'en' ? 'en-US' : 'vi-VN', {
         year: 'numeric',
         month: '2-digit',
@@ -780,7 +807,7 @@ function renderHistoryItem(toolType, step) {
                         <i class="${toolInfo.icon}"></i>
                     </div>
                     <div>
-                        <h3>${toolInfo.name}</h3>
+                        <h3>${toolName}</h3>
                         <span class="date">${stepDate}</span>
                     </div>
                 </div>

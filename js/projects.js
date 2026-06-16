@@ -69,10 +69,11 @@ function formatVnd(amount) {
 }
 
 function formatExpiry(dateValue) {
-    if (!dateValue) return 'không thời hạn';
+    if (!dateValue) return window.t ? window.t('time.no-expiry') : 'không thời hạn';
     const d = new Date(dateValue);
-    if (Number.isNaN(d.getTime())) return 'không xác định';
-    return d.toLocaleDateString('vi-VN');
+    if (Number.isNaN(d.getTime())) return window.t ? window.t('time.undefined-expiry') : 'không xác định';
+    const locale = window.t ? window.t('time.locale') : 'vi-VN';
+    return d.toLocaleDateString(locale);
 }
 
 function renderSubscription(userData) {
@@ -86,15 +87,15 @@ function renderSubscription(userData) {
     if (proActive) {
         badge.textContent = 'PRO';
         badge.className = 'plan-badge pro';
-        description.textContent = `Bạn đang dùng gói PRO đến ${formatExpiry(userData.pro_expires_at)}. Tài khoản PRO được dùng AI không giới hạn.`;
+        description.textContent = window.t ? window.t('dash.plan.pro.desc', { expiry: formatExpiry(userData.pro_expires_at) }) : `Bạn đang dùng gói PRO đến ${formatExpiry(userData.pro_expires_at)}. Tài khoản PRO được dùng AI không giới hạn.`;
         if (navBtn) navBtn.classList.add('pro-active');
-        if (navLabel) navLabel.textContent = 'Gia hạn PRO';
+        if (navLabel) navLabel.textContent = window.t ? window.t('dash.nav.renew') : 'Gia hạn PRO';
     } else {
         badge.textContent = 'FREE';
         badge.className = 'plan-badge free';
-        description.textContent = 'Tài khoản Free: tối đa 10 lượt AI/ngày. PRO: không giới hạn lượt dùng.';
+        description.textContent = window.t ? window.t('dash.plan.free.desc') : 'Tài khoản Free: tối đa 10 lượt AI/ngày. PRO: không giới hạn lượt dùng.';
         if (navBtn) navBtn.classList.remove('pro-active');
-        if (navLabel) navLabel.textContent = 'Nâng cấp PRO';
+        if (navLabel) navLabel.textContent = window.t ? window.t('dash.nav.upgrade') : 'Nâng cấp PRO';
     }
 
     document.querySelectorAll('.btn-package').forEach((btn) => {
@@ -102,9 +103,13 @@ function renderSubscription(userData) {
         const packageId = btn.dataset.package;
         const packageInfo = PLAN_PACKAGES[packageId];
         if (!packageInfo) return;
+        
+        const pkgNameKey = `pkg.name.${packageId}`;
+        const localizedName = (window.t && window.t(pkgNameKey) !== pkgNameKey) ? window.t(pkgNameKey) : packageInfo.name;
+        
         btn.textContent = proActive
-            ? `Gia hạn ${packageInfo.name} (${formatVnd(packageInfo.price)}đ)`
-            : `Nâng cấp ${formatVnd(packageInfo.price)}đ`;
+            ? (window.t ? window.t('pkg.btn.renew', { name: localizedName, price: formatVnd(packageInfo.price) }) : `Gia hạn ${packageInfo.name} (${formatVnd(packageInfo.price)}đ)`)
+            : (window.t ? window.t('pkg.btn.upgrade', { price: formatVnd(packageInfo.price) }) : `Nâng cấp ${formatVnd(packageInfo.price)}đ`);
     });
 }
 

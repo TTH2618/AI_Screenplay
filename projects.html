@@ -1424,16 +1424,21 @@
             const grid = document.getElementById('allProjectsGrid');
             const countEl = document.getElementById('resultsCount');
 
-            if (countEl) countEl.textContent = `${projects.length} kịch bản`;
+            if (countEl) {
+                countEl.textContent = window.t ? window.t('proj.count.scripts', { count: projects.length }) : `${projects.length} kịch bản`;
+            }
 
             if (projects.length === 0) {
+                const noResultsTitle = window.t ? window.t('proj.no-results.title') : 'Không tìm thấy kịch bản';
+                const noResultsDesc = window.t ? window.t('proj.no-results.desc') : 'Thử thay đổi từ khoá tìm kiếm hoặc bộ lọc';
+                const noResultsBtn = window.t ? window.t('proj.no-results.btn') : 'Tạo kịch bản mới';
                 grid.innerHTML = `
                     <div class="no-results">
                         <div class="no-results-icon"><i class="fas fa-search"></i></div>
-                        <h3>Không tìm thấy kịch bản</h3>
-                        <p>Thử thay đổi từ khoá tìm kiếm hoặc bộ lọc</p>
+                        <h3>${noResultsTitle}</h3>
+                        <p>${noResultsDesc}</p>
                         <button class="btn-create" onclick="startNewProject()">
-                            <i class="fas fa-plus"></i> Tạo kịch bản mới
+                            <i class="fas fa-plus"></i> ${noResultsBtn}
                         </button>
                     </div>
                 `;
@@ -1445,6 +1450,11 @@
                 const progress = Math.round((stepsCount / 8) * 100);
                 const status = getStatusInfo(stepsCount);
                 const date = formatDateStr(project.updated_at);
+                const untitledText = window.t ? window.t('proj.untitled') : 'Dự án không tên';
+                const stepsLabel = window.t ? window.t('proj.count.steps', { count: stepsCount }) : `${stepsCount}/8 bước`;
+                const viewText = window.t ? window.t('proj.menu.view') : 'Mở kịch bản';
+                const delText = window.t ? window.t('proj.menu.del') : 'Xoá kịch bản';
+                const completedText = window.t && window.t('time.locale') === 'en-US' ? 'completed' : 'hoàn thành';
 
                 // Get preview text from first available step content
                 let preview = project.title || '';
@@ -1462,10 +1472,10 @@
                             <div style="display:flex; align-items:flex-start; gap:14px; flex:1; min-width:0;">
                                 <div class="project-icon-wrap"><i class="fas fa-film"></i></div>
                                 <div class="card-title-block" style="flex:1; min-width:0;">
-                                    <h3>${escapeHtml(project.title || 'Dự án không tên')}</h3>
+                                    <h3>${escapeHtml(project.title || untitledText)}</h3>
                                     <div class="card-meta">
                                         <span><i class="fas fa-clock"></i> ${date}</span>
-                                        <span><i class="fas fa-tasks"></i> ${stepsCount}/8 bước</span>
+                                        <span><i class="fas fa-tasks"></i> ${stepsLabel}</span>
                                     </div>
                                 </div>
                             </div>
@@ -1477,11 +1487,11 @@
                                     </button>
                                     <div class="card-action-menu" id="menu-${project.id}">
                                         <button onclick="event.stopPropagation(); openProject(${project.id})">
-                                            <i class="fas fa-external-link-alt"></i> Mở kịch bản
+                                            <i class="fas fa-external-link-alt"></i> ${viewText}
                                         </button>
                                         <div class="menu-divider"></div>
                                         <button class="danger-item" onclick="event.stopPropagation(); confirmDelete(${project.id})">
-                                            <i class="fas fa-trash-alt"></i> Xoá kịch bản
+                                            <i class="fas fa-trash-alt"></i> ${delText}
                                         </button>
                                     </div>
                                 </div>
@@ -1495,7 +1505,7 @@
                                 <div class="mini-bar">
                                     <div class="mini-fill" style="width:${progress}%"></div>
                                 </div>
-                                <div class="mini-pct">${progress}% hoàn thành</div>
+                                <div class="mini-pct">${progress}% ${completedText}</div>
                             </div>
                         </div>
                     </div>
@@ -1504,9 +1514,13 @@
         }
 
         function getStatusInfo(stepsCount) {
-            if (stepsCount >= 8) return { text: 'Hoàn thành', class: 'completed' };
-            if (stepsCount > 0) return { text: 'Đang thực hiện', class: 'in-progress' };
-            return { text: 'Bản nháp', class: 'draft' };
+            if (stepsCount >= 8) {
+                return { text: window.t ? window.t('proj.status.completed') : 'Hoàn thành', class: 'completed' };
+            }
+            if (stepsCount > 0) {
+                return { text: window.t ? window.t('proj.status.in-progress') : 'Đang thực hiện', class: 'in-progress' };
+            }
+            return { text: window.t ? window.t('proj.status.draft') : 'Bản nháp', class: 'draft' };
         }
 
         function formatDateStr(dateStr) {
@@ -1516,11 +1530,12 @@
             const mins = Math.floor(diff / 60000);
             const hrs = Math.floor(diff / 3600000);
             const days = Math.floor(diff / 86400000);
-            if (mins < 1) return 'Vừa xong';
-            if (mins < 60) return `${mins} phút trước`;
-            if (hrs < 24) return `${hrs} giờ trước`;
-            if (days < 7) return `${days} ngày trước`;
-            return d.toLocaleDateString('vi-VN');
+            if (mins < 1) return window.t ? window.t('time.just_now') : 'Vừa xong';
+            if (mins < 60) return window.t ? window.t('time.minutes_ago', { count: mins }) : `${mins} phút trước`;
+            if (hrs < 24) return window.t ? window.t('time.hours_ago', { count: hrs }) : `${hrs} giờ trước`;
+            if (days < 7) return window.t ? window.t('time.days_ago', { count: days }) : `${days} ngày trước`;
+            const locale = window.t ? window.t('time.locale') : 'vi-VN';
+            return d.toLocaleDateString(locale);
         }
 
         function setView(view) {

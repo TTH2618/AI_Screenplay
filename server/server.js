@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
 const { testConnection } = require('./config/database');
@@ -15,7 +15,7 @@ const paymentRoutes = require('./routes/payment');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const PYTHON_PORT = process.env.PYTHON_PORT || 5000;
+const PYTHON_PORT = process.env.PYTHON_API_PORT || process.env.PYTHON_PORT || 5000;
 
 // ===================== Middleware =====================
 app.use(cors());
@@ -53,6 +53,23 @@ app.use(express.urlencoded({ extended: true }));
 // Redirect / to /dashboard.html (landing page)
 app.get('/', (req, res) => {
     res.redirect('/dashboard.html');
+});
+
+// Serve legal & support pages with clean URLs
+app.get('/privacy-policy', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'privacy-policy.html'));
+});
+app.get('/terms-of-service', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'terms-of-service.html'));
+});
+app.get('/data-deletion', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'data-deletion.html'));
+});
+app.get('/support', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'support.html'));
+});
+app.get('/contact', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'support.html'));
 });
 
 // Serve static files (HTML, CSS, JS) từ thư mục gốc

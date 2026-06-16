@@ -101,16 +101,27 @@ async function getPlanPackages() {
     }
 })();
 
-// Đọc cấu hình thanh toán từ DB
+// Đọc cấu hình thanh toán: credentials từ .env, toggles từ DB
 async function getPaymentConfig() {
+    const config = {
+        merchant_id: process.env.PAYOS_CLIENT_ID || '',
+        secret_key: process.env.PAYOS_CHECKSUM_KEY || '',
+        api_key: process.env.PAYOS_API_KEY || '',
+        env: process.env.PAYOS_ENV || 'sandbox',
+        app_url: process.env.APP_URL || '',
+        vnpay_tmn_code: process.env.VNPAY_TMN_CODE || '',
+        vnpay_hash_secret: process.env.VNPAY_HASH_SECRET || '',
+        vnpay_url: process.env.VNPAY_URL || 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html',
+        vnpay_return_url: process.env.VNPAY_RETURN_URL || ''
+    };
+    // Đọc trạng thái bật/tắt cổng từ DB
     try {
-        const [rows] = await pool.execute('SELECT setting_key, setting_value FROM payment_settings');
-        const config = {};
+        const [rows] = await pool.execute(
+            "SELECT setting_key, setting_value FROM payment_settings WHERE setting_key IN ('sepay_enabled','vnpay_enabled')"
+        );
         rows.forEach(r => { config[r.setting_key] = r.setting_value; });
-        return config;
-    } catch (e) {
-        return {};
-    }
+    } catch (_) { /* bảng chưa tồn tại */ }
+    return config;
 }
 
 // ============================================================
@@ -623,15 +634,14 @@ function vnpaySortObject(obj) {
 }
 
 /**
- * Lấy cấu hình VNPAY từ DB hoặc fallback về .env
+ * Lấy cấu hình VNPAY từ .env
  */
 async function getVnpayConfig() {
-    const config = await getPaymentConfig();
     const cfg = {
-        tmnCode:    (config.vnpay_tmn_code    || process.env.VNPAY_TMN_CODE    || '').trim(),
-        hashSecret: (config.vnpay_hash_secret || process.env.VNPAY_HASH_SECRET || '').trim(),
-        vnpUrl:     (config.vnpay_url         || process.env.VNPAY_URL         || 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html').trim(),
-        returnUrl:  (config.vnpay_return_url  || process.env.VNPAY_RETURN_URL  || '').trim()
+        tmnCode:    (process.env.VNPAY_TMN_CODE    || '').trim(),
+        hashSecret: (process.env.VNPAY_HASH_SECRET || '').trim(),
+        vnpUrl:     (process.env.VNPAY_URL         || 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html').trim(),
+        returnUrl:  (process.env.VNPAY_RETURN_URL  || '').trim()
     };
     console.log(`[VNPAY Config] tmnCode=${cfg.tmnCode ? cfg.tmnCode : '(chưa có)'} hashSecret=${cfg.hashSecret ? cfg.hashSecret.slice(0,4)+'...' : '(chưa có)'} returnUrl=${cfg.returnUrl}`);
     return cfg;

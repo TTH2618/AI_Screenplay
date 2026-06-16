@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from ai_service import generate_content, test_connection
-from config import HOST, PORT, DEBUG, AI_PROVIDER
+import config as _cfg
 from db_runtime import (
     log_generation, save_story_file_metadata, get_user_ai_quota_state,
     calculate_cost, deduct_user_balance, get_user_balance,
@@ -213,7 +213,7 @@ def _run_job(job_id: str, data: dict):
                 'user_id':       user_id,
                 'project_id':    project_id,
                 'tool_id':       tool_id,
-                'provider':      result.get('provider', AI_PROVIDER),
+                'provider':      result.get('provider', _cfg.AI_PROVIDER),
                 'model_name':    result.get('model'),
                 'tokens_in':     _total_tokens_in,
                 'tokens_out':    _total_tokens_out,
@@ -263,6 +263,21 @@ def health_check():
     result = test_connection()
     status_code = 200 if result['success'] else 500
     return jsonify(result), status_code
+
+
+@app.route('/api/reload-config', methods=['POST'])
+def reload_config_endpoint():
+    """Reload .env config — được gọi bởi Node.js admin khi thay đổi cấu hình AI"""
+    try:
+        _cfg.reload_config()
+        return jsonify({
+            'success': True,
+            'message': 'Đã reload cấu hình từ .env',
+            'provider': _cfg.AI_PROVIDER,
+            'model': _cfg.OPENROUTER_MODEL
+        }), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @app.route('/api/tools', methods=['GET'])
@@ -496,7 +511,7 @@ def generate():
             'user_id':       user_id,
             'project_id':    project_id,
             'tool_id':       tool_id,
-            'provider':      result.get('provider', AI_PROVIDER),
+            'provider':      result.get('provider', _cfg.AI_PROVIDER),
             'model_name':    result.get('model'),
             'tokens_in':     _total_tokens_in,
             'tokens_out':    _total_tokens_out,
@@ -519,7 +534,7 @@ def generate():
             'user_id': user_id,
             'project_id': project_id,
             'tool_id': tool_id or 'unknown',
-            'provider': AI_PROVIDER,
+            'provider': _cfg.AI_PROVIDER,
             'model_name': None,
             'status': 'error',
             'latency_ms': elapsed_ms,
@@ -888,9 +903,10 @@ if __name__ == '__main__':
     print("=" * 50)
     print("🎬 AI Screenplay Python API")
     print("=" * 50)
-    print(f"🚀 Server đang chạy tại http://{HOST}:{PORT}")
-    print(f"📚 API Documentation: http://localhost:{PORT}/")
-    print(f"❤️  Health check: http://localhost:{PORT}/api/health")
+    print(f"🚀 Server đang chạy tại http://{_cfg.HOST}:{_cfg.PORT}")
+    print(f"📚 API Documentation: http://localhost:{_cfg.PORT}/")
+    print(f"❤️  Health check: http://localhost:{_cfg.PORT}/api/health")
     print("=" * 50)
     
-    app.run(host=HOST, port=PORT, debug=DEBUG)
+    app.run(host=_cfg.HOST, port=_cfg.PORT, debug=_cfg.DEBUG)
+

@@ -1,5 +1,5 @@
 const mysql = require('mysql2/promise');
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '..', '..', '.env') });
 
 // Tạo connection pool để quản lý kết nối hiệu quả
 const pool = mysql.createPool({

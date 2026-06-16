@@ -2,15 +2,15 @@
 
 Hệ thống hỗ trợ nhà biên kịch tạo kịch bản phim chuyên nghiệp với sự hỗ trợ của trí tuệ nhân tạo.
 
-## Tong quan (Overview)
+## Tổng quan dự án
 
 Hệ thống AI Screenplay là ứng dụng web hiện đại hỗ trợ nhà biên kịch xây dựng kịch bản phim chuyên nghiệp từ ý tưởng sơ khởi ban đầu đến tác phẩm hoàn chỉnh với sự hỗ trợ từ trí tuệ nhân tạo. Ứng dụng cung cấp quy trình sáng tác tuần tự gồm chín công cụ tương ứng với chín bước thiết yếu trong quy chuẩn biên kịch điện ảnh. Quy trình bắt đầu bằng việc tạo tóm tắt phim ngắn gọn (Logline), định hình chủ đề cốt lõi (Theme), phác thảo hồ sơ nhân vật chi tiết (Character Profile) và xây dựng cốt truyện khái quát (Synopsis). Tiếp theo, hệ thống hỗ trợ phân bổ cốt truyện theo cấu trúc bốn hồi (4-Act Structure), phát triển hành trình tâm lý nhân vật (Character Arc), lập danh mục phân cảnh chi tiết (Beat Sheet), liệt kê danh sách phân cảnh (Scene List) và cuối cùng là tạo kịch bản chi tiết định dạng chuẩn Hollywood (Hollywood Script).
 
-Bên cạnh các tính năng sinh nội dung bằng AI, hệ thống còn được trang bị đầy đủ cơ chế quản trị và các dịch vụ bổ sung chuyên nghiệp. Người dùng có thể đăng ký tài khoản và đăng nhập bảo mật bằng cơ chế mã hóa JWT hoặc liên kết trực tiếp thông qua tài khoản Google. Để phục vụ việc mua gói nâng cấp và nạp số dư tín dụng, hệ thống tích hợp hai cổng thanh toán trực tuyến phổ biến là VNPAY Sandbox và PayOS. Đối với quản trị viên, trang quản trị chuyên biệt cung cấp giao diện dashboard thống kê tổng quan hiệu năng, quản lý tài khoản người dùng, xem nhật ký gọi AI chi tiết (bao gồm thời gian phản hồi, số token tiêu thụ và chi phí tương ứng), cấu hình hệ thống prompt mẫu và trực tiếp quản lý các khóa API cùng tài nguyên lưu trữ của hệ thống.
+Bên cạnh các tính năng sinh nội dung bằng AI, hệ thống còn được trang bị đầy đủ cơ chế quản trị và các dịch vụ bổ sung chuyên nghiệp. Người dùng có thể đăng ký tài khoản và đăng nhập bảo mật bằng cơ chế mã hóa JWT hoặc liên kết trực tiếp thông qua tài khoản Google. Để phục vụ việc mua gói nâng cấp và nạp số dư tín dụng, hệ thống tích hợp các cổng thanh toán trực tuyến là cổng thanh toán SePay (PayOS) và cổng thanh toán VNPAY Sandbox. Đối với quản trị viên, trang quản trị cung cấp giao diện dashboard thống kê tổng quan hiệu năng, quản lý tài khoản người dùng, xem nhật ký gọi AI chi tiết (bao gồm thời gian phản hồi, số token tiêu thụ và chi phí tương ứng), cấu hình hệ thống prompt mẫu và trực tiếp quản lý các khóa API cùng tài nguyên lưu trữ của hệ thống.
 
 ---
 
-## Yeu cau He thong (System Requirements)
+## Yêu cầu hệ thống
 
 Hệ thống yêu cầu các thành phần phần mềm và môi trường tối thiểu sau đây để có thể cài đặt và vận hành ổn định:
 
@@ -23,7 +23,7 @@ Hệ thống yêu cầu các thành phần phần mềm và môi trường tối
 
 ---
 
-## Cai dat & Chay thu cuc bo (Local Setup)
+## Cài đặt và vận hành cục bộ
 
 ### 1. Sao chép mã nguồn về máy cục bộ
 
@@ -36,240 +36,271 @@ cd AI_screenplay
 
 ### 2. Thiết lập cơ sở dữ liệu MySQL
 
-Khởi động dịch vụ MySQL của bạn, tạo cơ sở dữ liệu mới và thực thi các tệp tin SQL trong thư mục database để khởi tạo cấu trúc bảng:
+Khởi động dịch vụ MySQL, tạo cơ sở dữ liệu mới và thực thi tệp tin SQL trong thư mục database để khởi tạo cấu trúc bảng:
 
 ```bash
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS ai_screenplay CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 mysql -u root -p ai_screenplay < database/ai_screenplay.sql
 ```
 
-### 3. Cài đặt và cấu hình Máy chủ Node.js Backend
+### 3. Cấu hình biến môi trường
 
-Di chuyển vào thư mục server, sao chép tệp cấu hình mẫu và tiến hành cài đặt các gói phụ thuộc:
+Sao chép tệp tin cấu hình mẫu ở thư mục gốc thành tệp tin cấu hình thực tế:
+
+```bash
+cp .env.example .env
+```
+
+Mở tệp `.env` ở thư mục gốc bằng trình soạn thảo văn bản và điền đầy đủ các thông tin cấu hình như khóa API OpenRouter, kết nối cơ sở dữ liệu MySQL, khóa bí mật JWT, thông tin kết nối cổng thanh toán.
+
+### 4. Cài đặt và cấu hình Node.js backend
+
+Di chuyển vào thư mục server và cài đặt các thư viện cần thiết:
 
 ```bash
 cd server
-cp .env.example .env
 npm install
 cd ..
 ```
 
-*Lưu ý: Mở tệp server/.env bằng trình soạn thảo và điền thông tin kết nối MySQL cùng các khóa bảo mật.*
+### 5. Cài đặt và cấu hình Python AI backend
 
-### 4. Cài đặt và cấu hình Máy chủ Python AI Backend
+Khởi tạo môi trường ảo Python từ thư mục gốc của dự án, kích hoạt môi trường ảo và cài đặt các thư viện phụ thuộc:
 
-Tạo môi trường ảo Python ở thư mục gốc của dự án, kích hoạt môi trường ảo và cài đặt các thư viện cần thiết trong thư mục python_api:
+- Trên Windows:
 
 ```bash
 python -m venv .venv
-
-# Kích hoạt trên Windows (Command Prompt hoặc PowerShell)
 .venv\Scripts\activate
-
-# Hoặc kích hoạt trên Linux/macOS
-# source .venv/bin/activate
-
-cd python_api
-cp .env.example .env
-pip install -r requirements.txt
-cd ..
+pip install -r python_api/requirements.txt
 ```
 
-*Lưu ý: Mở tệp python_api/.env bằng trình soạn thảo và điền khóa API OpenRouter cùng mô hình AI muốn cấu hình.*
+- Trên Linux/macOS:
 
-### 5. Khởi động các máy chủ dịch vụ
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r python_api/requirements.txt
+```
+
+### 6. Khởi động các dịch vụ
 
 #### Cách 1: Khởi động nhanh bằng tệp kịch bản trên Windows
 
-Nhấp đúp chuột vào tệp tin hoặc chạy lệnh sau trong terminal:
+Nhấp đúp chuột vào tệp tin hoặc chạy lệnh sau trong terminal để khởi động đồng thời cả hai máy chủ và ngrok:
 
-```cmd
+```bash
 start.bat
 ```
 
-#### Cách 2: Khởi động thủ công bằng hai cửa sổ Terminal riêng biệt
+#### Cách 2: Khởi động thủ công bằng hai cửa sổ terminal riêng biệt
 
-- Cửa sổ Terminal 1 (Node.js Server):
+- Cửa sổ terminal 1 (Node.js backend):
 
 ```bash
 cd server
 npm start
 ```
 
-- Cửa sổ Terminal 2 (Python AI Server):
+- Cửa sổ terminal 2 (Python AI backend):
+
+Đảm bảo môi trường ảo `.venv` đã được kích hoạt từ thư mục gốc trước khi thực hiện:
+
+- Trên Windows:
 
 ```bash
-# Đảm bảo môi trường ảo .venv đã được kích hoạt trước khi chạy
+.venv\Scripts\activate
 cd python_api
 python app.py
 ```
 
-### 6. Truy cập ứng dụng
+- Trên Linux/macOS:
 
-Sau khi khởi động thành công, các dịch vụ sẽ hoạt động tại các địa chỉ sau:
+```bash
+source .venv/bin/activate
+cd python_api
+python app.py
+```
+
+### 7. Truy cập ứng dụng
+
+Sau khi khởi động thành công các dịch vụ, hệ thống sẽ hoạt động tại các địa chỉ sau:
 
 - Trang làm việc chính (Frontend): http://localhost:3000
 - Trang đăng nhập/đăng ký: http://localhost:3000/auth.html
 - Trang giới thiệu dịch vụ (Dashboard): http://localhost:3000/dashboard.html
 - Trang quản trị viên: http://localhost:3000/admin.html
-- Python AI API (Nội bộ): http://localhost:5000
+- Python AI API (nội bộ): http://localhost:5000
 - Kiểm tra sức khỏe dịch vụ AI: http://localhost:5000/api/health
 
 ---
 
-## Cau hinh Bien Moi truong (Environment Variables)
+## Cấu hình biến môi trường
 
-Sao chép các tệp tin cấu hình mẫu thành cấu hình thực tế và cập nhật đầy đủ thông tin trước khi vận hành hệ thống.
-
-### Cấu hình môi trường cho Node.js Server (tệp server/.env)
+Dự án sử dụng duy nhất một tệp `.env` đặt tại thư mục gốc để cấu hình cho cả hai máy chủ backend Node.js và Python API. Dưới đây là danh sách chi tiết các biến cấu hình cần khai báo:
 
 | Tên biến | Mô tả | Ví dụ |
-| :--- | :--- | :--- |
+|---|---|---|
+| OPENROUTER_API_KEY | Khóa kết nối API của nhà cung cấp dịch vụ OpenRouter | sk-or-v1-abcdef1234567890 |
+| OPENROUTER_MODEL | Tên mô hình ngôn ngữ lớn cấu hình để gọi qua OpenRouter | google/gemini-2.5-flash-lite |
+| AI_PROVIDER | Nhà cung cấp dịch vụ trí tuệ nhân tạo | openrouter |
+| PYTHON_API_HOST | Địa chỉ IP lắng nghe của dịch vụ Flask API | 0.0.0.0 |
+| PYTHON_API_PORT | Cổng chạy máy chủ Python Flask | 5000 |
+| FLASK_DEBUG | Bật hoặc tắt trạng thái gỡ lỗi của Flask | True |
 | DB_HOST | Địa chỉ máy chủ cơ sở dữ liệu MySQL | localhost |
 | DB_USER | Tên người dùng kết nối cơ sở dữ liệu MySQL | root |
 | DB_PASSWORD | Mật khẩu truy cập cơ sở dữ liệu MySQL | mat_khau_cua_ban |
 | DB_NAME | Tên cơ sở dữ liệu sử dụng cho dự án | ai_screenplay |
 | DB_PORT | Cổng kết nối cơ sở dữ liệu MySQL | 3306 |
-| PORT | Cổng dịch vụ chạy máy chủ chính Express.js | 3000 |
-| PYTHON_PORT | Cổng kết nối đến dịch vụ Python Flask API | 5000 |
-| JWT_SECRET | Khóa bí mật dùng ký mã thông báo bảo mật JWT | changeme-use-strong-secret-key-32-chars |
+| PORT | Cổng chạy máy chủ chính Node.js Express.js | 3000 |
+| JWT_SECRET | Khóa bí mật dùng để ký mã thông báo bảo mật JWT | changeme-use-strong-secret-key-32-chars |
 | GOOGLE_CLIENT_ID | Khóa ứng dụng Google Client ID cho đăng nhập liên kết | 123456789.apps.googleusercontent.com |
-| PAYOS_CLIENT_ID | Mã định danh khách hàng tích hợp cổng thanh toán PayOS | payos_client_id_vi_du |
-| PAYOS_API_KEY | Khóa API bảo mật của cổng thanh toán PayOS | payos_api_key_vi_du |
-| PAYOS_CHECKSUM_KEY | Khóa kiểm tra toàn vẹn dữ liệu từ cổng PayOS | payos_checksum_key_vi_du |
+| PAYOS_CLIENT_ID | Mã định danh khách hàng tích hợp cổng thanh toán PayOS/SePay | payos_client_id_vi_du |
+| PAYOS_API_KEY | Khóa API bảo mật của cổng thanh toán PayOS/SePay | payos_api_key_vi_du |
+| PAYOS_CHECKSUM_KEY | Khóa kiểm tra toàn vẹn dữ liệu từ cổng PayOS/SePay | payos_checksum_key_vi_du |
+| PAYOS_ENV | Môi trường của cổng thanh toán PayOS/SePay (sandbox hoặc production) | production |
 | APP_URL | Địa chỉ URL chạy ứng dụng chính dùng cho phản hồi thanh toán | http://localhost:3000 |
 | VNPAY_TMN_CODE | Mã website đăng ký tích hợp trên cổng VNPAY | TMN_CODE_VI_DU |
 | VNPAY_HASH_SECRET | Khóa bảo mật ký chữ ký số giao dịch của cổng VNPAY | HASH_SECRET_VI_DU |
 | VNPAY_URL | Đường dẫn kết nối cổng thanh toán Sandbox của VNPAY | https://sandbox.vnpayment.vn/paymentv2/vpcpay.html |
 | VNPAY_RETURN_URL | URL nhận kết quả trả về từ VNPAY sau thanh toán | http://localhost:3000/api/payment/vnpay/return |
 
-### Cấu hình môi trường cho Python AI Server (tệp python_api/.env)
-
-| Tên biến | Mô tả | Ví dụ |
-| :--- | :--- | :--- |
-| OPENROUTER_API_KEY | Khóa kết nối API của nhà cung cấp dịch vụ OpenRouter | sk-or-v1-abcdef1234567890 |
-| OPENROUTER_MODEL | Tên mô hình ngôn ngữ lớn cấu hình để gọi qua OpenRouter | google/gemini-2.5-flash-lite |
-| PYTHON_API_HOST | Địa chỉ IP lắng nghe của dịch vụ Flask API | 0.0.0.0 |
-| PYTHON_API_PORT | Cổng chạy máy chủ Python Flask | 5000 |
-| FLASK_DEBUG | Bật hoặc tắt trạng thái gỡ lỗi trực tiếp của Flask | True |
-
 ---
 
-## Cau truc Thu muc (Project Structure)
+## Cấu trúc thư mục
 
-Cấu trúc thư mục chính của dự án được tổ chức rõ ràng phân tách giữa giao diện người dùng, máy chủ điều phối và dịch vụ xử lý ngôn ngữ AI:
+Cấu trúc thư mục của dự án được tổ chức rõ ràng để phân tách phần giao diện người dùng, máy chủ điều phối và các dịch vụ xử lý ngôn ngữ AI:
 
-```
+```text
 AI_screenplay/
 ├── css/                             # Các tệp thiết kế giao diện (CSS)
-│   ├── auth.css                     # Thiết kế trang đăng nhập và đăng ký tài khoản
-│   └── style.css                    # Thiết kế chính của toàn bộ giao diện hệ thống
-├── database/                        # Kịch bản cơ sở dữ liệu và các tệp di cư SQL
-│   ├── ai_screenplay.sql            # Cấu trúc bảng gốc và dữ liệu mẫu mặc định
-│   ├── payment_orders.sql           # Cấu trúc bảng lưu thông tin hóa đơn PayOS
-│   └── token_billing.sql            # Bản cập nhật di cư theo dõi và thanh toán token
-├── js/                              # Các tệp xử lý logic phía trình duyệt (JS)
+│   ├── auth.css                     # Thiết kế trang đăng nhập và đăng ký
+│   └── style.css                    # Thiết kế giao diện chính của hệ thống
+├── database/                        # Kịch bản cơ sở dữ liệu SQL
+│   └── ai_screenplay.sql            # Cấu trúc bảng và dữ liệu mẫu mặc định
+├── js/                              # Các tệp xử lý logic JavaScript phía trình duyệt
+│   ├── admin.js                     # Xử lý logic trang quản trị
 │   ├── api.js                       # Đối tượng API giao tiếp với Node.js backend
 │   ├── app.js                       # Quản lý giao diện, các bước tạo kịch bản tuần tự
 │   ├── auth.js                      # Xử lý quy trình đăng nhập, đăng ký và đăng xuất
-│   └── projectManager.js            # Quản lý danh sách dự án và cập nhật bước kịch bản
+│   ├── config.js                    # Cấu hình phía giao diện
+│   ├── dashboard.js                 # Xử lý logic trang dashboard cá nhân
+│   ├── home.js                      # Xử lý trang chủ
+│   ├── i18n.js                      # Cấu hình đa ngôn ngữ (Internationalization)
+│   ├── notify.js                    # Quản lý hiển thị thông báo
+│   ├── projectManager.js            # Quản lý danh sách dự án và cập nhật bước kịch bản
+│   ├── projects.js                  # Xử lý logic hiển thị dự án
+│   └── pwa.js                       # Cấu hình Progressive Web App
 ├── python_api/                      # Dịch vụ Python AI Backend (Flask)
-│   ├── ai_service.py                # Xử lý kết nối và gửi yêu cầu đến OpenRouter API
-│   ├── app.py                       # Điểm đầu vào chính định nghĩa API Flask
+│   ├── agents/                      # Các agent AI xử lý từng bước kịch bản chuyên biệt
+│   │   ├── __init__.py              # Khởi tạo gói agent
+│   │   ├── beatsheet_agent.py       # Agent phân bổ beat sheet kịch bản
+│   │   ├── character_agent.py       # Agent xây dựng hồ sơ nhân vật kịch bản
+│   │   ├── logline_agent.py         # Agent tạo logline phim kịch bản
+│   │   ├── scenelist_agent.py       # Agent lập danh sách phân cảnh kịch bản
+│   │   ├── script_agent.py          # Agent tạo kịch bản chi tiết chuẩn Hollywood
+│   │   ├── story_beatsheet_agent.py # Agent tạo beat sheet dựa trên truyện gốc
+│   │   ├── story_character_agent.py # Agent tạo hồ sơ nhân vật từ truyện gốc
+│   │   ├── story_scenelist_agent.py # Agent lập danh sách phân cảnh từ truyện gốc
+│   │   ├── story_script_agent.py    # Agent tạo kịch bản chi tiết từ truyện gốc
+│   │   ├── story_structure_agent.py # Agent xây dựng cấu trúc hồi từ truyện gốc
+│   │   ├── story_synopsis_agent.py  # Agent tạo tóm tắt truyện từ truyện gốc
+│   │   ├── story_theme_agent.py     # Agent xác định chủ đề từ truyện gốc
+│   │   ├── structure_agent.py       # Agent tạo cấu trúc 4 hồi kịch bản
+│   │   ├── synopsis_agent.py        # Agent phát triển cốt truyện kịch bản
+│   │   └── theme_agent.py           # Agent định hình chủ đề kịch bản
+│   ├── ai_service.py                # Xử lý giao tiếp với OpenRouter API
+│   ├── app.py                       # Điểm khởi chạy chính dịch vụ API Flask
 │   ├── character_files.py           # Quản lý lưu trữ và phân tích thông tin nhân vật
-│   ├── config.py                    # Khởi tạo và nạp cấu hình từ môi trường
-│   ├── db_runtime.py                # Quản lý các lệnh cơ sở dữ liệu lúc vận hành
-│   ├── generate_script_md_cli.py    # Kịch bản hỗ trợ xuất kịch bản ra định dạng Markdown
-│   ├── prompts.py                   # Danh sách prompt mẫu của các công cụ biên kịch
-│   ├── requirements.txt             # Định nghĩa danh sách thư viện Python cần thiết
+│   ├── config.py                    # Nạp cấu hình từ biến môi trường
+│   ├── db_runtime.py                # Quản lý thao tác cơ sở dữ liệu lúc vận hành
+│   ├── generate_script_md_cli.py    # Công cụ dòng lệnh xuất kịch bản ra Markdown
+│   ├── prompts.py                   # Tập hợp prompt hệ thống cho các công cụ biên kịch
+│   ├── requirements.txt             # Các thư viện Python cần thiết
 │   ├── story_prompts.py             # Prompt xây dựng kịch bản từ câu chuyện gốc
-│   ├── validator.py                 # Bộ xác thực chất lượng đầu ra của AI
-│   ├── .env                         # Tệp cấu hình môi trường thực tế (không commit)
-│   └── .env.example                 # Mẫu khai báo biến môi trường cho Flask
+│   └── validator.py                 # Xác thực chất lượng đầu ra của AI
 ├── server/                          # Máy chủ chính Node.js (Express)
 │   ├── config/
-│   │   └── database.js              # Khởi tạo kết nối hồ chứa (Connection Pool) MySQL
-│   ├── middleware/                  # Chứa các bộ lọc kiểm soát yêu cầu đầu vào
-│   ├── routes/                      # Định nghĩa các tuyến đường xử lý API
-│   │   ├── admin.js                 # API phục vụ bảng quản trị của admin
-│   │   ├── aiResponses.js           # API quản lý kết quả đầu ra từ AI
-│   │   ├── auth.js                  # API xác thực tài khoản và phân quyền
-│   │   ├── payment.js               # API tích hợp VNPAY, PayOS và quản lý ví
-│   │   └── projects.js              # API xử lý thông tin dự án kịch bản phim
-│   ├── migrate_payment.js           # Kịch bản cập nhật cấu trúc cơ sở dữ liệu thanh toán
-│   ├── package.json                 # Khai báo các thư viện Node.js cần thiết
-│   ├── server.js                    # Điểm khởi chạy chính ứng dụng Node.js, xử lý proxy
-│   ├── .env                         # Tệp cấu hình môi trường thực tế (không commit)
-│   └── .env.example                 # Mẫu khai báo biến môi trường cho Express
-├── uploads/                         # Thư mục lưu trữ các tệp tải lên của hệ thống
+│   │   └── database.js              # Kết nối cơ sở dữ liệu MySQL
+│   ├── middleware/                  # Các bộ lọc kiểm soát yêu cầu đầu vào
+│   ├── routes/                      # Các tuyến đường API phục vụ giao diện
+│   │   ├── admin.js                 # Tuyến API cho trang quản trị viên
+│   │   ├── aiResponses.js           # Tuyến API quản lý nội dung sinh từ AI
+│   │   ├── auth.js                  # Tuyến API xác thực người dùng
+│   │   ├── payment.js               # Tuyến API thanh toán (SePay/VNPAY)
+│   │   └── projects.js              # Tuyến API quản lý dự án kịch bản
+│   ├── migrate_payment.js           # Script khởi tạo các bảng thanh toán trong cơ sở dữ liệu
+│   ├── package.json                 # Định nghĩa thư viện Node.js cần thiết
+│   └── server.js                    # Điểm khởi chạy chính ứng dụng Express.js
+├── uploads/                         # Thư mục lưu trữ tệp tải lên (ảnh đại diện, truyện gốc)
 ├── admin.html                       # Giao diện quản trị hệ thống
 ├── auth.html                        # Giao diện đăng nhập và đăng ký
-├── dashboard.html                   # Giao diện trang chủ cá nhân và mua gói dịch vụ
-├── home.html                        # Giao diện khu vực soạn thảo kịch bản chính
-├── index.html                       # Giao diện trang gốc thực hiện chuyển hướng mặc định
-├── projects.html                    # Giao diện quản lý các dự án kịch bản cá nhân
+├── dashboard.html                   # Giao diện dashboard và nâng cấp tài khoản
+├── home.html                        # Giao diện soạn thảo và làm việc chính
+├── index.html                       # Giao diện điều hướng mặc định
+├── projects.html                    # Giao diện danh sách dự án
 ├── package.json                     # Cấu hình Capacitor phục vụ đóng gói ứng dụng di động
-├── start.bat                        # Kịch bản khởi động nhanh toàn bộ hệ thống trên Windows
-└── .gitignore                       # Định nghĩa các tệp và thư mục Git bỏ qua khi commit
+├── start.bat                        # Kịch bản khởi động nhanh hệ thống trên Windows
+└── .gitignore                       # Cấu hình loại trừ Git
 ```
 
 ---
 
-## Danh sach API Endpoint (API Reference)
+## Danh sách API endpoint
 
-Tất cả các endpoint API của máy chủ Node.js chính đều được định cấu hình mặc định bắt đầu bằng tiền tố `/api`. Phía máy khách (Frontend) khi thực hiện các cuộc gọi đến `/python-api/*` sẽ được máy chủ Node.js chuyển tiếp tự động thông qua proxy tới `/api/*` trên máy chủ Python Flask (Cổng 5000).
+Tất cả các tuyến đường API của máy chủ Node.js chính được định cấu hình bắt đầu bằng tiền tố `/api`. Phía frontend khi gọi đến `/python-api/*` sẽ được máy chủ Node.js chuyển tiếp tự động thông qua proxy tới `/api/*` của máy chủ Python Flask hoạt động tại cổng 5000.
 
-### 1. Nhóm Xác thực tài khoản (Authentication API)
+### 1. Nhóm API xác thực tài khoản
 
 | Phương thức | Endpoint | Xác thực | Mô tả |
-| :--- | :--- | :--- | :--- |
+|---|---|---|---|
 | POST | /api/auth/register | Không | Đăng ký tài khoản người dùng mới |
-| POST | /api/auth/login | Không | Đăng nhập tài khoản, nhận về mã thông báo JWT |
+| POST | /api/auth/login | Không | Đăng nhập tài khoản, nhận mã thông báo JWT |
 | GET | /api/auth/me | Bearer Token | Lấy thông tin chi tiết của người dùng đang đăng nhập |
 | PUT | /api/auth/update | Bearer Token | Cập nhật thông tin hồ sơ cá nhân người dùng |
 | PUT | /api/auth/change-password | Bearer Token | Thực hiện thay đổi mật khẩu người dùng |
 
-### 2. Nhóm Quản lý dự án kịch bản (Projects API)
+### 2. Nhóm API quản lý dự án
 
 | Phương thức | Endpoint | Xác thực | Mô tả |
-| :--- | :--- | :--- | :--- |
+|---|---|---|---|
 | GET | /api/projects | Bearer Token | Lấy danh sách toàn bộ dự án kịch bản của người dùng |
-| GET | /api/projects/:id | Bearer Token | Lấy chi tiết thông tin và các bước của một dự án cụ thể |
-| POST | /api/projects | Bearer Token | Khởi tạo một dự án kịch bản phim mới |
-| PUT | /api/projects/:id | Bearer Token | Cập nhật thông tin tiêu đề, mô tả của dự án |
+| GET | /api/projects/:id | Bearer Token | Lấy chi tiết thông tin và các bước của dự án cụ thể |
+| POST | /api/projects | Bearer Token | Khởi tạo dự án kịch bản phim mới |
+| PUT | /api/projects/:id | Bearer Token | Cập nhật tiêu đề, mô tả của dự án |
 | DELETE | /api/projects/:id | Bearer Token | Xóa bỏ hoàn toàn dự án kịch bản khỏi tài khoản |
 
-### 3. Nhóm Quản lý kết quả lưu trữ AI (AI Responses API)
+### 3. Nhóm API quản lý kết quả sinh từ AI
 
 | Phương thức | Endpoint | Xác thực | Mô tả |
-| :--- | :--- | :--- | :--- |
+|---|---|---|---|
 | GET | /api/ai-responses/:projectId | Bearer Token | Lấy tất cả kết quả sinh của AI đã lưu trong dự án |
-| POST | /api/ai-responses | Bearer Token | Lưu trữ một kết quả sinh kịch bản mới từ AI |
+| POST | /api/ai-responses | Bearer Token | Lưu trữ kết quả sinh kịch bản mới từ AI |
 | PUT | /api/ai-responses/:id | Bearer Token | Cập nhật nội dung kết quả sinh đã có của dự án |
 
-### 4. Nhóm Cổng thanh toán (Payment API)
+### 4. Nhóm API cổng thanh toán
 
 | Phương thức | Endpoint | Xác thực | Mô tả |
-| :--- | :--- | :--- | :--- |
+|---|---|---|---|
 | GET | /api/payment/prices | Không | Lấy bảng giá các gói cước nâng cấp dịch vụ |
 | GET | /api/payment/gateways | Không | Kiểm tra trạng thái hoạt động của các cổng thanh toán |
 | POST | /api/payment/create | Bearer Token | Khởi tạo đơn hàng thanh toán nâng cấp tài khoản qua SePay |
 | GET | /api/payment/ipn | Không | Endpoint kiểm tra sức khỏe dịch vụ IPN SePay |
 | POST | /api/payment/ipn | Không | Nhận thông báo giao dịch thành công (IPN) từ SePay |
 | POST | /api/payment/verify-return | Bearer Token | Xác thực trạng thái đơn hàng khi người dùng được chuyển hướng |
-| GET | /api/payment/check/:orderCode | Bearer Token | Truy vấn trực tiếp trạng thái thanh toán của một đơn hàng |
-| GET | /api/payment/history | Bearer Token | Lấy lịch sử các giao dịch đã hoàn tất của tài khoản |
+| GET | /api/payment/check/:orderCode | Bearer Token | Truy vấn trực tiếp trạng thái thanh toán của đơn hàng |
+| GET | /api/payment/history | Bearer Token | Lấy lịch sử giao dịch đã hoàn tất của tài khoản |
 | POST | /api/payment/cancel/:orderCode | Bearer Token | Hủy đơn hàng đang chờ thanh toán |
 | POST | /api/payment/vnpay/create | Bearer Token | Khởi tạo liên kết thanh toán nâng cấp tài khoản qua VNPAY |
 | GET | /api/payment/vnpay/return | Không | Nhận phản hồi chuyển hướng từ khách hàng của VNPAY |
 | GET | /api/payment/vnpay/ipn | Không | Nhận thông báo cập nhật giao dịch ngầm (IPN) từ VNPAY |
 
-### 5. Nhóm Quản trị hệ thống (Admin API)
+### 5. Nhóm API quản trị hệ thống
 
-Tất cả các endpoint dưới đây đều yêu cầu quyền quản trị viên (`is_admin = 1`).
+Yêu cầu tài khoản có quyền quản trị viên (`is_admin = 1`).
 
 | Phương thức | Endpoint | Xác thực | Mô tả |
-| :--- | :--- | :--- | :--- |
+|---|---|---|---|
 | GET | /api/admin/dashboard | Bearer Token | Thống kê số lượng người dùng, cuộc gọi AI, tài nguyên hệ thống |
 | GET | /api/admin/users | Bearer Token | Tra cứu và tìm kiếm thông tin tài khoản người dùng |
 | PUT | /api/admin/users/:id | Bearer Token | Cập nhật phân quyền admin, khóa hoặc kích hoạt tài khoản |
@@ -300,12 +331,12 @@ Tất cả các endpoint dưới đây đều yêu cầu quyền quản trị vi
 | GET | /api/admin/token-stats | Bearer Token | Thống kê lượng tiêu thụ token và chi phí theo ngày/người dùng |
 | PUT | /api/admin/users/:id/balance | Bearer Token | Điều chỉnh trực tiếp số dư tín dụng AI của tài khoản người dùng |
 
-### 6. Nhóm Dịch vụ AI (Python Flask API)
+### 6. Nhóm API dịch vụ AI
 
-Mặc dù các tuyến này chạy trực tiếp trên cổng 5000, frontend nên truy cập qua proxy Node.js sử dụng đường dẫn `/python-api/*`.
+Chạy trực tiếp trên cổng 5000 (phía frontend truy cập qua proxy Node.js sử dụng đường dẫn `/python-api/*`).
 
 | Phương thức | Endpoint | Xác thực | Mô tả |
-| :--- | :--- | :--- | :--- |
+|---|---|---|---|
 | GET | /api/health | Không | Kiểm tra trạng thái máy chủ AI và kết nối OpenRouter |
 | GET | /api/tools | Không | Lấy thông tin các công cụ biên kịch AI hỗ trợ |
 | POST | /api/generate | Không | Gọi AI đồng bộ để phân tích và sinh nội dung kịch bản |
@@ -315,12 +346,12 @@ Mặc dù các tuyến này chạy trực tiếp trên cổng 5000, frontend nê
 | POST | /api/characters | Không | Thêm hồ sơ một nhân vật mới dạng tệp JSON |
 | PUT | /api/characters | Không | Cập nhật hồ sơ nhân vật JSON |
 | DELETE | /api/characters | Không | Xóa toàn bộ hồ sơ nhân vật của dự án để chuẩn bị tạo lại |
-| POST | /api/characters/generate-one | Không | Yêu cầu AI phác họa nhanh hồ sơ một nhân vật đơn lẻ |
+| POST | /api/characters/generate-one | Không | Yêu cầu AI phác vẽ nhanh hồ sơ một nhân vật đơn lẻ |
 | POST | /api/extract-text | Không | Đọc và rút trích nội dung từ tệp văn bản tải lên (txt, pdf, docx) |
 
 ---
 
-## Huong dan Trien khai (Deployment)
+## Hướng dẫn triển khai
 
 Hướng dẫn triển khai hệ thống lên máy chủ Linux chạy hệ điều hành Ubuntu/Debian sử dụng phần mềm quản lý tiến trình PM2 và Nginx làm Reverse Proxy.
 
@@ -339,8 +370,11 @@ sudo apt install -y nodejs npm python3 python3-pip python3-venv mysql-server ngi
 
 ```bash
 sudo mysql
+```
 
-# Trong MySQL CLI, chạy các câu lệnh sau:
+Trong MySQL CLI, chạy các câu lệnh sau:
+
+```sql
 CREATE DATABASE ai_screenplay CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER 'screenplay_user'@'localhost' IDENTIFIED BY 'mat_khau_bao_mat_cua_ban';
 GRANT ALL PRIVILEGES ON ai_screenplay.* TO 'screenplay_user'@'localhost';
@@ -354,30 +388,34 @@ Nạp các cấu trúc dữ liệu và di cư:
 mysql -u screenplay_user -p ai_screenplay < database/ai_screenplay.sql
 ```
 
-### 3. Cài đặt mã nguồn và phụ thuộc
+### 3. Cài đặt mã nguồn và thiết lập môi trường
 
 Di chuyển mã nguồn vào thư mục triển khai (ví dụ: `/var/www/ai-screenplay`).
 
-#### Thiết lập Node.js Server:
+Tại thư mục gốc `/var/www/ai-screenplay`, thiết lập tệp tin `.env` duy nhất từ mẫu `.env.example`:
+
+```bash
+cp .env.example .env
+nano .env
+```
+
+Chỉnh sửa tệp tin `.env` với các thông số thực tế của bạn (bao gồm thông tin kết nối MySQL của người dùng `screenplay_user`, các khóa API và cấu hình thanh toán).
+
+#### Thiết lập Node.js backend:
+
 ```bash
 cd server
 npm install --production
-cp .env.example .env
-# Chỉnh sửa tệp tin .env với các thông số thực tế của bạn
-nano .env
 cd ..
 ```
 
-#### Thiết lập Python AI Server:
+#### Thiết lập Python AI backend:
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-cd python_api
-pip install -r requirements.txt
-cp .env.example .env
-# Chỉnh sửa tệp tin .env với khóa OpenRouter thực tế của bạn
-nano .env
-cd ..
+pip install -r python_api/requirements.txt
+deactivate
 ```
 
 ### 4. Quản lý tiến trình bằng PM2
@@ -413,7 +451,7 @@ server {
     listen 80;
     server_name your_domain.com;
 
-    # Cấu hình kích thước tải lên tối đa cho tệp kịch bản
+    # Cấu hình kích thước tải lên tối đa cho tệp kịch bản hoặc truyện gốc
     client_max_body_size 20M;
 
     location / {
