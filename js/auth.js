@@ -463,7 +463,57 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // ── Forgot password forms ─────────────────────────────────
+    const fpEmailForm   = document.getElementById('fp-email-form');
+    const fpOtpForm     = document.getElementById('fp-otp-form');
+    const fpNewpassForm = document.getElementById('fp-newpass-form');
+
+    if (fpEmailForm)   fpEmailForm.addEventListener('submit', handleForgotPasswordEmail);
+    if (fpOtpForm)     fpOtpForm.addEventListener('submit', handleVerifyOTP);
+    if (fpNewpassForm) fpNewpassForm.addEventListener('submit', handleResetPassword);
+
+    // OTP input boxes: auto-tab behavior
+    initOTPInputs();
+
+    // Password strength on new password field
+    const fpNewPassInput = document.getElementById('fp-new-password');
+    if (fpNewPassInput) {
+        fpNewPassInput.addEventListener('input', (e) => {
+            // Reuse checkPasswordStrength but target fp-password-strength
+            const strengthEl = document.getElementById('fp-password-strength');
+            if (!strengthEl) return;
+            strengthEl.className = 'password-strength';
+            const pwd = e.target.value;
+            if (!pwd.length) return;
+            let s = 0;
+            if (pwd.length >= 6)  s++;
+            if (pwd.length >= 10) s++;
+            if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) s++;
+            if (/[0-9]/.test(pwd)) s++;
+            if (/[^a-zA-Z0-9]/.test(pwd)) s++;
+            if (s <= 2) strengthEl.classList.add('weak');
+            else if (s <= 4) strengthEl.classList.add('medium');
+            else strengthEl.classList.add('strong');
+        });
+    }
+
+    // Confirm password real-time validation for reset form
+    const fpConfirmInput = document.getElementById('fp-confirm-password');
+    if (fpConfirmInput) {
+        fpConfirmInput.addEventListener('input', (e) => {
+            const pwd = document.getElementById('fp-new-password').value;
+            if (e.target.value && e.target.value !== pwd) {
+                e.target.classList.add('invalid');
+                e.target.classList.remove('valid');
+            } else if (e.target.value === pwd) {
+                e.target.classList.add('valid');
+                e.target.classList.remove('invalid');
+            }
+        });
+    }
 });
+
 
 // Logout function (can be called from main app)
 function logout() {
@@ -478,3 +528,313 @@ function logout() {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { logout, checkAuth };
 }
+
+// ── Forgot Password ──────────────────────────────────────────────────────────
+
+let fpEmail = '';
+let fpOTP   = '';
+let fpCountdownInterval = null;
+
+function showForgotPassword() {
+    document.getElementById('login-form-container').classList.add('hidden');
+    document.getElementById('register-form-container').classList.add('hidden');
+    const fp = document.getElementById('forgot-password-container');
+    fp.classList.remove('hidden');
+    fpGoToEmail();
+}
+
+function fpGoToEmail() {
+    _fpShowStep('fp-step-email');
+    document.getElementById('fp-email').value = '';
+    fpEmail = '';
+    fpOTP   = '';
+    _fpClearCountdown();
+}
+
+function _fpShowStep(stepId) {
+    ['fp-step-email', 'fp-step-otp', 'fp-step-newpass'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.classList.toggle('hidden', id !== stepId);
+            if (id === stepId) {
+                el.classList.add('fp-step-slide-in');
+                el.addEventListener('animationend', () => el.classList.remove('fp-step-slide-in'), { once: true });
+            }
+        }
+    });
+}
+
+// ── OTP input: auto-tab & backspace ──────────────────────
+function initOTPInputs() {
+    const digits = document.querySelectorAll('.otp-digit');
+    digits.forEach((input, idx) => {
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace') {
+                if (input.value) {
+                    input.value = '';
+                    input.classList.remove('otp-filled');
+                } else if (idx > 0) {
+                    digits[idx - 1].focus();
+                }
+            } else if (e.key === 'ArrowLeft' && idx > 0) {
+                digits[idx - 1].focus();
+            } else if (e.key === 'ArrowRight' && idx < digits.length - 1) {
+                digits[idx + 1].focus();
+            }
+        });
+
+        input.addEventListener('input', (e) => {
+            const val = e.target.value.replace(/\D/g, '');
+            if (val.length > 1) {
+                // Handle paste into first box
+                val.split('').slice(0, digits.length - idx).forEach((ch, i) => {
+                    if (digits[idx + i]) {
+                        digits[idx + i].value = ch;
+                        digits[idx + i].classList.toggle('otp-filled', !!ch);
+                    }
+                });
+                const next = idx + val.length;
+                if (next < digits.length) digits[next].focus();
+                else digits[digits.length - 1].focus();
+            } else {
+                input.value = val;
+                input.classList.toggle('otp-filled', !!val);
+                if (val && idx < digits.length - 1) digits[idx + 1].focus();
+            }
+        });
+
+        // Handle paste on any box
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+            pasted.split('').slice(0, digits.length).forEach((ch, i) => {
+                if (digits[i]) {
+                    digits[i].value = ch;
+                    digits[i].classList.toggle('otp-filled', !!ch);
+                }
+            });
+            const last = Math.min(pasted.length, digits.length) - 1;
+            digits[last]?.focus();
+        });
+    });
+}
+
+function _getOTPValue() {
+    return Array.from(document.querySelectorAll('.otp-digit')).map(d => d.value).join('');
+}
+
+function _clearOTPInputs() {
+    document.querySelectorAll('.otp-digit').forEach(d => {
+        d.value = '';
+        d.classList.remove('otp-filled', 'otp-error');
+    });
+}
+
+function _shakeOTPInputs() {
+    document.querySelectorAll('.otp-digit').forEach(d => {
+        d.classList.add('otp-error');
+        d.addEventListener('animationend', () => d.classList.remove('otp-error'), { once: true });
+    });
+}
+
+// ── Countdown timer ───────────────────────────────────────
+function _fpStartCountdown(seconds) {
+    _fpClearCountdown();
+    const display    = document.getElementById('fp-countdown');
+    const timerEl    = document.getElementById('fp-timer');
+    const resendBtn  = document.getElementById('fp-resend-btn');
+    if (resendBtn) resendBtn.disabled = true;
+
+    let remaining = seconds;
+    function tick() {
+        const m = String(Math.floor(remaining / 60)).padStart(2, '0');
+        const s = String(remaining % 60).padStart(2, '0');
+        if (display) display.textContent = `${m}:${s}`;
+        if (remaining <= 0) {
+            _fpClearCountdown();
+            if (timerEl) timerEl.classList.add('expired');
+            if (display) display.textContent = 'Đã hết hạn';
+            if (resendBtn) resendBtn.disabled = false;
+            return;
+        }
+        remaining--;
+    }
+    tick();
+    fpCountdownInterval = setInterval(tick, 1000);
+}
+
+function _fpClearCountdown() {
+    if (fpCountdownInterval) {
+        clearInterval(fpCountdownInterval);
+        fpCountdownInterval = null;
+    }
+    const timerEl = document.getElementById('fp-timer');
+    if (timerEl) timerEl.classList.remove('expired');
+}
+
+// ── Step 1: Send OTP ─────────────────────────────────────
+async function handleForgotPasswordEmail(event) {
+    event.preventDefault();
+    const email = document.getElementById('fp-email').value.trim();
+
+    if (!isValidEmail(email)) {
+        showToast('Email không hợp lệ', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('fp-send-btn');
+    btn.classList.add('loading');
+    btn.innerHTML = '<i class="fas fa-spinner"></i> Đang gửi...';
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            fpEmail = email;
+            showToast('Mã xác nhận đã được gửi về email của bạn!', 'success');
+            _fpShowStep('fp-step-otp');
+            _clearOTPInputs();
+            document.getElementById('fp-otp-desc').textContent =
+                `Mã 6 chữ số đã được gửi đến ${email}`;
+            _fpStartCountdown(600); // 10 minutes
+            setTimeout(() => document.getElementById('otp-0')?.focus(), 100);
+        } else {
+            showToast(data.message || 'Không thể gửi mã', 'error');
+        }
+    } catch {
+        showToast('Lỗi kết nối server', 'error');
+    } finally {
+        btn.classList.remove('loading');
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> <span>Gửi mã xác nhận</span>';
+    }
+}
+
+// ── Resend OTP ────────────────────────────────────────────
+async function handleResendOTP() {
+    if (!fpEmail) return;
+    const btn = document.getElementById('fp-resend-btn');
+    btn.disabled = true;
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: fpEmail })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            showToast('Mã mới đã được gửi!', 'success');
+            _clearOTPInputs();
+            _fpStartCountdown(600);
+            setTimeout(() => document.getElementById('otp-0')?.focus(), 100);
+        } else {
+            showToast(data.message || 'Không thể gửi lại mã', 'error');
+            btn.disabled = false;
+        }
+    } catch {
+        showToast('Lỗi kết nối server', 'error');
+        btn.disabled = false;
+    }
+}
+
+// ── Step 2: Verify OTP ────────────────────────────────────
+async function handleVerifyOTP(event) {
+    event.preventDefault();
+    const otp = _getOTPValue();
+
+    if (otp.length !== 6) {
+        showToast('Vui lòng nhập đủ 6 chữ số', 'warning');
+        _shakeOTPInputs();
+        return;
+    }
+
+    const btn = document.getElementById('fp-verify-btn');
+    btn.classList.add('loading');
+    btn.innerHTML = '<i class="fas fa-spinner"></i> Đang xác minh...';
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/auth/verify-otp`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: fpEmail, otp })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            fpOTP = otp;
+            _fpClearCountdown();
+            showToast('Xác minh thành công!', 'success');
+            _fpShowStep('fp-step-newpass');
+            setTimeout(() => document.getElementById('fp-new-password')?.focus(), 100);
+        } else {
+            showToast(data.message || 'Mã không đúng', 'error');
+            _shakeOTPInputs();
+        }
+    } catch {
+        showToast('Lỗi kết nối server', 'error');
+    } finally {
+        btn.classList.remove('loading');
+        btn.innerHTML = '<i class="fas fa-check-circle"></i> <span>Xác nhận mã</span>';
+    }
+}
+
+// ── Step 3: Reset Password ────────────────────────────────
+async function handleResetPassword(event) {
+    event.preventDefault();
+    const newPassword     = document.getElementById('fp-new-password').value;
+    const confirmPassword = document.getElementById('fp-confirm-password').value;
+
+    if (newPassword.length < 6) {
+        showToast('Mật khẩu phải có ít nhất 6 ký tự', 'error');
+        return;
+    }
+    if (newPassword !== confirmPassword) {
+        showToast('Mật khẩu xác nhận không khớp', 'error');
+        document.getElementById('fp-confirm-password').classList.add('invalid');
+        return;
+    }
+
+    const btn = document.getElementById('fp-reset-btn');
+    btn.classList.add('loading');
+    btn.innerHTML = '<i class="fas fa-spinner"></i> Đang lưu...';
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: fpEmail, otp: fpOTP, newPassword })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            showToast('Mật khẩu đã được đặt lại thành công! Vui lòng đăng nhập.', 'success');
+            setTimeout(() => {
+                showLogin();
+                document.getElementById('login-email').value = fpEmail;
+            }, 1800);
+        } else {
+            showToast(data.message || 'Không thể đặt lại mật khẩu', 'error');
+        }
+    } catch {
+        showToast('Lỗi kết nối server', 'error');
+    } finally {
+        btn.classList.remove('loading');
+        btn.innerHTML = '<i class="fas fa-save"></i> <span>Lưu mật khẩu mới</span>';
+    }
+}
+
+// Patch showLogin to also hide forgot password
+const _originalShowLogin = showLogin;
+function showLogin() {
+    document.getElementById('forgot-password-container')?.classList.add('hidden');
+    document.getElementById('register-form-container')?.classList.add('hidden');
+    document.getElementById('login-form-container')?.classList.remove('hidden');
+    _fpClearCountdown();
+}
+

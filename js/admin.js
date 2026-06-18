@@ -54,6 +54,7 @@ function setupTabs() {
             else if (tab === 'plan-pricing') loadPlanPrices();
             else if (tab === 'landing-page') loadLandingConfig();
             else if (tab === 'token-billing') loadTokenBilling();
+            else if (tab === 'seo-config') loadSeoConfig();
         });
     });
 }
@@ -65,9 +66,8 @@ function renderStats(data) {
     const proUsers = Number(data.users.pro_total || 0);
     stats.innerHTML = `
         <div class="stat-card"><h4>Tổng tài khoản</h4><b>${totalUsers}</b></div>
-        <div class="stat-card"><h4>Đăng ký hôm nay</h4><b>${data.users.new_today}</b></div>
+        <div class="stat-card"><h4>Đăng ký PRO tháng này</h4><b>${data.users.pro_this_month}</b></div>
         <div class="stat-card"><h4>Tổng dự án</h4><b>${data.resources.total_projects}</b></div>
-        <div class="stat-card"><h4>Tổng nội dung AI</h4><b>${data.resources.total_ai_contents}</b></div>
         <div class="stat-card"><h4>Tài khoản PRO đang hoạt động</h4><b>${proUsers}</b></div>
         <div class="stat-card"><h4>Đăng ký tháng này</h4><b>${data.users.new_month}</b></div>
     `;
@@ -155,6 +155,8 @@ function drawAccountPieChart(totalUsers, proUsers) {
 
 function userRow(u) {
     const isBanned = u.account_status === 'banned';
+    const isSelf = USER && u.id === USER.id;
+    const deleteBtn = isSelf ? '' : `<button class="btn danger" style="margin-left: 8px;" onclick="deleteUser(${u.id}, '${u.username}')">Xóa</button>`;
     return `
         <tr>
             <td data-label="ID">${u.id}</td>
@@ -166,7 +168,7 @@ function userRow(u) {
                     <option value="pro" ${u.plan_type === 'pro' ? 'selected' : ''}>PRO</option>
                 </select>
             </td>
-            <td data-label="Hết hạn PRO"><input id="exp-${u.id}" type="datetime-local" value="${u.pro_expires_at ? new Date(u.pro_expires_at).toISOString().slice(0,16) : ''}"></td>
+            <td data-label="Hết hạn PRO"><input id="exp-${u.id}" type="datetime-local" value="${u.pro_expires_at ? new Date(u.pro_expires_at).toISOString().slice(0, 16) : ''}"></td>
             <td data-label="Trạng thái">
                 <select id="status-${u.id}">
                     <option value="active" ${!isBanned ? 'selected' : ''}>Active</option>
@@ -174,7 +176,10 @@ function userRow(u) {
                 </select>
             </td>
             <td data-label="Admin"><input id="admin-${u.id}" type="checkbox" ${u.is_admin ? 'checked' : ''}></td>
-            <td data-label="Hành động"><button class="btn primary" onclick="saveUser(${u.id})">Lưu</button></td>
+            <td data-label="Hành động">
+                <button class="btn primary" onclick="saveUser(${u.id})">Lưu</button>
+                ${deleteBtn}
+            </td>
         </tr>
     `;
 }
@@ -202,6 +207,23 @@ async function saveUser(id) {
     showToast('Đã cập nhật người dùng', 'success');
     await loadUsers();
 }
+
+async function deleteUser(id, username) {
+    if (!await showConfirm(`Bạn có chắc chắn muốn xóa người dùng "${username}"? Hành động này sẽ xóa toàn bộ dữ liệu (dự án, kịch bản, file truyện, lịch sử AI, giao dịch...) của người dùng này và KHÔNG THỂ HOÀN TÁC.`, true)) {
+        return;
+    }
+    try {
+        await api(`/users/${id}`, {
+            method: 'DELETE'
+        });
+        showToast('Đã xóa người dùng thành công', 'success');
+        await loadUsers();
+    } catch (error) {
+        console.error('Lỗi khi xóa người dùng:', error);
+        showToast(error.message || 'Lỗi khi xóa người dùng', 'error');
+    }
+}
+
 
 async function loadLogs() {
     const data = await api('/generation-logs');
@@ -449,17 +471,17 @@ async function savePaymentSettings() {
 }
 
 async function saveVnpaySettings() {
-    const tmnCode   = (document.getElementById('psVnpayTmnCode')?.value || '').trim();
+    const tmnCode = (document.getElementById('psVnpayTmnCode')?.value || '').trim();
     const hashSecret = (document.getElementById('psVnpayHashSecret')?.value || '').trim();
-    const vnpUrl    = (document.getElementById('psVnpayUrl')?.value || '').trim();
+    const vnpUrl = (document.getElementById('psVnpayUrl')?.value || '').trim();
     const returnUrl = (document.getElementById('psVnpayReturnUrl')?.value || '').trim();
 
     if (!tmnCode) return showToast('Vui lòng nhập TmnCode (Website ID) từ VNPAY', 'warning');
 
     const body = { vnpay_tmn_code: tmnCode };
     if (hashSecret) body.vnpay_hash_secret = hashSecret;
-    if (vnpUrl)     body.vnpay_url = vnpUrl;
-    if (returnUrl)  body.vnpay_return_url = returnUrl;
+    if (vnpUrl) body.vnpay_url = vnpUrl;
+    if (returnUrl) body.vnpay_return_url = returnUrl;
 
     try {
         await api('/payment-settings', {
@@ -794,9 +816,9 @@ const LP_DEFAULTS = {
         title_gradient: 'Kịch Bản Phim',
         title_after: 'Chuyên Nghiệp',
         subtitle: 'Công cụ AI hỗ trợ viết kịch bản phim theo quy trình Hollywood chuẩn. Từ ý tưởng đến kịch bản hoàn chỉnh chỉ trong vài bước đơn giản.',
-        stat_0_count: 9,  stat_0_label: 'Công cụ AI',
+        stat_0_count: 9, stat_0_label: 'Công cụ AI',
         stat_1_count: 1000, stat_1_label: 'Kịch bản đã tạo',
-        stat_2_count: 500,  stat_2_label: 'Người dùng',
+        stat_2_count: 500, stat_2_label: 'Người dùng',
         cta_primary: 'Bắt đầu sáng tạo',
         cta_secondary: 'Xem cách hoạt động'
     },
@@ -805,12 +827,12 @@ const LP_DEFAULTS = {
         title: 'Tại sao chọn AI Screenplay?',
         subtitle: 'Công cụ mạnh mẽ giúp bạn viết kịch bản nhanh hơn và chuyên nghiệp hơn',
         cards: [
-            { icon: 'fa-brain',    title: 'AI Thông Minh',        desc: 'Sử dụng mô hình ngôn ngữ tiên tiến để tạo nội dung sáng tạo và phù hợp với ngữ cảnh' },
-            { icon: 'fa-route',    title: 'Quy Trình Chuẩn',      desc: 'Theo quy trình viết kịch bản Hollywood với 9 bước từ Logline đến Kịch bản hoàn chỉnh' },
-            { icon: 'fa-clock',    title: 'Tiết Kiệm Thời Gian',  desc: 'Giảm thời gian viết kịch bản từ vài tháng xuống còn vài ngày với sự hỗ trợ của AI' },
-            { icon: 'fa-edit',     title: 'Chỉnh Sửa Linh Hoạt', desc: 'Dễ dàng chỉnh sửa và điều chỉnh nội dung theo ý muốn với giao diện trực quan' },
-            { icon: 'fa-database', title: 'Lưu Trữ An Toàn',      desc: 'Tất cả dự án được lưu trữ an toàn trên cloud, truy cập mọi lúc mọi nơi' },
-            { icon: 'fa-language', title: 'Hỗ Trợ Tiếng Việt',   desc: 'Giao diện và nội dung hoàn toàn bằng tiếng Việt, phù hợp với nhà biên kịch Việt Nam' }
+            { icon: 'fa-brain', title: 'AI Thông Minh', desc: 'Sử dụng mô hình ngôn ngữ tiên tiến để tạo nội dung sáng tạo và phù hợp với ngữ cảnh' },
+            { icon: 'fa-route', title: 'Quy Trình Chuẩn', desc: 'Theo quy trình viết kịch bản Hollywood với 9 bước từ Logline đến Kịch bản hoàn chỉnh' },
+            { icon: 'fa-clock', title: 'Tiết Kiệm Thời Gian', desc: 'Giảm thời gian viết kịch bản từ vài tháng xuống còn vài ngày với sự hỗ trợ của AI' },
+            { icon: 'fa-edit', title: 'Chỉnh Sửa Linh Hoạt', desc: 'Dễ dàng chỉnh sửa và điều chỉnh nội dung theo ý muốn với giao diện trực quan' },
+            { icon: 'fa-database', title: 'Lưu Trữ An Toàn', desc: 'Tất cả dự án được lưu trữ an toàn trên cloud, truy cập mọi lúc mọi nơi' },
+            { icon: 'fa-language', title: 'Hỗ Trợ Tiếng Việt', desc: 'Giao diện và nội dung hoàn toàn bằng tiếng Việt, phù hợp với nhà biên kịch Việt Nam' }
         ]
     },
     testimonials: {
@@ -832,15 +854,15 @@ const LP_DEFAULTS = {
         title: '9 Bước Tạo Kịch Bản Hoàn Hảo',
         subtitle: 'Quy trình viết kịch bản chuyên nghiệp theo chuẩn Hollywood',
         steps: [
-            { icon: 'fa-pen-fancy',  title: 'Tạo Logline',           desc: 'Tóm tắt phim trong 1-2 câu, nêu bật nhân vật, mục tiêu và xung đột' },
-            { icon: 'fa-lightbulb', title: 'Xác Định Chủ Đề',        desc: 'Tìm ra thông điệp sâu sắc và ý nghĩa của câu chuyện' },
-            { icon: 'fa-users',     title: 'Mô Tả Nhân Vật',         desc: 'Xây dựng hồ sơ chi tiết cho từng nhân vật trong phim' },
-            { icon: 'fa-file-alt', title: 'Viết Synopsis',           desc: 'Tóm tắt toàn bộ câu chuyện từ đầu đến cuối' },
-            { icon: 'fa-sitemap',  title: 'Cấu Trúc 4 Hồi',         desc: 'Phân chia câu chuyện theo cấu trúc Story Circle' },
-            { icon: 'fa-chart-line', title: 'Phát Triển Nhân Vật',  desc: 'Mô tả hành trình thay đổi của nhân vật qua các hồi' },
-            { icon: 'fa-list-ol',  title: 'Tạo Beat Sheet',          desc: 'Liệt kê các beat quan trọng theo mô hình Save the Cat' },
-            { icon: 'fa-th-list',  title: 'Danh Sách Cảnh',          desc: 'Chia kịch bản thành 30-40 cảnh rõ ràng' },
-            { icon: 'fa-scroll',   title: 'Viết Kịch Bản',           desc: 'Viết kịch bản chi tiết theo format Hollywood chuẩn' }
+            { icon: 'fa-pen-fancy', title: 'Tạo Logline', desc: 'Tóm tắt phim trong 1-2 câu, nêu bật nhân vật, mục tiêu và xung đột' },
+            { icon: 'fa-lightbulb', title: 'Xác Định Chủ Đề', desc: 'Tìm ra thông điệp sâu sắc và ý nghĩa của câu chuyện' },
+            { icon: 'fa-users', title: 'Mô Tả Nhân Vật', desc: 'Xây dựng hồ sơ chi tiết cho từng nhân vật trong phim' },
+            { icon: 'fa-file-alt', title: 'Viết Synopsis', desc: 'Tóm tắt toàn bộ câu chuyện từ đầu đến cuối' },
+            { icon: 'fa-sitemap', title: 'Cấu Trúc 4 Hồi', desc: 'Phân chia câu chuyện theo cấu trúc Story Circle' },
+            { icon: 'fa-chart-line', title: 'Phát Triển Nhân Vật', desc: 'Mô tả hành trình thay đổi của nhân vật qua các hồi' },
+            { icon: 'fa-list-ol', title: 'Tạo Beat Sheet', desc: 'Liệt kê các beat quan trọng theo mô hình Save the Cat' },
+            { icon: 'fa-th-list', title: 'Danh Sách Cảnh', desc: 'Chia kịch bản thành 30-40 cảnh rõ ràng' },
+            { icon: 'fa-scroll', title: 'Viết Kịch Bản', desc: 'Viết kịch bản chi tiết theo format Hollywood chuẩn' }
         ]
     },
     footer: {
@@ -926,9 +948,9 @@ function _collectWorkflowSteps() {
     const steps = [];
     document.querySelectorAll('#lp_workflow_steps .lp-ws-row').forEach((row, i) => {
         steps.push({
-            icon:  (document.getElementById(`lp_ws_icon_${i}`)?.value  || 'fa-circle').trim(),
+            icon: (document.getElementById(`lp_ws_icon_${i}`)?.value || 'fa-circle').trim(),
             title: (document.getElementById(`lp_ws_title_${i}`)?.value || '').trim(),
-            desc:  (document.getElementById(`lp_ws_desc_${i}`)?.value  || '').trim()
+            desc: (document.getElementById(`lp_ws_desc_${i}`)?.value || '').trim()
         });
     });
     return steps;
@@ -946,7 +968,7 @@ function addWorkflowStep() {
     renderWorkflowStepInputs(steps);
 }
 window.removeWorkflowStep = removeWorkflowStep;
-window.addWorkflowStep    = addWorkflowStep;
+window.addWorkflowStep = addWorkflowStep;
 
 function _lpVal(obj, key, def) {
     return (obj && obj[key] !== undefined && obj[key] !== null && obj[key] !== '') ? obj[key] : def;
@@ -976,13 +998,13 @@ async function loadLandingConfig() {
         });
 
         // Hero
-        document.getElementById('lp_hero_badge').value          = _lpVal(h, 'badge', dh.badge);
-        document.getElementById('lp_hero_title_before').value   = _lpVal(h, 'title_before', dh.title_before);
+        document.getElementById('lp_hero_badge').value = _lpVal(h, 'badge', dh.badge);
+        document.getElementById('lp_hero_title_before').value = _lpVal(h, 'title_before', dh.title_before);
         document.getElementById('lp_hero_title_gradient').value = _lpVal(h, 'title_gradient', dh.title_gradient);
-        document.getElementById('lp_hero_title_after').value    = _lpVal(h, 'title_after', dh.title_after);
-        document.getElementById('lp_hero_subtitle').value       = _lpVal(h, 'subtitle', dh.subtitle);
-        document.getElementById('lp_hero_cta_primary').value    = _lpVal(h, 'cta_primary', dh.cta_primary);
-        document.getElementById('lp_hero_cta_secondary').value  = _lpVal(h, 'cta_secondary', dh.cta_secondary);
+        document.getElementById('lp_hero_title_after').value = _lpVal(h, 'title_after', dh.title_after);
+        document.getElementById('lp_hero_subtitle').value = _lpVal(h, 'subtitle', dh.subtitle);
+        document.getElementById('lp_hero_cta_primary').value = _lpVal(h, 'cta_primary', dh.cta_primary);
+        document.getElementById('lp_hero_cta_secondary').value = _lpVal(h, 'cta_secondary', dh.cta_secondary);
         for (let i = 0; i < 3; i++) {
             const ce = document.getElementById(`lp_hero_stat${i}_count`);
             const le = document.getElementById(`lp_hero_stat${i}_label`);
@@ -991,31 +1013,31 @@ async function loadLandingConfig() {
         }
 
         // Features
-        document.getElementById('lp_features_badge').value    = _lpVal(f, 'badge', df.badge);
-        document.getElementById('lp_features_title').value    = _lpVal(f, 'title', df.title);
+        document.getElementById('lp_features_badge').value = _lpVal(f, 'badge', df.badge);
+        document.getElementById('lp_features_title').value = _lpVal(f, 'title', df.title);
         document.getElementById('lp_features_subtitle').value = _lpVal(f, 'subtitle', df.subtitle);
         renderFeatureCardInputs((f.cards && f.cards.length === 6) ? f.cards : df.cards);
 
         // Testimonials
-        document.getElementById('lp_testimonials_badge').value    = _lpVal(t, 'badge', dt.badge);
-        document.getElementById('lp_testimonials_title').value    = _lpVal(t, 'title', dt.title);
+        document.getElementById('lp_testimonials_badge').value = _lpVal(t, 'badge', dt.badge);
+        document.getElementById('lp_testimonials_title').value = _lpVal(t, 'title', dt.title);
         document.getElementById('lp_testimonials_subtitle').value = _lpVal(t, 'subtitle', dt.subtitle);
         renderTestimonialInputs((t.items && t.items.length === 3) ? t.items : dt.items);
 
         // CTA & Footer
-        document.getElementById('lp_cta_heading').value      = _lpVal(ct, 'heading', LP_DEFAULTS.cta.heading);
-        document.getElementById('lp_cta_subtext').value      = _lpVal(ct, 'subtext', LP_DEFAULTS.cta.subtext);
+        document.getElementById('lp_cta_heading').value = _lpVal(ct, 'heading', LP_DEFAULTS.cta.heading);
+        document.getElementById('lp_cta_subtext').value = _lpVal(ct, 'subtext', LP_DEFAULTS.cta.subtext);
 
         // Workflow
         const wf = db.workflow || {};
         const dwf = LP_DEFAULTS.workflow;
-        document.getElementById('lp_workflow_badge').value    = _lpVal(wf, 'badge', dwf.badge);
-        document.getElementById('lp_workflow_title').value    = _lpVal(wf, 'title', dwf.title);
+        document.getElementById('lp_workflow_badge').value = _lpVal(wf, 'badge', dwf.badge);
+        document.getElementById('lp_workflow_title').value = _lpVal(wf, 'title', dwf.title);
         document.getElementById('lp_workflow_subtitle').value = _lpVal(wf, 'subtitle', dwf.subtitle);
         renderWorkflowStepInputs((wf.steps && wf.steps.length > 0) ? wf.steps : dwf.steps);
 
         document.getElementById('lp_footer_brand_desc').value = _lpVal(ft, 'brand_desc', LP_DEFAULTS.footer.brand_desc);
-        document.getElementById('lp_footer_copyright').value  = _lpVal(ft, 'copyright', LP_DEFAULTS.footer.copyright);
+        document.getElementById('lp_footer_copyright').value = _lpVal(ft, 'copyright', LP_DEFAULTS.footer.copyright);
 
     } catch (e) {
         console.error('Error loading landing config:', e);
@@ -1029,17 +1051,17 @@ async function saveLandingConfig() {
     const cards = [];
     for (let i = 0; i < 6; i++) {
         cards.push({
-            icon:  (document.getElementById(`lp_fc_icon_${i}`)?.value  || '').trim(),
+            icon: (document.getElementById(`lp_fc_icon_${i}`)?.value || '').trim(),
             title: (document.getElementById(`lp_fc_title_${i}`)?.value || '').trim(),
-            desc:  (document.getElementById(`lp_fc_desc_${i}`)?.value  || '').trim()
+            desc: (document.getElementById(`lp_fc_desc_${i}`)?.value || '').trim()
         });
     }
     const testimonials = [];
     for (let i = 0; i < 3; i++) {
         testimonials.push({
-            text:   (document.getElementById(`lp_t_text_${i}`)?.value   || '').trim(),
+            text: (document.getElementById(`lp_t_text_${i}`)?.value || '').trim(),
             author: (document.getElementById(`lp_t_author_${i}`)?.value || '').trim(),
-            role:   (document.getElementById(`lp_t_role_${i}`)?.value   || '').trim()
+            role: (document.getElementById(`lp_t_role_${i}`)?.value || '').trim()
         });
     }
     const g = id => (document.getElementById(id)?.value || '').trim();
@@ -1052,13 +1074,13 @@ async function saveLandingConfig() {
         site_name: g('lp_site_name'),
         sections_visible,
         hero: {
-            badge:          g('lp_hero_badge'),
-            title_before:   g('lp_hero_title_before'),
+            badge: g('lp_hero_badge'),
+            title_before: g('lp_hero_title_before'),
             title_gradient: g('lp_hero_title_gradient'),
-            title_after:    g('lp_hero_title_after'),
-            subtitle:       g('lp_hero_subtitle'),
-            cta_primary:    g('lp_hero_cta_primary'),
-            cta_secondary:  g('lp_hero_cta_secondary'),
+            title_after: g('lp_hero_title_after'),
+            subtitle: g('lp_hero_subtitle'),
+            cta_primary: g('lp_hero_cta_primary'),
+            cta_secondary: g('lp_hero_cta_secondary'),
             stat_0_count: parseInt(g('lp_hero_stat0_count')) || 9,
             stat_0_label: g('lp_hero_stat0_label'),
             stat_1_count: parseInt(g('lp_hero_stat1_count')) || 1000,
@@ -1066,10 +1088,10 @@ async function saveLandingConfig() {
             stat_2_count: parseInt(g('lp_hero_stat2_count')) || 500,
             stat_2_label: g('lp_hero_stat2_label')
         },
-        features:     { badge: g('lp_features_badge'), title: g('lp_features_title'), subtitle: g('lp_features_subtitle'), cards },
+        features: { badge: g('lp_features_badge'), title: g('lp_features_title'), subtitle: g('lp_features_subtitle'), cards },
         testimonials: { badge: g('lp_testimonials_badge'), title: g('lp_testimonials_title'), subtitle: g('lp_testimonials_subtitle'), items: testimonials },
-        workflow:     { badge: g('lp_workflow_badge'), title: g('lp_workflow_title'), subtitle: g('lp_workflow_subtitle'), steps: workflowSteps },
-        cta:    { heading: g('lp_cta_heading'), subtext: g('lp_cta_subtext') },
+        workflow: { badge: g('lp_workflow_badge'), title: g('lp_workflow_title'), subtitle: g('lp_workflow_subtitle'), steps: workflowSteps },
+        cta: { heading: g('lp_cta_heading'), subtext: g('lp_cta_subtext') },
         footer: { brand_desc: g('lp_footer_brand_desc'), copyright: g('lp_footer_copyright') }
     };
     try {
@@ -1081,8 +1103,8 @@ async function saveLandingConfig() {
 }
 
 window.saveUser = saveUser;
-window.savePrompt = () => {}; // legacy stub
-window.saveApiKey = () => {}; // legacy stub
+window.savePrompt = () => { }; // legacy stub
+window.saveApiKey = () => { }; // legacy stub
 window.saveAiConfig = saveAiConfig;
 window.testAiApi = testAiApi;
 window.onProviderChange = onProviderChange;
@@ -1112,14 +1134,14 @@ async function loadTokenPricing() {
     try {
         const data = await api('/token-pricing');
         if (data.success) {
-            document.getElementById('tb_input_price').value  = data.data.input_per_1k;
+            document.getElementById('tb_input_price').value = data.data.input_per_1k;
             document.getElementById('tb_output_price').value = data.data.output_per_1k;
         }
     } catch (e) { showToast('Lỗi tải giá token: ' + e.message, 'error'); }
 }
 
 async function saveTokenPricing() {
-    const input_per_1k  = parseFloat(document.getElementById('tb_input_price').value);
+    const input_per_1k = parseFloat(document.getElementById('tb_input_price').value);
     const output_per_1k = parseFloat(document.getElementById('tb_output_price').value);
     if (isNaN(input_per_1k) || isNaN(output_per_1k)) {
         showToast('Vui lòng nhập giá hợp lệ', 'error'); return;
@@ -1213,6 +1235,162 @@ window.addEventListener('resize', () => {
         }
     }, 150);
 });
+
+// ============================================================
+// SEO CONFIGURATION
+// ============================================================
+let seoLogoFileObj = null;
+let seoFaviconFileObj = null;
+let currentSeoLogoUrl = '';
+let currentSeoFaviconUrl = '';
+
+async function loadSeoConfig() {
+    try {
+        const data = await api('/seo-settings');
+        if (data.success) {
+            const config = data.data;
+            document.getElementById('seo_site_name').value = config.seo_site_name || '';
+            document.getElementById('seo_title').value = config.seo_title || '';
+            document.getElementById('seo_description').value = config.seo_description || '';
+
+            currentSeoLogoUrl = config.seo_logo || '';
+            currentSeoFaviconUrl = config.seo_favicon || '';
+
+            updateSeoPreview('seoLogoPreview', currentSeoLogoUrl);
+            updateSeoPreview('seoFaviconPreview', currentSeoFaviconUrl);
+
+            // Reset file objects
+            seoLogoFileObj = null;
+            seoFaviconFileObj = null;
+            document.getElementById('seoLogoFile').value = '';
+            document.getElementById('seoFaviconFile').value = '';
+        }
+    } catch (e) {
+        showToast('Lỗi tải cấu hình SEO: ' + e.message, 'error');
+    }
+}
+
+function updateSeoPreview(previewId, url) {
+    const preview = document.getElementById(previewId);
+    if (!preview) return;
+    if (url) {
+        preview.innerHTML = `<img src="${url}?t=${Date.now()}" style="width:100%; height:100%; object-fit:contain;">`;
+    } else {
+        preview.innerHTML = `<i class="fas fa-image" style="font-size:24px; color:#94a3b8;"></i>`;
+    }
+}
+
+function handleSeoLogoSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+        showToast('Logo không được vượt quá 2MB', 'warning');
+        event.target.value = '';
+        return;
+    }
+
+    seoLogoFileObj = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const preview = document.getElementById('seoLogoPreview');
+        preview.innerHTML = `<img src="${e.target.result}" style="width:100%; height:100%; object-fit:contain;">`;
+    };
+    reader.readAsDataURL(file);
+}
+
+function handleSeoFaviconSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.size > 1 * 1024 * 1024) {
+        showToast('Favicon không được vượt quá 1MB', 'warning');
+        event.target.value = '';
+        return;
+    }
+
+    seoFaviconFileObj = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const preview = document.getElementById('seoFaviconPreview');
+        preview.innerHTML = `<img src="${e.target.result}" style="width:100%; height:100%; object-fit:contain;">`;
+    };
+    reader.readAsDataURL(file);
+}
+
+async function uploadSeoFile(file, type) {
+    const formData = new FormData();
+    formData.append(type, file);
+
+    const res = await fetch(`${API_BASE}/seo-settings/upload-${type}`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${TOKEN}`
+        },
+        body: formData
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+        throw new Error(data.message || `Lỗi upload ${type}`);
+    }
+    return data.url;
+}
+
+async function saveSeoConfig() {
+    const siteName = document.getElementById('seo_site_name').value.trim();
+    const title = document.getElementById('seo_title').value.trim();
+    const description = document.getElementById('seo_description').value.trim();
+
+    if (!siteName) return showToast('Vui lòng nhập Tên trang web', 'warning');
+    if (!title) return showToast('Vui lòng nhập Tiêu đề trang SEO', 'warning');
+
+    try {
+        showToast('Đang lưu cấu hình...', 'info');
+
+        let logoUrl = currentSeoLogoUrl;
+        let faviconUrl = currentSeoFaviconUrl;
+
+        // Upload logo if new one selected
+        if (seoLogoFileObj) {
+            logoUrl = await uploadSeoFile(seoLogoFileObj, 'logo');
+        }
+
+        // Upload favicon if new one selected
+        if (seoFaviconFileObj) {
+            faviconUrl = await uploadSeoFile(seoFaviconFileObj, 'favicon');
+        }
+
+        // Save text config properties
+        const payload = {
+            seo_site_name: siteName,
+            seo_title: title,
+            seo_description: description,
+            seo_logo: logoUrl,
+            seo_favicon: faviconUrl
+        };
+
+        const res = await api('/seo-settings', {
+            method: 'PUT',
+            body: JSON.stringify(payload)
+        });
+
+        if (res.success) {
+            showToast('Đã lưu cấu hình SEO thành công!', 'success');
+            await loadSeoConfig();
+        } else {
+            showToast(res.message || 'Lỗi lưu cấu hình SEO', 'error');
+        }
+    } catch (error) {
+        showToast('Lỗi: ' + error.message, 'error');
+    }
+}
+
+// Expose functions to global window scope
+window.loadSeoConfig = loadSeoConfig;
+window.handleSeoLogoSelect = handleSeoLogoSelect;
+window.handleSeoFaviconSelect = handleSeoFaviconSelect;
+window.saveSeoConfig = saveSeoConfig;
 
 init().catch((err) => {
     console.error(err);

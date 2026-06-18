@@ -1200,9 +1200,10 @@ function loadTool(toolId) {
 
     // Show/hide result panel based on tool type
     const isCharTool = currentTool === 'character' || currentTool === 'story_character';
+    const isScriptTool = currentTool === 'script' || currentTool === 'story_script';
     const resultPanel = document.querySelector('.result-panel');
     if (resultPanel) {
-        resultPanel.style.display = (isCharTool || currentTool === 'story_upload') ? 'none' : '';
+        resultPanel.style.display = (isCharTool || currentTool === 'story_upload' || isScriptTool) ? 'none' : '';
     }
 
     // Special handling for step 1 (logline)
@@ -1218,15 +1219,16 @@ function loadTool(toolId) {
     }
 
     let fieldsHTML = tool.fields.map((field, index) => {
-        const inputType = field.type === 'textarea'
-            ? `<textarea class="form-textarea" id="${field.id}" placeholder="${field.placeholder}" ${field.required ? 'required' : ''}></textarea>`
-            : `<input type="text" class="form-input" id="${field.id}" placeholder="${field.placeholder}" ${field.required ? 'required' : ''}>`;
-
         let hideClass = '';
-        // Hide inputs for step 2-8 (except scene_number and scene_count)
-        if (currentTool !== 'logline' && currentTool !== 'story_upload' && field.id !== 'scene_number' && field.id !== 'scene_count') {
+        const isFieldHidden = currentTool !== 'logline' && currentTool !== 'story_upload' && field.id !== 'scene_number' && field.id !== 'scene_count';
+        if (isFieldHidden) {
             hideClass = ' style="display: none;"';
         }
+
+        const isRequired = field.required && !isFieldHidden;
+        const inputType = field.type === 'textarea'
+            ? `<textarea class="form-textarea" id="${field.id}" placeholder="${field.placeholder}" ${isRequired ? 'required' : ''}></textarea>`
+            : `<input type="text" class="form-input" id="${field.id}" placeholder="${field.placeholder}" ${isRequired ? 'required' : ''}>`;
 
         return `
             <div class="form-group"${hideClass}>
@@ -1269,7 +1271,7 @@ function loadTool(toolId) {
                 <i class="fas fa-magic"></i>
                 ${isStoryTool ? (window.t ? window.t('app.btn.analyze') : 'Phân tích') : (window.t ? window.t('app.btn.create') : 'Tạo Nội dung')}
             </button>
-            ${(currentTool === 'script' || currentTool === 'story_script') ? `
+            ${isScriptTool ? `
             <button type="button" class="submit-btn btn-auto-all-scenes" onclick="autoGenerateAllScripts()" style="margin-top:10px;background:linear-gradient(135deg,#7c3aed,#4f46e5);">
                 <i class="fas fa-film"></i> ${window.t ? window.t('app.btn.auto-scenes') : 'Tự động tạo tất cả cảnh'}
             </button>
@@ -1286,6 +1288,7 @@ function loadTool(toolId) {
             </div>` : ''}
         </form>
         ${isCharTool ? '<div id="character-cards-container"></div>' : ''}
+        ${isScriptTool ? '<div id="scene-cards-container"></div>' : ''}
     `;
 
     // Apply scene count limits based on plan (scenelist step)
@@ -1306,12 +1309,12 @@ function loadTool(toolId) {
     let dataRestored = false;
     const currProjForRestore = window.ProjectManager ? window.ProjectManager.getCurrentProject() : null;
 
-    if (currProjForRestore && currProjForRestore.steps && currProjForRestore.steps[actualToolId]) {
+    if (currProjForRestore && currProjForRestore.steps) {
         const step = currProjForRestore.steps[actualToolId];
 
-        // Restore inputs
-        if (step.input) {
-            setTimeout(() => {
+        // Restore inputs & run auto-fill mapping
+        setTimeout(() => {
+            if (step && step.input) {
                 Object.keys(step.input).forEach(fieldId => {
                     const field = document.getElementById(fieldId);
                     if (field && step.input[fieldId]) {
@@ -1319,32 +1322,29 @@ function loadTool(toolId) {
                         field.classList.add('restored-field');
                     }
                 });
+            }
 
-                // ── Always overlay with the LATEST outputs from previous steps ──
-                // This ensures edits saved in prior steps are reflected here,
-                // even if this step was generated before those edits.
-                const fillMapping = isStoryTool
-                    ? (storyAutoFillMapping[actualToolId] || {})
-                    : (autoFillMapping[actualToolId] || {});
+            // ── Always overlay with the LATEST outputs from previous steps ──
+            const fillMapping = isStoryTool
+                ? (storyAutoFillMapping[actualToolId] || {})
+                : (autoFillMapping[actualToolId] || {});
 
-                Object.keys(fillMapping).forEach(sourceTool => {
-                    const targetFieldId = fillMapping[sourceTool];
-                    const sourceStep = currProjForRestore.steps[sourceTool];
-                    if (!sourceStep || !sourceStep.output) return;
-                    const targetField = document.getElementById(targetFieldId);
-                    if (!targetField) return;
-                    // Strip HTML tags before filling plain-text textarea/input
-                    const latestValue = sourceStep.output.replace(/<[^>]*>/g, '').trim();
-                    if (latestValue) {
-                        targetField.value = latestValue;
-                        targetField.classList.add('restored-field');
-                    }
-                });
-            }, 50);
-        }
+            Object.keys(fillMapping).forEach(sourceTool => {
+                const targetFieldId = fillMapping[sourceTool];
+                const sourceStep = currProjForRestore.steps[sourceTool];
+                if (!sourceStep || !sourceStep.output) return;
+                const targetField = document.getElementById(targetFieldId);
+                if (!targetField) return;
+                const latestValue = sourceStep.output.replace(/<[^>]*>/g, '').trim();
+                if (latestValue) {
+                    targetField.value = latestValue;
+                    targetField.classList.add('restored-field');
+                }
+            });
+        }, 50);
 
         // Restore output
-        if (step.output) {
+        if (step && step.output) {
             if (isCharTool) {
                 // For character tools: restore cards from API or in-memory
                 if (currentCharacters && currentCharacters.length > 0) {
@@ -1352,6 +1352,11 @@ function loadTool(toolId) {
                 } else {
                     fetchAndRenderCharacters(currProjForRestore.id);
                 }
+            } else if (isScriptTool) {
+                // For script tools: display scene cards
+                const sceneType = currentTool === 'story_script' ? 'story' : 'screenplay';
+                const scenes = (currProjForRestore.scenes || []).filter(s => s.type === sceneType);
+                displaySceneCards(scenes);
             } else {
                 document.getElementById('result-content').innerHTML = step.output;
                 _updateContentSnapshot();
@@ -1368,9 +1373,11 @@ function loadTool(toolId) {
         const submitBtnExisting = document.querySelector('#tool-container .submit-btn');
         if (submitBtnExisting) {
             if (_isProUser()) {
-                submitBtnExisting.innerHTML = '<i class="fas fa-sync-alt"></i> Tạo lại';
+                const text = window.t ? window.t('app.btn.regen') : 'Tạo';
+                submitBtnExisting.innerHTML = `<i class="fas fa-sync-alt"></i> ${text}`;
             } else {
-                submitBtnExisting.innerHTML = '<i class="fas fa-lock"></i> Tạo lại (PRO)';
+                const text = window.t ? window.t('app.btn.regen-pro') : 'Tạo (PRO)';
+                submitBtnExisting.innerHTML = `<i class="fas fa-lock"></i> ${text}`;
                 submitBtnExisting.style.background = 'linear-gradient(135deg, #94a3b8, #64748b)';
             }
         }
@@ -1397,7 +1404,7 @@ function loadTool(toolId) {
             }, 50);
         }
 
-        if (!isCharTool) {
+        if (!isCharTool && !isScriptTool) {
             // Clear result
             document.getElementById('result-content').innerHTML =
                 '<p class="placeholder-text">Kết quả sẽ hiển thị ở đây sau khi bạn tạo nội dung...</p>';
@@ -2201,21 +2208,19 @@ async function autoGenerateAllScripts() {
         return;
     }
 
-    // Clear existing script step if present (no confirmation needed)
-    const existingScript = project && project.steps && project.steps[scriptTool];
-    if (existingScript) {
+    // Clear existing scenes if present (no confirmation needed)
+    if (project && project.id) {
         const NODE_API = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
             ? window.APP_CONFIG.API_BASE_URL
             : PYTHON_API_URL.replace(':5000/api', ':3000/api');
-        if (existingScript.id) {
-            try {
-                await fetch(`${NODE_API}/ai-responses/${scriptTool}/${existingScript.id}`, {
-                    method: 'DELETE',
-                    headers: getAuthHeaders ? { ...getAuthHeaders() } : {}
-                });
-            } catch (e) { }
-        }
-        if (project && project.steps) delete project.steps[scriptTool];
+        try {
+            await fetch(`${NODE_API}/ai-responses/project/${project.id}/scenes`, {
+                method: 'DELETE',
+                headers: getAuthHeaders ? { ...getAuthHeaders() } : {}
+            });
+        } catch (e) { }
+        if (project.scenes) project.scenes = [];
+        if (project.steps) delete project.steps[scriptTool];
     }
 
     // Collect base form data (synopsis, characters, structure, beatsheet, scenelist)
@@ -2612,15 +2617,22 @@ function toggleDescription(element) {
 async function handleSubmit(event) {
     event.preventDefault();
 
+    const isScriptTool = currentTool === 'script' || currentTool === 'story_script';
+
     // FREE: block regeneration if content already exists
     if (!_isProUser()) {
-        const rc = document.getElementById('result-content');
-        const hasContent = rc && rc.innerHTML &&
-            !rc.innerHTML.includes('placeholder-text') &&
-            !rc.innerHTML.includes('Kết quả sẽ hiển thị');
-        if (hasContent) {
-            showUpgradePrompt('Tạo lại bằng AI');
-            return;
+        if (isScriptTool) {
+            // For script tools, check if this specific scene already exists
+            // Don't block — script tools create individual scenes
+        } else {
+            const rc = document.getElementById('result-content');
+            const hasContent = rc && rc.innerHTML &&
+                !rc.innerHTML.includes('placeholder-text') &&
+                !rc.innerHTML.includes('Kết quả sẽ hiển thị');
+            if (hasContent) {
+                showUpgradePrompt('Tạo lại bằng AI');
+                return;
+            }
         }
     }
 
@@ -2644,6 +2656,57 @@ async function handleSubmit(event) {
     if (!isValid) {
         showToast('Vui lòng điền đầy đủ các trường bắt buộc!', 'warning');
         return;
+    }
+
+    // Validate scene number based on scene list for script tools
+    if (currentTool === 'script' || currentTool === 'story_script') {
+        const isStory = currentTool === 'story_script';
+        const scenelistTool = isStory ? 'story_scenelist' : 'scenelist';
+        const project = (typeof ProjectManager !== 'undefined' && ProjectManager.getCurrentProject)
+            ? ProjectManager.getCurrentProject() : null;
+
+        let scenelistText = '';
+        const scenelistEl = document.getElementById('scenelist');
+        if (scenelistEl && scenelistEl.value.trim()) {
+            scenelistText = scenelistEl.value.trim();
+        } else if (project && project.steps && project.steps[scenelistTool]) {
+            scenelistText = (project.steps[scenelistTool].output || '').replace(/<[^>]*>/g, '').trim();
+        }
+
+        const sceneEntries = _parseSceneEntries(scenelistText);
+        if (sceneEntries.length === 0) {
+            const scNumEl = document.getElementById('scene_number');
+            if (scNumEl) scNumEl.style.borderColor = '#ef4444';
+            showValidationErrorModal(window.t ? window.t('error.validation.no_scenes') : 'Không tìm thấy danh sách cảnh. Hãy tạo danh sách cảnh ở bước trước.');
+            return;
+        }
+
+        const sceneNumInput = formData.scene_number || '';
+        const sceneNumMatch = sceneNumInput.match(/(\d+)/);
+        if (!sceneNumMatch) {
+            const scNumEl = document.getElementById('scene_number');
+            if (scNumEl) scNumEl.style.borderColor = '#ef4444';
+            showValidationErrorModal(window.t ? window.t('error.validation.scene_invalid_number') : 'Số cảnh nhập không hợp lệ. Vui lòng nhập một số nguyên dương.');
+            return;
+        }
+
+        const sceneNum = parseInt(sceneNumMatch[1]);
+        const matchedEntry = sceneEntries.find(e => e.num === sceneNum);
+        if (!matchedEntry) {
+            const scNumEl = document.getElementById('scene_number');
+            if (scNumEl) scNumEl.style.borderColor = '#ef4444';
+            const msg = window.t 
+                ? window.t('error.validation.scene_not_exist', { num: sceneNum }) 
+                : `Cảnh số ${sceneNum} không tồn tại trong danh sách cảnh.`;
+            showValidationErrorModal(msg);
+            return;
+        }
+
+        // Auto-expand the short scene number to full "Cảnh X: Description"
+        const sceneLabel = matchedEntry.description
+            ? `${matchedEntry.label}: ${matchedEntry.description}`
+            : matchedEntry.label;
+        formData.scene_number = sceneLabel;
     }
 
     // Validate scene count limit based on plan
@@ -2709,6 +2772,17 @@ async function handleSubmit(event) {
         if (isCharTool) {
             currentCharacters = apiResult.characters_data || [];
             displayCharacterCards(currentCharacters);
+        } else if (isScriptTool) {
+            // For script tools, save first then refresh scene cards
+            if (typeof saveStepToProject === 'function') {
+                await saveStepToProject(currentTool, formData, apiResult.content);
+            }
+            const sceneType = currentTool === 'story_script' ? 'story' : 'screenplay';
+            const proj = (typeof ProjectManager !== 'undefined' && ProjectManager.getCurrentProject)
+                ? ProjectManager.getCurrentProject() : null;
+            if (proj && proj.scenes) {
+                displaySceneCards(proj.scenes.filter(s => s.type === sceneType));
+            }
         } else {
             displayResult(apiResult.content);
         }
@@ -2717,9 +2791,11 @@ async function handleSubmit(event) {
         const _submitBtn = document.querySelector('#tool-container .submit-btn');
         if (_submitBtn) {
             if (_isProUser()) {
-                _submitBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Tạo lại';
+                const text = window.t ? window.t('app.btn.regen') : 'Tạo';
+                _submitBtn.innerHTML = `<i class="fas fa-sync-alt"></i> ${text}`;
             } else {
-                _submitBtn.innerHTML = '<i class="fas fa-lock"></i> Tạo lại (PRO)';
+                const text = window.t ? window.t('app.btn.regen-pro') : 'Tạo (PRO)';
+                _submitBtn.innerHTML = `<i class="fas fa-lock"></i> ${text}`;
                 _submitBtn.style.background = 'linear-gradient(135deg, #94a3b8, #64748b)';
             }
         }
@@ -2730,8 +2806,8 @@ async function handleSubmit(event) {
         // Show next step button
         showNextStepButton();
 
-        // Save step to current project
-        if (typeof saveStepToProject === 'function') {
+        // Save step to current project (skip for script tools — already saved above)
+        if (!isScriptTool && typeof saveStepToProject === 'function') {
             saveStepToProject(currentTool, formData, apiResult.content);
         }
     } catch (error) {
@@ -2748,6 +2824,20 @@ async function handleSubmit(event) {
 
 // Get previous scene script from current result panel
 function _getPreviousSceneScript() {
+    const proj = (typeof ProjectManager !== 'undefined' && ProjectManager.getCurrentProject)
+        ? ProjectManager.getCurrentProject() : null;
+    if (proj && proj.scenes && proj.scenes.length > 0) {
+        const sceneType = (currentTool === 'story_script') ? 'story' : 'screenplay';
+        const scenesOfType = proj.scenes.filter(s => s.type === sceneType);
+        if (scenesOfType.length > 0) {
+            const lastScene = scenesOfType[scenesOfType.length - 1];
+            const plainText = (lastScene.output || '').replace(/<[^>]*>/g, '').trim();
+            if (plainText.length > 100) {
+                return plainText.slice(-2000);
+            }
+        }
+    }
+    // Fallback: check result-content (for backward compatibility)
     const resultContent = document.getElementById('result-content');
     if (resultContent) {
         const currentContent = resultContent.innerHTML;
@@ -4111,12 +4201,9 @@ function copyResult() {
 }
 
 // Download result
-async function downloadResult() {
-    const content = document.getElementById('result-content');
-    const htmlContent = content.innerHTML;
-
+// Shared DOCX download generator
+async function _downloadAsDocx(htmlContent, downloadFileName) {
     try {
-        // Sử dụng docx library để tạo file DOCX
         const { Document, Packer, Paragraph, TextRun, HeadingLevel } = docx;
 
         // Parse HTML content và chuyển thành docx paragraphs
@@ -4156,12 +4243,10 @@ async function downloadResult() {
                 } else if (tagName === 'U') {
                     newFormatting.underline = {};
                 } else if (tagName === 'BR') {
-                    // BR thêm line break
                     runs.push(new TextRun({ text: '', break: 1 }));
                     return runs;
                 }
 
-                // Xử lý các child nodes
                 node.childNodes.forEach(child => {
                     runs.push(...processTextNode(child, newFormatting));
                 });
@@ -4170,9 +4255,8 @@ async function downloadResult() {
             return runs;
         };
 
-        // Duyệt qua tất cả các nodes (bao gồm cả text nodes)
+        // Duyệt qua tất cả các nodes
         const processNode = (node) => {
-            // Text node trực tiếp
             if (node.nodeType === Node.TEXT_NODE) {
                 const text = node.textContent.trim();
                 if (text) {
@@ -4190,7 +4274,6 @@ async function downloadResult() {
 
             const tagName = node.tagName;
 
-            // Xử lý HR (separator)
             if (tagName === 'HR') {
                 paragraphs.push(new Paragraph({
                     text: '',
@@ -4207,7 +4290,6 @@ async function downloadResult() {
                 return;
             }
 
-            // Xử lý các heading
             if (tagName === 'H1') {
                 paragraphs.push(new Paragraph({
                     text: node.textContent,
@@ -4252,9 +4334,7 @@ async function downloadResult() {
                 return;
             }
 
-            // Xử lý paragraph
             if (tagName === 'P') {
-                // Xử lý nội dung của paragraph, bao gồm cả BR tags
                 const childNodes = Array.from(node.childNodes);
                 let currentRuns = [];
 
@@ -4270,21 +4350,17 @@ async function downloadResult() {
 
                 childNodes.forEach(childNode => {
                     if (childNode.nodeType === Node.ELEMENT_NODE && childNode.tagName === 'BR') {
-                        // Khi gặp BR, tạo paragraph mới
                         flushParagraph();
                     } else {
-                        // Xử lý text và formatting
                         const runs = processTextNode(childNode);
                         currentRuns.push(...runs);
                     }
                 });
 
-                // Flush paragraph cuối cùng
                 flushParagraph();
                 return;
             }
 
-            // Xử lý list items
             if (tagName === 'LI') {
                 const runs = processTextNode(node);
                 if (runs.length > 0) {
@@ -4297,7 +4373,6 @@ async function downloadResult() {
                 return;
             }
 
-            // Xử lý ul/ol - duyệt qua các li
             if (tagName === 'UL' || tagName === 'OL') {
                 Array.from(node.children).forEach(child => {
                     if (child.tagName === 'LI') {
@@ -4307,7 +4382,6 @@ async function downloadResult() {
                 return;
             }
 
-            // Xử lý div - duyệt qua các child
             if (tagName === 'DIV') {
                 Array.from(node.childNodes).forEach(child => {
                     processNode(child);
@@ -4315,7 +4389,6 @@ async function downloadResult() {
                 return;
             }
 
-            // Xử lý span và các inline elements - extract text với formatting
             if (tagName === 'SPAN' || tagName === 'STRONG' || tagName === 'B' ||
                 tagName === 'EM' || tagName === 'I' || tagName === 'U') {
                 const runs = processTextNode(node);
@@ -4329,12 +4402,10 @@ async function downloadResult() {
             }
         };
 
-        // Xử lý tất cả các child nodes
         Array.from(tempDiv.childNodes).forEach(node => {
             processNode(node);
         });
 
-        // Nếu không có paragraphs, fallback to plain text
         if (paragraphs.length === 0) {
             const textContent = tempDiv.textContent || '';
             if (textContent.trim()) {
@@ -4351,14 +4422,12 @@ async function downloadResult() {
             }
         }
 
-        // Nếu vẫn không có gì, thêm thông báo
         if (paragraphs.length === 0) {
             paragraphs.push(new Paragraph({
                 children: [new TextRun('Không có nội dung')]
             }));
         }
 
-        // Tạo document
         const doc = new Document({
             sections: [{
                 properties: {},
@@ -4366,11 +4435,8 @@ async function downloadResult() {
             }]
         });
 
-        // Tạo blob và download
         const blob = await Packer.toBlob(doc);
-        const downloadFileName = `screenplay_${currentTool}_${new Date().toISOString().split('T')[0]}.docx`;
 
-        // Kiểm tra nếu đang chạy trong app Flutter — dùng bridge thay vì a.click()
         if (typeof window.flutterDownloadFile === 'function') {
             const reader = new FileReader();
             reader.onload = function (e) {
@@ -4392,6 +4458,116 @@ async function downloadResult() {
         console.error('Error creating DOCX:', error);
         showToast('Có lỗi khi tạo file DOCX. Vui lòng thử lại.', 'error');
     }
+}
+
+// Shared Markdown download generator
+function _downloadAsMd(mdText, filename) {
+    const blob = new Blob([mdText], { type: 'text/markdown;charset=utf-8' });
+    if (typeof window.flutterDownloadFile === 'function') {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const base64 = e.target.result.split(',')[1];
+            window.flutterDownloadFile(base64, 'text/markdown', filename);
+        };
+        reader.readAsDataURL(blob);
+    } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+}
+
+// Convert HTML to clean Markdown
+function _htmlToMarkdown(html) {
+    if (!html) return '';
+    let md = html;
+    md = md
+        .replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n\n')
+        .replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n\n')
+        .replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n\n')
+        .replace(/<h4[^>]*>(.*?)<\/h4>/gi, '#### $1\n\n')
+        .replace(/<h5[^>]*>(.*?)<\/h5>/gi, '##### $1\n\n')
+        .replace(/<h6[^>]*>(.*?)<\/h6>/gi, '###### $1\n\n')
+        .replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n\n')
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**')
+        .replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**')
+        .replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*')
+        .replace(/<i[^>]*>(.*?)<\/i>/gi, '*$1*')
+        .replace(/<u[^>]*>(.*?)<\/u>/gi, '_$1_')
+        .replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n')
+        .replace(/<ul[^>]*>(.*?)<\/ul>/gi, '$1\n')
+        .replace(/<ol[^>]*>(.*?)<\/ol>/gi, '$1\n')
+        .replace(/<[^>]*>/g, '') // strip remaining tags
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>');
+    return md.trim();
+}
+
+// Prompt format modal selector
+function promptDownloadFormat({ htmlContent, plainText, defaultFilename }) {
+    const overlay = document.getElementById('download-format-overlay');
+    if (!overlay) {
+        // Fallback: download as docx directly
+        _downloadAsDocx(htmlContent, defaultFilename + '.docx');
+        return;
+    }
+    overlay.style.display = 'flex';
+
+    const btnDocx = document.getElementById('download-docx-btn');
+    const btnMd = document.getElementById('download-md-btn');
+    const btnCancel = document.getElementById('download-format-cancel');
+
+    function close() {
+        overlay.style.display = 'none';
+        btnDocx.onclick = null;
+        btnMd.onclick = null;
+        btnCancel.onclick = null;
+    }
+
+    btnDocx.onclick = () => {
+        close();
+        _downloadAsDocx(htmlContent, defaultFilename + '.docx');
+    };
+
+    btnMd.onclick = () => {
+        close();
+        _downloadAsMd(plainText, defaultFilename + '.md');
+    };
+
+    btnCancel.onclick = close;
+    overlay.onclick = (e) => { if (e.target === overlay) close(); };
+}
+
+// Download result for all tools
+async function downloadResult() {
+    const content = document.getElementById('result-content');
+    if (!content) return;
+    const htmlContent = content.innerHTML;
+
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent;
+    const placeholder = tempDiv.querySelector('.placeholder-text');
+    if (placeholder) {
+        placeholder.remove();
+    }
+    const cleanHtml = tempDiv.innerHTML;
+    const markdown = _htmlToMarkdown(cleanHtml);
+
+    const defaultFilename = `screenplay_${currentTool}_${new Date().toISOString().split('T')[0]}`;
+
+    promptDownloadFormat({
+        htmlContent: cleanHtml,
+        plainText: markdown,
+        defaultFilename: defaultFilename
+    });
 }
 
 // ===================== Toolbar Functions =====================
@@ -4653,9 +4829,11 @@ function loadToolWithAutoFill(toolId, projectData) {
             }
         });
 
+        const isFieldHidden = toolId !== 'logline' && toolId !== 'story_upload' && field.id !== 'scene_number' && field.id !== 'scene_count';
+        const isRequired = field.required && !isFieldHidden;
         const inputType = field.type === 'textarea'
-            ? `<textarea class="form-textarea" id="${field.id}" placeholder="${field.placeholder}" ${field.required ? 'required' : ''}>${autoFillValue}</textarea>`
-            : `<input type="text" class="form-input" id="${field.id}" placeholder="${field.placeholder}" ${field.required ? 'required' : ''} value="${autoFillValue}">`;
+            ? `<textarea class="form-textarea" id="${field.id}" placeholder="${field.placeholder}" ${isRequired ? 'required' : ''}>${autoFillValue}</textarea>`
+            : `<input type="text" class="form-input" id="${field.id}" placeholder="${field.placeholder}" ${isRequired ? 'required' : ''} value="${autoFillValue}">`;
 
         const autoFillBadge = autoFillValue ? '' : '';
 
@@ -4736,9 +4914,11 @@ function loadToolWithAutoFill(toolId, projectData) {
             const _afBtn = document.querySelector('#tool-container .submit-btn');
             if (_afBtn) {
                 if (_isProUser()) {
-                    _afBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Tạo lại';
+                    const text = window.t ? window.t('app.btn.regen') : 'Tạo';
+                    _afBtn.innerHTML = `<i class="fas fa-sync-alt"></i> ${text}`;
                 } else {
-                    _afBtn.innerHTML = '<i class="fas fa-lock"></i> Tạo lại (PRO)';
+                    const text = window.t ? window.t('app.btn.regen-pro') : 'Tạo (PRO)';
+                    _afBtn.innerHTML = `<i class="fas fa-lock"></i> ${text}`;
                     _afBtn.style.background = 'linear-gradient(135deg, #94a3b8, #64748b)';
                 }
             }
@@ -4752,6 +4932,343 @@ function loadToolWithAutoFill(toolId, projectData) {
         hideNextStepButton();
     }
 }
+
+// ===================== Scene Cards & Detail Modal =====================
+
+// Display scene cards in the #scene-cards-container
+function displaySceneCards(scenes) {
+    const container = document.getElementById('scene-cards-container');
+    if (!container) return;
+
+    if (!scenes || scenes.length === 0) {
+        container.innerHTML = `
+            <div class="scene-cards-empty">
+                <i class="fas fa-film"></i>
+                <p>${window.t ? window.t('scene.empty') : 'Chưa có cảnh nào. Hãy tạo kịch bản cho từng cảnh ở trên.'}</p>
+            </div>
+        `;
+        return;
+    }
+
+    const cardsHTML = scenes.map(scene => {
+        const preview = (scene.output || '')
+            .replace(/<[^>]*>/g, '')
+            .replace(/&nbsp;/g, ' ')
+            .trim()
+            .substring(0, 120);
+        const label = scene.scene_label || `Cảnh ${scene.scene_number}`;
+        const dateStr = scene.updated_at
+            ? new Date(scene.updated_at).toLocaleDateString('vi-VN')
+            : '';
+
+        return `
+            <div class="scene-card" data-scene-id="${scene.id}" onclick="openSceneDetailModal(${scene.id})">
+                <div class="scene-card-header">
+                    <span class="scene-number-badge">Cảnh ${scene.scene_number}</span>
+                    <div class="scene-card-actions">
+                        <button class="scene-card-btn" onclick="event.stopPropagation(); copySceneContent(${scene.id})" title="Sao chép">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="scene-card-btn scene-card-btn-delete" onclick="event.stopPropagation(); deleteScene(${scene.id})" title="Xóa">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="scene-card-label">${_escapeHtml(label)}</div>
+                <div class="scene-card-preview">${_escapeHtml(preview)}${preview.length >= 120 ? '...' : ''}</div>
+                ${dateStr ? `<div class="scene-card-date"><i class="fas fa-clock"></i> ${dateStr}</div>` : ''}
+            </div>
+        `;
+    }).join('');
+
+    const copyAllLabel = window.t ? window.t('script.action.copy-all') : 'Sao chép toàn bộ';
+    const downloadAllLabel = window.t ? window.t('script.action.download-all') : 'Tải toàn bộ';
+    const deleteAllLabel = window.t ? window.t('script.action.delete-all') : 'Xóa toàn bộ';
+
+    container.innerHTML = `
+        <div class="scene-cards-header">
+            <h3><i class="fas fa-film"></i> ${window.t ? window.t('scene.title') : 'Các cảnh kịch bản'} (${scenes.length})</h3>
+            <div class="scene-actions-group">
+                <button class="btn-icon" onclick="copyAllScript()" title="${copyAllLabel}">
+                    <i class="fas fa-copy"></i>
+                </button>
+                <button class="btn-icon" onclick="downloadAllScript()" title="${downloadAllLabel}">
+                    <i class="fas fa-download"></i>
+                </button>
+                <button class="btn-icon btn-icon-danger" onclick="deleteAllScript()" title="${deleteAllLabel}">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        </div>
+        <div class="scene-cards-grid">
+            ${cardsHTML}
+        </div>
+    `;
+}
+
+// Simple HTML escape
+function _escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// Open scene detail modal
+function openSceneDetailModal(sceneId) {
+    const proj = (typeof ProjectManager !== 'undefined' && ProjectManager.getCurrentProject)
+        ? ProjectManager.getCurrentProject() : null;
+    if (!proj || !proj.scenes) return;
+
+    const scene = proj.scenes.find(s => s.id === sceneId);
+    if (!scene) return;
+
+    const modalOverlay = document.getElementById('modal-overlay');
+    if (!modalOverlay) return;
+
+    const label = scene.scene_label || `Cảnh ${scene.scene_number}`;
+    const saveLabel = window.t ? window.t('scene.save') : 'Lưu';
+    const copyLabel = window.t ? window.t('scene.copy') : 'Sao chép';
+    const downloadLabel = window.t ? window.t('scene.download') : 'Tải xuống';
+
+    modalOverlay.innerHTML = `
+        <div class="modal-content scene-detail-modal">
+            <div class="scene-detail-header">
+                <div class="scene-detail-title">
+                    <h3>${_escapeHtml(label)}</h3>
+                </div>
+                <div class="scene-detail-actions">
+                    <button class="scene-detail-btn btn-save-scene" onclick="saveSceneEdit(${scene.id})">
+                        <i class="fas fa-save"></i> <span>${saveLabel}</span>
+                    </button>
+                    <button class="scene-detail-btn" onclick="copySceneContent(${scene.id})">
+                        <i class="fas fa-copy"></i> <span>${copyLabel}</span>
+                    </button>
+                    <button class="scene-detail-btn" onclick="downloadSceneContent(${scene.id})">
+                        <i class="fas fa-download"></i> <span>${downloadLabel}</span>
+                    </button>
+                    <button class="btn-close" onclick="closeSceneDetailModal()" aria-label="Đóng">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="scene-detail-toolbar">
+                <button class="toolbar-btn" title="Tiêu đề" onclick="document.execCommand('formatBlock', false, 'h3')"><b>H</b></button>
+                <button class="toolbar-btn" title="In đậm" onclick="document.execCommand('bold')"><b>B</b></button>
+                <button class="toolbar-btn" title="In nghiêng" onclick="document.execCommand('italic')"><i>I</i></button>
+                <button class="toolbar-btn" title="Gạch ngang" onclick="document.execCommand('strikeThrough')"><s>S</s></button>
+                <span class="toolbar-divider"></span>
+                <button class="toolbar-btn" title="Danh sách" onclick="document.execCommand('insertUnorderedList')"><i class="fas fa-list-ul"></i></button>
+                <button class="toolbar-btn" title="Danh sách số" onclick="document.execCommand('insertOrderedList')"><i class="fas fa-list-ol"></i></button>
+                <span class="toolbar-divider"></span>
+                <button class="toolbar-btn" title="Hoàn tác" onclick="document.execCommand('undo')"><i class="fas fa-undo"></i></button>
+                <button class="toolbar-btn" title="Làm lại" onclick="document.execCommand('redo')"><i class="fas fa-redo"></i></button>
+            </div>
+            <div class="scene-detail-content" id="scene-detail-editor" contenteditable="true">
+                ${scene.output || ''}
+            </div>
+            <div class="scene-detail-footer">
+                <p><i class="fas fa-info-circle"></i> ${window.t ? window.t('result.footer') : 'AI có thể mắc lỗi. Vui lòng xem xét trước khi sử dụng.'}</p>
+            </div>
+        </div>
+    `;
+
+    modalOverlay.classList.add('active');
+    modalOverlay.onclick = (event) => {
+        if (event.target === modalOverlay) {
+            closeSceneDetailModal();
+        }
+    };
+}
+
+// Close scene detail modal
+function closeSceneDetailModal() {
+    const modalOverlay = document.getElementById('modal-overlay');
+    if (modalOverlay) {
+        modalOverlay.classList.remove('active');
+        modalOverlay.innerHTML = '';
+        modalOverlay.onclick = null;
+    }
+}
+
+// Save scene edit
+async function saveSceneEdit(sceneId) {
+    const editor = document.getElementById('scene-detail-editor');
+    if (!editor) return;
+
+    const newContent = editor.innerHTML;
+
+    try {
+        await apiRequest(`/ai-responses/scenes/${sceneId}`, {
+            method: 'PUT',
+            body: JSON.stringify({
+                output_data: newContent
+            })
+        });
+
+        // Update local data
+        const proj = (typeof ProjectManager !== 'undefined' && ProjectManager.getCurrentProject)
+            ? ProjectManager.getCurrentProject() : null;
+        if (proj && proj.scenes) {
+            const scene = proj.scenes.find(s => s.id === sceneId);
+            if (scene) {
+                scene.output = newContent;
+                scene.updated_at = new Date().toISOString();
+            }
+        }
+
+        showToast(window.t ? window.t('scene.saved') : 'Đã lưu cảnh thành công!', 'success');
+
+        // Refresh scene cards
+        const sceneType = (currentTool === 'story_script') ? 'story' : 'screenplay';
+        if (proj && proj.scenes) {
+            displaySceneCards(proj.scenes.filter(s => s.type === sceneType));
+        }
+    } catch (error) {
+        console.error('❌ Lỗi lưu cảnh:', error);
+        showToast('Lỗi khi lưu cảnh: ' + error.message, 'error');
+    }
+}
+
+// Delete a scene
+async function deleteScene(sceneId) {
+    if (typeof showDeleteConfirm === 'function') {
+        showDeleteConfirm({
+            title: window.t ? window.t('scene.del.title') : 'Xóa cảnh này?',
+            message: window.t ? window.t('scene.del.body') : 'Bạn có chắc muốn xóa cảnh này? Nội dung sẽ bị xóa vĩnh viễn.',
+            onConfirm: async () => {
+                await _doDeleteScene(sceneId);
+            }
+        });
+    } else {
+        if (confirm('Xóa cảnh này?')) {
+            await _doDeleteScene(sceneId);
+        }
+    }
+}
+
+async function _doDeleteScene(sceneId) {
+    try {
+        await apiRequest(`/ai-responses/scenes/${sceneId}`, {
+            method: 'DELETE'
+        });
+
+        // Remove from local data
+        const proj = (typeof ProjectManager !== 'undefined' && ProjectManager.getCurrentProject)
+            ? ProjectManager.getCurrentProject() : null;
+        if (proj && proj.scenes) {
+            proj.scenes = proj.scenes.filter(s => s.id !== sceneId);
+        }
+
+        // Close modal if open
+        closeSceneDetailModal();
+
+        // Refresh scene cards
+        const sceneType = (currentTool === 'story_script') ? 'story' : 'screenplay';
+        if (proj && proj.scenes) {
+            displaySceneCards(proj.scenes.filter(s => s.type === sceneType));
+
+            // Update steps marker
+            const scenesOfType = proj.scenes.filter(s => s.type === sceneType);
+            const toolType = sceneType === 'story' ? 'story_script' : 'script';
+            if (scenesOfType.length === 0) {
+                delete proj.steps[toolType];
+            } else {
+                proj.steps[toolType] = {
+                    id: '__scenes__',
+                    output: `${scenesOfType.length} cảnh`,
+                    created_at: new Date().toISOString()
+                };
+            }
+        }
+
+        showToast(window.t ? window.t('scene.deleted') : 'Đã xóa cảnh thành công!', 'success');
+    } catch (error) {
+        console.error('❌ Lỗi xóa cảnh:', error);
+        showToast('Lỗi khi xóa cảnh: ' + error.message, 'error');
+    }
+}
+
+// Copy scene content to clipboard
+// Helper to convert HTML from contenteditable to plain text with proper newlines
+function _htmlToPlainText(html) {
+    if (!html) return '';
+    let text = html;
+    
+    // Replace standard block elements and line breaks with newlines
+    text = text
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<\/p>/gi, '\n')
+        .replace(/<\/div>/gi, '\n')
+        .replace(/<\/h[1-6]>/gi, '\n')
+        .replace(/<\/li>/gi, '\n')
+        .replace(/<p[^>]*>/gi, '')
+        .replace(/<div[^>]*>/gi, '')
+        .replace(/<h[1-6][^>]*>/gi, '')
+        .replace(/<li[^>]*>/gi, '')
+        .replace(/<[^>]*>/g, '') // strip any remaining tags
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/\r/g, '')
+        .replace(/\n{3,}/g, '\n\n') // collapse multiple empty lines to max double newline
+        .trim();
+        
+    return text;
+}
+
+// Copy scene content to clipboard
+function copySceneContent(sceneId) {
+    const proj = (typeof ProjectManager !== 'undefined' && ProjectManager.getCurrentProject)
+        ? ProjectManager.getCurrentProject() : null;
+    if (!proj || !proj.scenes) return;
+
+    const scene = proj.scenes.find(s => s.id === sceneId);
+    if (!scene) return;
+
+    const plainText = _htmlToPlainText(scene.output);
+    navigator.clipboard.writeText(plainText).then(() => {
+        showToast(window.t ? window.t('scene.copied') : 'Đã sao chép nội dung cảnh!', 'success');
+    }).catch(() => {
+        // Fallback
+        const textarea = document.createElement('textarea');
+        textarea.value = plainText;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showToast(window.t ? window.t('scene.copied') : 'Đã sao chép!', 'success');
+    });
+}
+
+// Download scene content as text file
+function downloadSceneContent(sceneId) {
+    const proj = (typeof ProjectManager !== 'undefined' && ProjectManager.getCurrentProject)
+        ? ProjectManager.getCurrentProject() : null;
+    if (!proj || !proj.scenes) return;
+
+    const scene = proj.scenes.find(s => s.id === sceneId);
+    if (!scene) return;
+
+    const plainText = _htmlToPlainText(scene.output);
+    const blob = new Blob([plainText], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `canh_${scene.scene_number}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// ===================== Expose Scene Functions Globally =====================
+window.displaySceneCards = displaySceneCards;
+window.openSceneDetailModal = openSceneDetailModal;
+window.closeSceneDetailModal = closeSceneDetailModal;
+window.saveSceneEdit = saveSceneEdit;
+window.deleteScene = deleteScene;
+window.copySceneContent = copySceneContent;
+window.downloadSceneContent = downloadSceneContent;
 
 // Export for potential API integration
 window.AIScreenplay = {
@@ -4779,3 +5296,122 @@ window.setStoryContent = function (content, fileName) {
 window.getStoryContent = function () {
     return { content: storyContent, fileName: storyFileName };
 };
+
+// Copy entire script (all scenes sorted ascending)
+function copyAllScript() {
+    const proj = (typeof ProjectManager !== 'undefined' && ProjectManager.getCurrentProject)
+        ? ProjectManager.getCurrentProject() : null;
+    if (!proj || !proj.scenes || proj.scenes.length === 0) {
+        showToast(window.t ? window.t('scene.empty') : 'Không có kịch bản để sao chép', 'error');
+        return;
+    }
+
+    const sceneType = (currentTool === 'story_script') ? 'story' : 'screenplay';
+    const filteredScenes = proj.scenes.filter(s => s.type === sceneType);
+    if (filteredScenes.length === 0) {
+        showToast(window.t ? window.t('scene.empty') : 'Không có kịch bản để sao chép', 'error');
+        return;
+    }
+
+    // Sort by scene_number ascending
+    const sortedScenes = [...filteredScenes].sort((a, b) => a.scene_number - b.scene_number);
+
+    // Build plain text
+    const fullText = sortedScenes.map(scene => {
+        const label = scene.scene_label || `Cảnh ${scene.scene_number}`;
+        const plainText = _htmlToPlainText(scene.output);
+        return `=== ${label.toUpperCase()} ===\n\n${plainText}`;
+    }).join('\n\n\n');
+
+    navigator.clipboard.writeText(fullText).then(() => {
+        showToast(window.t ? window.t('script.action.copied') : 'Đã sao chép toàn bộ kịch bản!', 'success');
+    }).catch(() => {
+        const textarea = document.createElement('textarea');
+        textarea.value = fullText;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showToast(window.t ? window.t('script.action.copied') : 'Đã sao chép toàn bộ kịch bản!', 'success');
+    });
+}
+
+// Download entire script (all scenes sorted ascending)
+function downloadAllScript() {
+    const proj = (typeof ProjectManager !== 'undefined' && ProjectManager.getCurrentProject)
+        ? ProjectManager.getCurrentProject() : null;
+    if (!proj || !proj.scenes || proj.scenes.length === 0) {
+        showToast(window.t ? window.t('scene.empty') : 'Không có kịch bản để tải xuống', 'error');
+        return;
+    }
+
+    const sceneType = (currentTool === 'story_script') ? 'story' : 'screenplay';
+    const filteredScenes = proj.scenes.filter(s => s.type === sceneType);
+    if (filteredScenes.length === 0) {
+        showToast(window.t ? window.t('scene.empty') : 'Không có kịch bản để tải xuống', 'error');
+        return;
+    }
+
+    // Sort by scene_number ascending
+    const sortedScenes = [...filteredScenes].sort((a, b) => a.scene_number - b.scene_number);
+
+    // Build HTML for Word download
+    const fullHtml = sortedScenes.map(scene => {
+        const label = scene.scene_label || `Cảnh ${scene.scene_number}`;
+        const html = scene.output || '';
+        return `<h1>${label}</h1><div>${html}</div>`;
+    }).join('<hr/>');
+
+    // Build Markdown
+    const fullMd = sortedScenes.map(scene => {
+        const label = scene.scene_label || `Cảnh ${scene.scene_number}`;
+        const markdown = _htmlToMarkdown(scene.output);
+        return `# ${label}\n\n${markdown}`;
+    }).join('\n\n---\n\n');
+
+    const defaultFilename = `full_screenplay_${proj.title || 'untitled'}_${new Date().toISOString().split('T')[0]}`;
+
+    promptDownloadFormat({
+        htmlContent: fullHtml,
+        plainText: fullMd,
+        defaultFilename: defaultFilename
+    });
+}
+
+// Delete entire script (all scenes in current project)
+function deleteAllScript() {
+    const proj = (typeof ProjectManager !== 'undefined' && ProjectManager.getCurrentProject)
+        ? ProjectManager.getCurrentProject() : null;
+    if (!proj) return;
+
+    showDeleteConfirm({
+        title: window.t ? window.t('script.action.del-all.title') : 'Xóa toàn bộ kịch bản?',
+        message: window.t ? window.t('script.action.del-all.body') : 'Bạn có chắc chắn muốn xóa toàn bộ các cảnh kịch bản đã tạo? Hành động này không thể hoàn tác.',
+        onConfirm: async () => {
+            try {
+                showLoading(true);
+                await apiRequest(`/ai-responses/project/${proj.id}/scenes`, {
+                    method: 'DELETE'
+                });
+
+                // Clear locally
+                proj.scenes = [];
+
+                // Reload scenes display
+                displaySceneCards([]);
+
+                showToast(window.t ? window.t('script.action.del-all.success') : 'Đã xóa toàn bộ kịch bản thành công!', 'success');
+            } catch (error) {
+                console.error('Lỗi khi xóa toàn bộ kịch bản:', error);
+                showToast('Lỗi khi xóa: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+    });
+}
+
+// Expose script bulk actions globally
+window.copyAllScript = copyAllScript;
+window.downloadAllScript = downloadAllScript;
+window.deleteAllScript = deleteAllScript;

@@ -50,7 +50,13 @@ router.use(authenticateToken, ensureAdmin);
 router.get('/dashboard', async (req, res) => {
     try {
         const [usersTotal] = await pool.execute('SELECT COUNT(*) AS total FROM users');
-        const [usersToday] = await pool.execute('SELECT COUNT(*) AS total FROM users WHERE DATE(created_at) = CURDATE()');
+        const [proThisMonth] = await pool.execute(
+            `SELECT COUNT(*) AS total 
+             FROM users 
+             WHERE plan_type = 'pro' 
+               AND YEAR(updated_at) = YEAR(CURDATE()) 
+               AND MONTH(updated_at) = MONTH(CURDATE())`
+        );
         const [usersWeek] = await pool.execute('SELECT COUNT(*) AS total FROM users WHERE YEARWEEK(created_at, 1) = YEARWEEK(CURDATE(), 1)');
         const [usersMonth] = await pool.execute('SELECT COUNT(*) AS total FROM users WHERE YEAR(created_at) = YEAR(CURDATE()) AND MONTH(created_at) = MONTH(CURDATE())');
                 const [proTotal] = await pool.execute(
@@ -104,7 +110,7 @@ router.get('/dashboard', async (req, res) => {
             data: {
                 users: {
                     total: usersTotal[0].total,
-                    new_today: usersToday[0].total,
+                    pro_this_month: proThisMonth[0].total,
                     new_week: usersWeek[0].total,
                     new_month: usersMonth[0].total,
                     pro_total: proTotal[0].total,
@@ -178,11 +184,126 @@ router.put('/users/:id', async (req, res) => {
             ]
         );
 
+
         return res.json({ success: true, message: 'Đã cập nhật người dùng' });
     } catch (error) {
         return res.status(500).json({ success: false, message: 'Lỗi cập nhật người dùng', error: error.message });
     }
 });
+
+router.delete('/users/:id', async (req, res) => {
+    try {
+        const userId = Number(req.params.id);
+        if (!userId) {
+            return res.status(400).json({ success: false, message: 'ID người dùng không hợp lệ' });
+        }
+
+        // Ngăn chặn tự xóa tài khoản
+        if (userId === req.user.id) {
+            return res.status(400).json({ success: false, message: 'Bạn không thể tự xóa tài khoản của chính mình' });
+        }
+
+        // 1. Lấy đường dẫn avatar và các file truyện đã tải lên
+        const [userRows] = await pool.execute(
+            'SELECT avatar FROM users WHERE id = ?',
+            [userId]
+        );
+        if (!userRows || userRows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
+        }
+        const user = userRows[0];
+
+        const [storyRows] = await pool.execute(
+            'SELECT storage_path FROM uploaded_story_files WHERE user_id = ?',
+            [userId]
+        );
+
+        const [projectRows] = await pool.execute(
+            'SELECT id FROM projects WHERE user_id = ?',
+            [userId]
+        );
+
+        // 2. Dọn dẹp dữ liệu trong database không tự động cascade
+        // Cập nhật updated_by trong bảng system_prompts về NULL
+        await pool.execute(
+            'UPDATE system_prompts SET updated_by = NULL WHERE updated_by = ?',
+            [userId]
+        );
+
+        // Xóa các bản ghi file truyện đã upload
+        await pool.execute(
+            'DELETE FROM uploaded_story_files WHERE user_id = ?',
+            [userId]
+        );
+
+        // Xóa nhật ký tạo AI
+        await pool.execute(
+            'DELETE FROM ai_generation_logs WHERE user_id = ?',
+            [userId]
+        );
+
+        // Xóa đơn hàng thanh toán
+        await pool.execute(
+            'DELETE FROM payment_orders WHERE user_id = ?',
+            [userId]
+        );
+
+        // 3. Xóa người dùng (Tự động cascade xóa các dự án và các bảng liên quan đến dự án)
+        await pool.execute(
+            'DELETE FROM users WHERE id = ?',
+            [userId]
+        );
+
+        // 4. Dọn dẹp các tệp vật lý trên đĩa
+        // Xóa file avatar
+        if (user.avatar) {
+            const relativeAvatar = user.avatar.replace(/^\//, '');
+            const absoluteAvatar = path.resolve(path.join(__dirname, '..', '..', relativeAvatar));
+            if (fs.existsSync(absoluteAvatar)) {
+                try {
+                    fs.unlinkSync(absoluteAvatar);
+                } catch (err) {
+                    console.error(`⚠️ Không thể xóa file avatar tại ${absoluteAvatar}:`, err.message);
+                }
+            }
+        }
+
+        // Xóa các file truyện đã upload
+        if (storyRows && storyRows.length > 0) {
+            for (const story of storyRows) {
+                if (story.storage_path) {
+                    const absoluteStory = path.resolve(path.join(__dirname, '..', '..', story.storage_path));
+                    if (fs.existsSync(absoluteStory)) {
+                        try {
+                            fs.unlinkSync(absoluteStory);
+                        } catch (err) {
+                            console.error(`⚠️ Không thể xóa file truyện tại ${absoluteStory}:`, err.message);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Xóa thư mục chứa nhân vật của các dự án
+        if (projectRows && projectRows.length > 0) {
+            for (const proj of projectRows) {
+                const projectCharsDir = path.resolve(path.join(__dirname, '..', '..', 'uploads', 'characters', String(proj.id)));
+                if (fs.existsSync(projectCharsDir)) {
+                    try {
+                        fs.rmSync(projectCharsDir, { recursive: true, force: true });
+                    } catch (err) {
+                        console.error(`⚠️ Không thể xóa thư mục nhân vật dự án tại ${projectCharsDir}:`, err.message);
+                    }
+                }
+            }
+        }
+
+        return res.json({ success: true, message: 'Đã xóa toàn bộ dữ liệu người dùng khỏi hệ thống' });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Lỗi khi xóa người dùng', error: error.message });
+    }
+});
+
 
 router.get('/generation-logs', async (req, res) => {
     try {
@@ -854,6 +975,136 @@ router.put('/users/:id/balance', async (req, res) => {
         return res.json({ success: true, message: 'Đã cập nhật số dư', balance: user.ai_balance_vnd });
     } catch (e) {
         return res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+// ============================================================
+// SEO CONFIGURATION
+// ============================================================
+const multer = require('multer');
+const seoUploadsDir = path.join(__dirname, '..', '..', 'uploads', 'seo');
+if (!fs.existsSync(seoUploadsDir)) {
+    fs.mkdirSync(seoUploadsDir, { recursive: true });
+}
+
+const seoStorage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, seoUploadsDir),
+    filename: (req, file, cb) => {
+        const type = file.fieldname; // 'logo' or 'favicon'
+        const ext = path.extname(file.originalname).toLowerCase();
+        cb(null, `${type}_${Date.now()}${ext}`);
+    }
+});
+
+const seoUpload = multer({
+    storage: seoStorage,
+    limits: { fileSize: 2 * 1024 * 1024 }, // 2MB max
+    fileFilter: (req, file, cb) => {
+        const allowed = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.ico'];
+        const ext = path.extname(file.originalname).toLowerCase();
+        if (allowed.includes(ext)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Chỉ chấp nhận file ảnh (jpg, png, gif, webp, ico)'));
+        }
+    }
+});
+
+// GET /api/admin/seo-settings — Lấy cấu hình SEO hiện tại
+router.get('/seo-settings', async (req, res) => {
+    try {
+        const [rows] = await pool.execute(
+            "SELECT setting_key, setting_value FROM payment_settings WHERE setting_key IN ('seo_site_name', 'seo_title', 'seo_description', 'seo_logo', 'seo_favicon')"
+        );
+        const config = {};
+        rows.forEach(r => {
+            config[r.setting_key] = r.setting_value;
+        });
+
+        return res.json({
+            success: true,
+            data: {
+                seo_site_name: config['seo_site_name'] || 'AI Screenplay',
+                seo_title: config['seo_title'] || 'AI Screenplay - Hệ thống tạo kịch bản phim tự động',
+                seo_description: config['seo_description'] || 'Hệ thống tạo kịch bản phim tự động bằng trí tuệ nhân tạo',
+                seo_logo: config['seo_logo'] || '',
+                seo_favicon: config['seo_favicon'] || ''
+            }
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Lỗi lấy cấu hình SEO', error: error.message });
+    }
+});
+
+// POST /api/admin/seo-settings/upload-logo — Upload logo mới
+router.post('/seo-settings/upload-logo', (req, res) => {
+    seoUpload.single('logo')(req, res, async (err) => {
+        if (err) {
+            const message = err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE'
+                ? 'File logo không được vượt quá 2MB'
+                : err.message || 'Lỗi upload logo';
+            return res.status(400).json({ success: false, message });
+        }
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: 'Vui lòng chọn file logo' });
+        }
+        try {
+            const logoPath = `/uploads/seo/${req.file.filename}`;
+            return res.json({ success: true, url: logoPath });
+        } catch (error) {
+            return res.status(500).json({ success: false, message: 'Lỗi upload logo', error: error.message });
+        }
+    });
+});
+
+// POST /api/admin/seo-settings/upload-favicon — Upload favicon mới
+router.post('/seo-settings/upload-favicon', (req, res) => {
+    seoUpload.single('favicon')(req, res, async (err) => {
+        if (err) {
+            const message = err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE'
+                ? 'File favicon không được vượt quá 1MB'
+                : err.message || 'Lỗi upload favicon';
+            return res.status(400).json({ success: false, message });
+        }
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: 'Vui lòng chọn file favicon' });
+        }
+        try {
+            const faviconPath = `/uploads/seo/${req.file.filename}`;
+            return res.json({ success: true, url: faviconPath });
+        } catch (error) {
+            return res.status(500).json({ success: false, message: 'Lỗi upload favicon', error: error.message });
+        }
+    });
+});
+
+// PUT /api/admin/seo-settings — Cập nhật cấu hình SEO text/paths
+router.put('/seo-settings', async (req, res) => {
+    try {
+        const { seo_site_name, seo_title, seo_description, seo_logo, seo_favicon } = req.body;
+        
+        const settings = {
+            seo_site_name: seo_site_name !== undefined ? String(seo_site_name).trim() : null,
+            seo_title: seo_title !== undefined ? String(seo_title).trim() : null,
+            seo_description: seo_description !== undefined ? String(seo_description).trim() : null,
+            seo_logo: seo_logo !== undefined ? String(seo_logo).trim() : null,
+            seo_favicon: seo_favicon !== undefined ? String(seo_favicon).trim() : null
+        };
+
+        for (const [key, val] of Object.entries(settings)) {
+            if (val !== null) {
+                await pool.execute(
+                    `INSERT INTO payment_settings (setting_key, setting_value)
+                     VALUES (?, ?)
+                     ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_at = CURRENT_TIMESTAMP`,
+                    [key, val]
+                );
+            }
+        }
+
+        return res.json({ success: true, message: 'Đã cập nhật cấu hình SEO thành công' });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Lỗi cập nhật cấu hình SEO', error: error.message });
     }
 });
 

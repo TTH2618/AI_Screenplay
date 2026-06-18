@@ -121,6 +121,34 @@ async function loadProjectsFromDB() {
                 } catch (e) {
                     project.steps = {};
                 }
+
+                // Load per-scene scripts
+                try {
+                    const scenesResponse = await apiRequest(`/ai-responses/project/${project.id}/scenes`);
+                    if (scenesResponse.success && scenesResponse.data.length > 0) {
+                        project.scenes = scenesResponse.data.map(s => ({
+                            id: s.id,
+                            scene_number: s.scene_number,
+                            scene_label: s.scene_label,
+                            type: s.type,
+                            input: typeof s.input_data === 'string' ? JSON.parse(s.input_data) : s.input_data,
+                            output: s.output_data,
+                            created_at: s.created_at,
+                            updated_at: s.updated_at
+                        }));
+                        // Mark that this project has scenes (for history display)
+                        if (!project.steps['script'] && project.scenes.some(s => s.type === 'screenplay')) {
+                            project.steps['script'] = { id: '__scenes__', output: `${project.scenes.filter(s => s.type === 'screenplay').length} cảnh`, created_at: project.scenes[0].created_at };
+                        }
+                        if (!project.steps['story_script'] && project.scenes.some(s => s.type === 'story')) {
+                            project.steps['story_script'] = { id: '__scenes__', output: `${project.scenes.filter(s => s.type === 'story').length} cảnh`, created_at: project.scenes[0].created_at };
+                        }
+                    } else {
+                        project.scenes = [];
+                    }
+                } catch (e) {
+                    project.scenes = [];
+                }
             }
             
             renderProjectList();
@@ -137,6 +165,7 @@ async function loadProjectsFromDB() {
         projectsLoaded = true; // Mark as loaded even on error
     }
 }
+
 
 // Wait for projects to be loaded
 function waitForProjectsLoaded() {
@@ -295,49 +324,101 @@ async function saveStepToProject(toolType, inputData, outputData) {
         }
     }
     
-    // Save step data to local
-    // Cho script/story_script: nối tiếp thay vì ghi đè
-    const appendTools = ['script', 'story_script'];
-    if (appendTools.includes(toolType) && currentProject.steps[toolType] && currentProject.steps[toolType].output) {
-        const separator = '\n\n<hr/>\n\n';
-        currentProject.steps[toolType] = {
-            id: currentProject.steps[toolType].id,
-            input: typeof inputData === 'string' ? JSON.parse(inputData) : inputData,
-            output: currentProject.steps[toolType].output + separator + outputData,
-            created_at: new Date().toISOString()
-        };
-        console.log('📜 Đã nối thêm kịch bản cảnh mới vào nội dung cũ');
+    // Script tools: save as individual scene
+    const scriptTools = ['script', 'story_script'];
+    if (scriptTools.includes(toolType)) {
+        const sceneNumMatch = (inputData.scene_number || '').match(/(\d+)/);
+        const sceneNumber = sceneNumMatch ? parseInt(sceneNumMatch[1]) : null;
+        const sceneType = toolType === 'story_script' ? 'story' : 'screenplay';
+
+        if (sceneNumber) {
+            // Initialize scenes array if not exists
+            if (!currentProject.scenes) currentProject.scenes = [];
+
+            try {
+                const saveResponse = await apiRequest('/ai-responses/scenes', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        project_id: currentProject.id,
+                        type: sceneType,
+                        scene_number: sceneNumber,
+                        scene_label: inputData.scene_number || `Cảnh ${sceneNumber}`,
+                        input_data: inputData,
+                        output_data: outputData
+                    })
+                });
+
+                const sceneId = saveResponse.data ? saveResponse.data.id : null;
+
+                // Update local scenes array
+                const existingIdx = currentProject.scenes.findIndex(
+                    s => s.scene_number === sceneNumber && s.type === sceneType
+                );
+                const sceneData = {
+                    id: sceneId,
+                    scene_number: sceneNumber,
+                    scene_label: inputData.scene_number || `Cảnh ${sceneNumber}`,
+                    type: sceneType,
+                    input: inputData,
+                    output: outputData,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                };
+
+                if (existingIdx >= 0) {
+                    currentProject.scenes[existingIdx] = sceneData;
+                } else {
+                    currentProject.scenes.push(sceneData);
+                    currentProject.scenes.sort((a, b) => a.scene_number - b.scene_number);
+                }
+
+                // Update steps marker for history display
+                const scenesOfType = currentProject.scenes.filter(s => s.type === sceneType);
+                currentProject.steps[toolType] = {
+                    id: '__scenes__',
+                    output: `${scenesOfType.length} cảnh`,
+                    created_at: new Date().toISOString()
+                };
+
+                console.log(`✅ Đã lưu Cảnh ${sceneNumber} vào MySQL (project_id: ${currentProject.id})`);
+            } catch (error) {
+                console.error('❌ Lỗi lưu cảnh vào MySQL:', error);
+                alert('Lỗi khi lưu cảnh vào database: ' + error.message);
+            }
+        }
     } else {
+        // Non-script tools: standard save
         currentProject.steps[toolType] = {
             id: currentProject.steps[toolType] ? currentProject.steps[toolType].id : undefined,
             input: typeof inputData === 'string' ? JSON.parse(inputData) : inputData,
             output: outputData,
             created_at: new Date().toISOString()
         };
-    }
-    currentProject.updated_at = new Date().toISOString();
     
-    // Save to MySQL
-    try {
-        const saveResponse = await apiRequest('/ai-responses', {
-            method: 'POST',
-            body: JSON.stringify({
-                project_id: currentProject.id,
-                tool_type: toolType,
-                input_data: inputData,
-                output_data: outputData
-            })
-        });
+        // Save to MySQL
+        try {
+            const saveResponse = await apiRequest('/ai-responses', {
+                method: 'POST',
+                body: JSON.stringify({
+                    project_id: currentProject.id,
+                    tool_type: toolType,
+                    input_data: inputData,
+                    output_data: outputData
+                })
+            });
 
-        if (saveResponse && saveResponse.data && currentProject.steps[toolType]) {
-            currentProject.steps[toolType].id = saveResponse.data.id;
+            if (saveResponse && saveResponse.data && currentProject.steps[toolType]) {
+                currentProject.steps[toolType].id = saveResponse.data.id;
+            }
+            
+            console.log('✅ Đã lưu bước', toolType, 'vào MySQL (project_id:', currentProject.id, ')');
+        } catch (error) {
+            console.error('❌ Lỗi lưu vào MySQL:', error);
+            alert('Lỗi khi lưu vào database: ' + error.message);
         }
-        
-        console.log('✅ Đã lưu bước', toolType, 'vào MySQL (project_id:', currentProject.id, ')');
-    } catch (error) {
-        console.error('❌ Lỗi lưu vào MySQL:', error);
-        alert('Lỗi khi lưu vào database: ' + error.message);
     }
+
+    currentProject.updated_at = new Date().toISOString();
     
     // Update local list - move to front (most recently modified)
     const existingIndex = projects.findIndex(p => p.id === currentProject.id);
@@ -349,6 +430,7 @@ async function saveStepToProject(toolType, inputData, outputData) {
     renderProjectList();
     showCurrentProjectBar();
 }
+
 
 // ===================== Render Project List =====================
 function renderProjectList() {
@@ -477,6 +559,33 @@ async function loadProject(projectId) {
                             created_at: step.created_at
                         };
                     });
+                }
+
+                // Load per-scene scripts
+                try {
+                    const scenesResponse = await apiRequest(`/ai-responses/project/${projectId}/scenes`);
+                    if (scenesResponse.success && scenesResponse.data.length > 0) {
+                        project.scenes = scenesResponse.data.map(s => ({
+                            id: s.id,
+                            scene_number: s.scene_number,
+                            scene_label: s.scene_label,
+                            type: s.type,
+                            input: typeof s.input_data === 'string' ? JSON.parse(s.input_data) : s.input_data,
+                            output: s.output_data,
+                            created_at: s.created_at,
+                            updated_at: s.updated_at
+                        }));
+                        if (!project.steps['script'] && project.scenes.some(s => s.type === 'screenplay')) {
+                            project.steps['script'] = { id: '__scenes__', output: `${project.scenes.filter(s => s.type === 'screenplay').length} cảnh`, created_at: project.scenes[0].created_at };
+                        }
+                        if (!project.steps['story_script'] && project.scenes.some(s => s.type === 'story')) {
+                            project.steps['story_script'] = { id: '__scenes__', output: `${project.scenes.filter(s => s.type === 'story').length} cảnh`, created_at: project.scenes[0].created_at };
+                        }
+                    } else {
+                        project.scenes = [];
+                    }
+                } catch (e) {
+                    project.scenes = [];
                 }
             }
         } catch (error) {
@@ -841,9 +950,19 @@ async function deleteStep(toolType) {
         message: window.t ? window.t('hist.step.del.body') : 'Bạn có chắc muốn xóa bước này? Nội dung sẽ bị xóa khỏi dự án và không thể phục hồi.',
         onConfirm: async () => {
             try {
-                await apiRequest(`/ai-responses/${toolType}/${step.id}`, {
-                    method: 'DELETE'
-                });
+                const isScriptStep = (toolType === 'script' || toolType === 'story_script') && step.id === '__scenes__';
+
+                if (isScriptStep) {
+                    // Delete all scenes for this project
+                    await apiRequest(`/ai-responses/project/${currentProject.id}/scenes`, {
+                        method: 'DELETE'
+                    });
+                    if (currentProject.scenes) currentProject.scenes = [];
+                } else {
+                    await apiRequest(`/ai-responses/${toolType}/${step.id}`, {
+                        method: 'DELETE'
+                    });
+                }
 
                 delete currentProject.steps[toolType];
 
@@ -851,6 +970,9 @@ async function deleteStep(toolType) {
                 if (projectIndex !== -1) {
                     if (projects[projectIndex].steps) {
                         delete projects[projectIndex].steps[toolType];
+                    }
+                    if (isScriptStep && projects[projectIndex].scenes) {
+                        projects[projectIndex].scenes = [];
                     }
                 }
 
@@ -937,8 +1059,9 @@ function viewStepDetail(toolType, isAfterReload = false) {
             });
         }
         
-        // Display saved output in result panel
-        if (step.output) {
+        // Display saved output in result panel (skip for script tools - they use scene cards)
+        const isScriptStep = toolType === 'script' || toolType === 'story_script';
+        if (step.output && !isScriptStep) {
             const resultContent = document.getElementById('result-content');
             if (resultContent) {
                 resultContent.innerHTML = step.output;

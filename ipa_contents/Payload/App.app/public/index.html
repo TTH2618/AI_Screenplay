@@ -279,6 +279,26 @@
                 </button>
             </div>
         </div>
+    <!-- Download Format Modal -->
+    <div id="download-format-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:10000; align-items:center; justify-content:center;">
+        <div style="background:#1e293b; border:1px solid #7c3aed; border-radius:12px; padding:28px 32px; max-width:400px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.5); text-align:center;">
+            <div style="margin-bottom:18px;">
+                <i class="fas fa-download" style="color:#a78bfa; font-size:32px; margin-bottom:12px;"></i>
+                <h3 style="color:#f8fafc; margin:0; font-size:18px;">Chọn định dạng tải xuống</h3>
+                <p style="color:#94a3b8; margin:8px 0 0; font-size:14px;">Chọn định dạng file bạn muốn tải về máy.</p>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
+                <button id="download-docx-btn" style="padding:12px; border-radius:8px; border:1px solid #475569; background:#334155; color:#f8fafc; cursor:pointer; font-size:15px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px; transition: background 0.2s;" onmouseover="this.style.background='#475569'" onmouseout="this.style.background='#334155'">
+                    <i class="fas fa-file-word" style="color:#3b82f6;"></i> Microsoft Word (.docx)
+                </button>
+                <button id="download-md-btn" style="padding:12px; border-radius:8px; border:1px solid #475569; background:#334155; color:#f8fafc; cursor:pointer; font-size:15px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px; transition: background 0.2s;" onmouseover="this.style.background='#475569'" onmouseout="this.style.background='#334155'">
+                    <i class="fab fa-markdown" style="color:#10b981;"></i> Markdown (.md)
+                </button>
+            </div>
+            <div style="display:flex; justify-content:center;">
+                <button id="download-format-cancel" style="padding:8px 24px; border-radius:8px; border:none; background:#475569; color:#f8fafc; cursor:pointer; font-size:14px; font-weight:500;">Đóng</button>
+            </div>
+        </div>
     </div>
 
     <script src="js/app.js"></script>

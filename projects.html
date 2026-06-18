@@ -1332,6 +1332,19 @@
                                 if (stepsData.success) {
                                     project.steps = {};
                                     stepsData.data.forEach(step => { project.steps[step.tool_type] = step; });
+                                    
+                                    // Fetch scenes to check if the last step is completed
+                                    try {
+                                        const scenesRes = await fetch(`${API_BASE_URL}/ai-responses/project/${project.id}/scenes`, {
+                                            headers: { 'Content-Type': 'application/json', ...getAuthHeaders() }
+                                        });
+                                        const scenesData = await scenesRes.json();
+                                        if (scenesData.success && scenesData.data.length > 0) {
+                                            const isStory = Object.keys(project.steps).some(k => k.startsWith('story_'));
+                                            const scriptKey = isStory ? 'story_script' : 'script';
+                                            project.steps[scriptKey] = { tool_type: scriptKey, content: 'completed' };
+                                        }
+                                    } catch (e) { /* ignore */ }
                                 } else {
                                     project.steps = {};
                                 }

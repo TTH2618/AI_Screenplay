@@ -9,21 +9,135 @@ try:
 except Exception:  # pragma: no cover
     pymysql = None
 
+try:
+    import psycopg2
+    import psycopg2.extras
+except Exception:
+    psycopg2 = None
 
-def _get_connection():
+
+# Cache active database type
+_active_db_type = None
+
+def _connect_mysql():
     if pymysql is None:
         return None
+    try:
+        return pymysql.connect(
+            host=os.getenv('DB_HOST', 'localhost'),
+            user=os.getenv('DB_USER', 'root'),
+            password=os.getenv('DB_PASSWORD', ''),
+            database=os.getenv('DB_NAME', 'ai_screenplay'),
+            port=int(os.getenv('DB_PORT', '3306')),
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor,
+            autocommit=True,
+        )
+    except Exception:
+        return None
 
-    return pymysql.connect(
-        host=os.getenv('DB_HOST', 'localhost'),
-        user=os.getenv('DB_USER', 'root'),
-        password=os.getenv('DB_PASSWORD', ''),
-        database=os.getenv('DB_NAME', 'ai_screenplay'),
-        port=int(os.getenv('DB_PORT', '3306')),
-        charset='utf8mb4',
-        cursorclass=pymysql.cursors.DictCursor,
-        autocommit=True,
-    )
+def _connect_postgres():
+    if psycopg2 is None:
+        return None
+    try:
+        conn = psycopg2.connect(
+            host=os.getenv('PG_HOST', 'localhost'),
+            user=os.getenv('PG_USER', 'postgres'),
+            password=os.getenv('PG_PASSWORD', ''),
+            database=os.getenv('PG_NAME', 'ai_screenplay'),
+            port=int(os.getenv('PG_PORT', '5432')),
+            cursor_factory=psycopg2.extras.RealDictCursor
+        )
+        conn.autocommit = True
+        return conn
+    except Exception:
+        return None
+
+def translate_query(sql: str) -> str:
+    import re
+    # CURDATE() -> CURRENT_DATE
+    sql = re.sub(r'CURDATE\(\)', 'CURRENT_DATE', sql, flags=re.IGNORECASE)
+    # DATE(created_at) -> created_at::date
+    sql = re.sub(r'DATE\((.*?)\)', r'\1::date', sql, flags=re.IGNORECASE)
+    return sql
+
+class PgCursorWrapper:
+    def __init__(self, cursor):
+        self.cursor = cursor
+        
+    def execute(self, sql, params=None):
+        sql = translate_query(sql)
+        return self.cursor.execute(sql, params)
+        
+    def __getattr__(self, name):
+        return getattr(self.cursor, name)
+        
+    def __enter__(self):
+        return self
+        
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.cursor.__exit__(exc_type, exc_val, exc_tb)
+
+class PgConnectionWrapper:
+    def __init__(self, conn):
+        self.conn = conn
+        
+    def cursor(self, *args, **kwargs):
+        cursor = self.conn.cursor(*args, **kwargs)
+        return PgCursorWrapper(cursor)
+        
+    def __getattr__(self, name):
+        return getattr(self.conn, name)
+        
+    def __enter__(self):
+        return self
+        
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.conn.__exit__(exc_type, exc_val, exc_tb)
+
+def _get_connection():
+    global _active_db_type
+    
+    preferred_type = os.getenv('DB_TYPE', 'mysql').lower()
+    
+    if preferred_type == 'postgres':
+        if _active_db_type == 'mysql':
+            conn = _connect_mysql()
+            if conn:
+                return conn
+            conn = _connect_postgres()
+            if conn:
+                _active_db_type = 'postgres'
+                return PgConnectionWrapper(conn)
+        else:
+            conn = _connect_postgres()
+            if conn:
+                _active_db_type = 'postgres'
+                return PgConnectionWrapper(conn)
+            conn = _connect_mysql()
+            if conn:
+                _active_db_type = 'mysql'
+                return conn
+    else:
+        if _active_db_type == 'postgres':
+            conn = _connect_postgres()
+            if conn:
+                return PgConnectionWrapper(conn)
+            conn = _connect_mysql()
+            if conn:
+                _active_db_type = 'mysql'
+                return conn
+        else:
+            conn = _connect_mysql()
+            if conn:
+                _active_db_type = 'mysql'
+                return conn
+            conn = _connect_postgres()
+            if conn:
+                _active_db_type = 'postgres'
+                return PgConnectionWrapper(conn)
+                
+    return None
 
 
 def get_active_api_key(provider: str = 'openrouter') -> Optional[str]:

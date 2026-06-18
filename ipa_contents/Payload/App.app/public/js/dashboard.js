@@ -24,7 +24,15 @@ const toolNames = {
     structure: 'Cấu trúc 4 Hồi',
     beatsheet: 'Tạo Beat Sheet',
     scenelist: 'Danh sách Cảnh',
-    script: 'Viết Kịch bản'
+    script: 'Viết Kịch bản',
+    story_upload: 'Tải truyện lên',
+    story_theme: 'Phân tích Chủ đề',
+    story_character: 'Phân tích Nhân vật',
+    story_synopsis: 'Viết Synopsis',
+    story_structure: 'Phân tích Hồi',
+    story_beatsheet: 'Tạo Beat Sheet',
+    story_scenelist: 'Danh sách Cảnh',
+    story_script: 'Viết Kịch bản'
 };
 
 const toolOrder = ['logline', 'theme', 'character', 'synopsis', 'structure', 'beatsheet', 'scenelist', 'script'];
@@ -304,6 +312,19 @@ async function loadProjects() {
                             stepsData.data.forEach(step => {
                                 project.steps[step.tool_type] = step;
                             });
+                            
+                            // Fetch scenes to check if the last step is completed
+                            try {
+                                const scenesRes = await fetch(`${API_BASE_URL}/ai-responses/project/${project.id}/scenes`, {
+                                    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() }
+                                });
+                                const scenesData = await scenesRes.json();
+                                if (scenesData.success && scenesData.data.length > 0) {
+                                    const isStory = Object.keys(project.steps).some(k => k.startsWith('story_'));
+                                    const scriptKey = isStory ? 'story_script' : 'script';
+                                    project.steps[scriptKey] = { tool_type: scriptKey, content: 'completed' };
+                                }
+                            } catch (e) { /* ignore */ }
                         } else {
                             project.steps = {};
                         }
@@ -397,16 +418,21 @@ function getLastCompletedStep(steps) {
         return 'Chưa bắt đầu';
     }
     
+    const isStory = Object.keys(steps).some(k => k.startsWith('story_'));
+    const order = isStory ? 
+        ['story_upload', 'story_theme', 'story_character', 'story_synopsis', 'story_structure', 'story_beatsheet', 'story_scenelist', 'story_script'] :
+        ['logline', 'theme', 'character', 'synopsis', 'structure', 'beatsheet', 'scenelist', 'script'];
+        
     let lastIndex = -1;
     Object.keys(steps).forEach(tool => {
-        const index = toolOrder.indexOf(tool);
+        const index = order.indexOf(tool);
         if (index > lastIndex) {
             lastIndex = index;
         }
     });
     
     if (lastIndex >= 0) {
-        return toolNames[toolOrder[lastIndex]];
+        return toolNames[order[lastIndex]] || 'Chưa bắt đầu';
     }
     
     return 'Chưa bắt đầu';

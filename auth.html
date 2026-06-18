@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -17,6 +18,7 @@
     <link rel="stylesheet" href="css/pwa.css">
     <script src="js/pwa.js" defer></script>
 </head>
+
 <body class="auth-body">
     <div class="auth-container">
         <!-- Left side - Branding -->
@@ -26,7 +28,8 @@
                     <i class="fas fa-film"></i>
                 </div>
                 <h1>AI Screenplay</h1>
-                <p data-i18n="auth.branding.desc">Công cụ viết kịch bản phim thông minh với sự hỗ trợ của trí tuệ nhân tạo</p>
+                <p data-i18n="auth.branding.desc">Công cụ viết kịch bản phim thông minh với sự hỗ trợ của trí tuệ nhân
+                    tạo</p>
                 <div class="features-list">
                     <div class="feature-item">
                         <i class="fas fa-magic"></i>
@@ -63,7 +66,8 @@
                             <i class="fas fa-envelope"></i>
                             <span data-i18n="auth.login.email-label">Email</span>
                         </label>
-                        <input type="email" id="login-email" name="email" data-i18n-ph="ph.email" placeholder="Nhập email của bạn" required>
+                        <input type="email" id="login-email" name="email" data-i18n-ph="ph.email"
+                            placeholder="Nhập email của bạn" required>
                     </div>
 
                     <div class="form-group">
@@ -72,7 +76,8 @@
                             <span data-i18n="auth.login.pass-label">Mật khẩu</span>
                         </label>
                         <div class="password-input">
-                            <input type="password" id="login-password" name="password" data-i18n-ph="ph.password" placeholder="Nhập mật khẩu" required>
+                            <input type="password" id="login-password" name="password" data-i18n-ph="ph.password"
+                                placeholder="Nhập mật khẩu" required>
                             <button type="button" class="toggle-password" onclick="togglePassword('login-password')">
                                 <i class="fas fa-eye"></i>
                             </button>
@@ -84,7 +89,7 @@
                             <input type="checkbox" name="remember">
                             <span data-i18n="auth.login.remember">Ghi nhớ đăng nhập</span>
                         </label>
-                        <a href="#" class="forgot-password" data-i18n="auth.login.forgot">Quên mật khẩu?</a>
+                        <a href="#" class="forgot-password" onclick="showForgotPassword(); return false;" data-i18n="auth.login.forgot">Quên mật khẩu?</a>
                     </div>
 
                     <button type="submit" class="btn-auth btn-primary">
@@ -100,7 +105,8 @@
                 </form>
 
                 <div class="auth-switch">
-                    <p><span data-i18n="auth.login.no-account">Chưa có tài khoản?</span> <a href="#" onclick="showRegister()" data-i18n="auth.login.register-link">Đăng ký ngay</a></p>
+                    <p><span data-i18n="auth.login.no-account">Chưa có tài khoản?</span> <a href="#"
+                            onclick="showRegister()" data-i18n="auth.login.register-link">Đăng ký ngay</a></p>
                 </div>
             </div>
 
@@ -117,7 +123,8 @@
                             <i class="fas fa-user"></i>
                             <span data-i18n="auth.register.fullname-label">Họ và tên</span>
                         </label>
-                        <input type="text" id="register-fullname" name="fullname" data-i18n-ph="ph.fullname" placeholder="Nhập họ và tên" required>
+                        <input type="text" id="register-fullname" name="fullname" data-i18n-ph="ph.fullname"
+                            placeholder="Nhập họ và tên" required>
                     </div>
 
                     <div class="form-group">
@@ -125,7 +132,8 @@
                             <i class="fas fa-at"></i>
                             <span data-i18n="auth.register.username-label">Tên đăng nhập</span>
                         </label>
-                        <input type="text" id="register-username" name="username" data-i18n-ph="ph.username" placeholder="Chọn tên đăng nhập" required>
+                        <input type="text" id="register-username" name="username" data-i18n-ph="ph.username"
+                            placeholder="Chọn tên đăng nhập" required>
                     </div>
 
                     <div class="form-group">
@@ -133,7 +141,8 @@
                             <i class="fas fa-envelope"></i>
                             <span data-i18n="auth.register.email-label">Email</span>
                         </label>
-                        <input type="email" id="register-email" name="email" data-i18n-ph="ph.email" placeholder="Nhập email của bạn" required>
+                        <input type="email" id="register-email" name="email" data-i18n-ph="ph.email"
+                            placeholder="Nhập email của bạn" required>
                     </div>
 
                     <div class="form-group">
@@ -142,7 +151,8 @@
                             <span data-i18n="auth.register.pass-label">Mật khẩu</span>
                         </label>
                         <div class="password-input">
-                            <input type="password" id="register-password" name="password" data-i18n-ph="ph.new-password" placeholder="Tạo mật khẩu (ít nhất 6 ký tự)" required minlength="6">
+                            <input type="password" id="register-password" name="password" data-i18n-ph="ph.new-password"
+                                placeholder="Tạo mật khẩu (ít nhất 6 ký tự)" required minlength="6">
                             <button type="button" class="toggle-password" onclick="togglePassword('register-password')">
                                 <i class="fas fa-eye"></i>
                             </button>
@@ -156,8 +166,10 @@
                             <span data-i18n="auth.register.confirm-label">Xác nhận mật khẩu</span>
                         </label>
                         <div class="password-input">
-                            <input type="password" id="register-confirm-password" name="confirmPassword" data-i18n-ph="ph.confirm-password" placeholder="Nhập lại mật khẩu" required>
-                            <button type="button" class="toggle-password" onclick="togglePassword('register-confirm-password')">
+                            <input type="password" id="register-confirm-password" name="confirmPassword"
+                                data-i18n-ph="ph.confirm-password" placeholder="Nhập lại mật khẩu" required>
+                            <button type="button" class="toggle-password"
+                                onclick="togglePassword('register-confirm-password')">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </div>
@@ -166,7 +178,8 @@
                     <div class="form-group terms">
                         <label class="checkbox-label">
                             <input type="checkbox" name="terms" required>
-                            <span>Tôi đồng ý với <a href="#">Điều khoản sử dụng</a> và <a href="#">Chính sách bảo mật</a></span>
+                            <span>Tôi đồng ý với <a href="/terms-of-service">Điều khoản sử dụng</a> và <a
+                                    href="/privacy-policy">Chính sách bảo mật</a></span>
                         </label>
                     </div>
 
@@ -183,8 +196,119 @@
                 </form>
 
                 <div class="auth-switch">
-                    <p><span data-i18n="auth.register.has-account">Đã có tài khoản?</span> <a href="#" onclick="showLogin()" data-i18n="auth.register.login-link">Đăng nhập</a></p>
+                    <p><span data-i18n="auth.register.has-account">Đã có tài khoản?</span> <a href="#"
+                            onclick="showLogin()" data-i18n="auth.register.login-link">Đăng nhập</a></p>
                 </div>
+            </div>
+
+            <!-- Forgot Password Form -->
+            <div class="auth-form-container hidden" id="forgot-password-container">
+
+                <!-- Step 1: Enter Email -->
+                <div id="fp-step-email">
+                    <div class="form-header">
+                        <div class="fp-icon-wrap">
+                            <i class="fas fa-key"></i>
+                        </div>
+                        <h2>Quên mật khẩu?</h2>
+                        <p>Nhập email của bạn để nhận mã xác nhận</p>
+                    </div>
+                    <form id="fp-email-form" class="auth-form">
+                        <div class="form-group">
+                            <label for="fp-email">
+                                <i class="fas fa-envelope"></i>
+                                <span>Email</span>
+                            </label>
+                            <input type="email" id="fp-email" placeholder="Nhập email tài khoản của bạn" required>
+                        </div>
+                        <button type="submit" class="btn-auth btn-primary" id="fp-send-btn">
+                            <i class="fas fa-paper-plane"></i>
+                            <span>Gửi mã xác nhận</span>
+                        </button>
+                    </form>
+                    <div class="auth-switch">
+                        <p><a href="#" onclick="showLogin(); return false;"><i class="fas fa-arrow-left"></i> Quay lại đăng nhập</a></p>
+                    </div>
+                </div>
+
+                <!-- Step 2: Enter OTP -->
+                <div id="fp-step-otp" class="hidden">
+                    <div class="form-header">
+                        <div class="fp-icon-wrap fp-icon-otp">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h2>Nhập mã xác nhận</h2>
+                        <p id="fp-otp-desc">Mã 6 chữ số đã được gửi đến email của bạn</p>
+                    </div>
+                    <form id="fp-otp-form" class="auth-form">
+                        <div class="otp-input-group">
+                            <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp-0" autocomplete="off">
+                            <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp-1" autocomplete="off">
+                            <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp-2" autocomplete="off">
+                            <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp-3" autocomplete="off">
+                            <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp-4" autocomplete="off">
+                            <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp-5" autocomplete="off">
+                        </div>
+                        <div class="fp-timer" id="fp-timer">
+                            <i class="fas fa-clock"></i>
+                            <span id="fp-timer-text">Mã hết hạn sau <strong id="fp-countdown">10:00</strong></span>
+                        </div>
+                        <button type="submit" class="btn-auth btn-primary" id="fp-verify-btn">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Xác nhận mã</span>
+                        </button>
+                        <button type="button" class="btn-auth btn-resend" id="fp-resend-btn" onclick="handleResendOTP()">
+                            <i class="fas fa-redo"></i>
+                            <span>Gửi lại mã</span>
+                        </button>
+                    </form>
+                    <div class="auth-switch">
+                        <p><a href="#" onclick="fpGoToEmail(); return false;"><i class="fas fa-arrow-left"></i> Đổi email</a></p>
+                    </div>
+                </div>
+
+                <!-- Step 3: New Password -->
+                <div id="fp-step-newpass" class="hidden">
+                    <div class="form-header">
+                        <div class="fp-icon-wrap fp-icon-success">
+                            <i class="fas fa-lock-open"></i>
+                        </div>
+                        <h2>Đặt mật khẩu mới</h2>
+                        <p>Tạo mật khẩu mới an toàn cho tài khoản của bạn</p>
+                    </div>
+                    <form id="fp-newpass-form" class="auth-form">
+                        <div class="form-group">
+                            <label for="fp-new-password">
+                                <i class="fas fa-lock"></i>
+                                <span>Mật khẩu mới</span>
+                            </label>
+                            <div class="password-input">
+                                <input type="password" id="fp-new-password" placeholder="Nhập mật khẩu mới (ít nhất 6 ký tự)" required minlength="6">
+                                <button type="button" class="toggle-password" onclick="togglePassword('fp-new-password')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength" id="fp-password-strength"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="fp-confirm-password">
+                                <i class="fas fa-lock"></i>
+                                <span>Xác nhận mật khẩu</span>
+                            </label>
+                            <div class="password-input">
+                                <input type="password" id="fp-confirm-password" placeholder="Nhập lại mật khẩu mới" required>
+                                <button type="button" class="toggle-password" onclick="togglePassword('fp-confirm-password')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-auth btn-primary" id="fp-reset-btn">
+                            <i class="fas fa-save"></i>
+                            <span>Lưu mật khẩu mới</span>
+                        </button>
+                    </form>
+                </div>
+
             </div>
         </div>
     </div>
@@ -197,4 +321,5 @@
     <script src="js/i18n.js"></script>
     <script src="js/auth.js"></script>
 </body>
+
 </html>

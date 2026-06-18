@@ -6,7 +6,65 @@ const { OAuth2Client } = require('google-auth-library');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const nodemailer = require('nodemailer');
 const { pool } = require('../config/database');
+
+// ── Nodemailer transporter ────────────────────────────────
+const emailTransporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.EMAIL_PORT) || 587,
+    secure: false,
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    },
+    tls: { rejectUnauthorized: false }
+});
+
+// ── OTP store (in-memory, 10 phút hết hạn) ──────────────
+// Map: email -> { otp, expiresAt, attempts }
+const otpStore = new Map();
+
+const OTP_EXPIRY_MS  = 10 * 60 * 1000; // 10 phút
+const MAX_OTP_ATTEMPTS = 5;
+
+function generateOTP() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+async function sendOTPEmail(to, otp) {
+    const html = `
+    <!DOCTYPE html>
+    <html>
+    <body style="margin:0;padding:0;background:#1a1a2e;font-family:'Segoe UI',sans-serif;">
+      <div style="max-width:500px;margin:40px auto;background:#242444;border-radius:20px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.5);">
+        <div style="background:linear-gradient(135deg,#667eea,#764ba2);padding:40px 30px;text-align:center;">
+          <div style="font-size:2.5rem;margin-bottom:10px;">🎬</div>
+          <h1 style="color:#fff;margin:0;font-size:1.6rem;">AI Screenplay</h1>
+          <p style="color:rgba(255,255,255,0.8);margin:8px 0 0;">Đặt lại mật khẩu</p>
+        </div>
+        <div style="padding:40px 30px;text-align:center;">
+          <p style="color:#9ca3af;font-size:1rem;margin-bottom:30px;">Mã xác nhận của bạn là:</p>
+          <div style="background:#1a1a2e;border:2px solid #667eea;border-radius:16px;padding:24px 40px;display:inline-block;margin-bottom:30px;">
+            <span style="font-size:2.8rem;font-weight:700;letter-spacing:12px;color:#818cf8;">${otp}</span>
+          </div>
+          <p style="color:#6b7280;font-size:0.9rem;">Mã có hiệu lực trong <strong style="color:#f59e0b;">10 phút</strong>.</p>
+          <p style="color:#6b7280;font-size:0.85rem;margin-top:20px;">Nếu bạn không yêu cầu, hãy bỏ qua email này.</p>
+        </div>
+        <div style="border-top:1px solid #3a3a5c;padding:20px 30px;text-align:center;">
+          <p style="color:#4b5563;font-size:0.8rem;margin:0;">&copy; 2024 AI Screenplay. All rights reserved.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+    `;
+    await emailTransporter.sendMail({
+        from: process.env.EMAIL_FROM || '"AI Screenplay" <noreply@aiscreenplay.app>',
+        to,
+        subject: `[AI Screenplay] Mã xác nhận đặt lại mật khẩu: ${otp}`,
+        html
+    });
+}
 
 // Cấu hình multer cho upload avatar
 const uploadsDir = path.join(__dirname, '..', '..', 'uploads', 'avatars');
@@ -700,6 +758,125 @@ router.post('/google', async (req, res) => {
             success: false,
             message: 'Lỗi server khi xử lý đăng nhập Google'
         });
+    }
+});
+
+// ── Quên mật khẩu: Gửi OTP ─────────────────────────────
+router.post('/forgot-password', async (req, res) => {
+    const { email } = req.body;
+    if (!email) {
+        return res.status(400).json({ success: false, message: 'Vui lòng nhập email' });
+    }
+
+    try {
+        // Kiểm tra email tồn tại
+        const [users] = await pool.execute(
+            'SELECT id, full_name FROM users WHERE email = ?', [email]
+        );
+
+        // Trả success dù email không tồn tại để tránh lộ thông tin
+        if (users.length === 0) {
+            return res.json({
+                success: true,
+                message: 'Nếu email tồn tại, mã xác nhận đã được gửi'
+            });
+        }
+
+        // Rate-limit: nếu OTP còn hiệu lực và mới gửi < 60s trước thì từ chối
+        const existing = otpStore.get(email);
+        if (existing && (Date.now() - (existing.expiresAt - OTP_EXPIRY_MS)) < 60000) {
+            return res.status(429).json({
+                success: false,
+                message: 'Vui lòng chờ 60 giây trước khi gửi lại mã'
+            });
+        }
+
+        const otp = generateOTP();
+        otpStore.set(email, {
+            otp,
+            expiresAt: Date.now() + OTP_EXPIRY_MS,
+            attempts: 0
+        });
+
+        await sendOTPEmail(email, otp);
+
+        console.log(`📧 OTP sent to ${email}`);
+        res.json({ success: true, message: 'Mã xác nhận đã được gửi về email của bạn' });
+    } catch (error) {
+        console.error('Lỗi gửi OTP:', error);
+        res.status(500).json({ success: false, message: 'Không thể gửi email. Vui lòng thử lại sau.' });
+    }
+});
+
+// ── Quên mật khẩu: Xác minh OTP ────────────────────────
+router.post('/verify-otp', async (req, res) => {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+        return res.status(400).json({ success: false, message: 'Thiếu thông tin' });
+    }
+
+    const record = otpStore.get(email);
+    if (!record) {
+        return res.status(400).json({ success: false, message: 'Mã xác nhận không hợp lệ hoặc đã hết hạn' });
+    }
+
+    if (Date.now() > record.expiresAt) {
+        otpStore.delete(email);
+        return res.status(400).json({ success: false, message: 'Mã xác nhận đã hết hạn. Vui lòng yêu cầu mã mới.' });
+    }
+
+    record.attempts += 1;
+    if (record.attempts > MAX_OTP_ATTEMPTS) {
+        otpStore.delete(email);
+        return res.status(429).json({ success: false, message: 'Quá nhiều lần thử sai. Vui lòng yêu cầu mã mới.' });
+    }
+
+    if (record.otp !== otp.trim()) {
+        const remaining = MAX_OTP_ATTEMPTS - record.attempts;
+        return res.status(400).json({
+            success: false,
+            message: `Mã xác nhận không đúng. Còn ${remaining} lần thử.`
+        });
+    }
+
+    // Đánh dấu OTP đã xác minh (dùng 1 lần)
+    record.verified = true;
+    res.json({ success: true, message: 'Xác minh thành công' });
+});
+
+// ── Quên mật khẩu: Đặt lại mật khẩu mới ───────────────
+router.post('/reset-password', async (req, res) => {
+    const { email, otp, newPassword } = req.body;
+    if (!email || !otp || !newPassword) {
+        return res.status(400).json({ success: false, message: 'Thiếu thông tin' });
+    }
+
+    if (newPassword.length < 6) {
+        return res.status(400).json({ success: false, message: 'Mật khẩu phải có ít nhất 6 ký tự' });
+    }
+
+    const record = otpStore.get(email);
+    if (!record || !record.verified || record.otp !== otp.trim() || Date.now() > record.expiresAt) {
+        return res.status(400).json({ success: false, message: 'Phiên đặt lại mật khẩu không hợp lệ. Vui lòng thử lại.' });
+    }
+
+    try {
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        const [result] = await pool.execute(
+            'UPDATE users SET password = ?, updated_at = NOW() WHERE email = ?',
+            [hashedPassword, email]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy tài khoản' });
+        }
+
+        otpStore.delete(email);
+        console.log(`🔐 Password reset for ${email}`);
+        res.json({ success: true, message: 'Mật khẩu đã được đặt lại thành công' });
+    } catch (error) {
+        console.error('Lỗi reset password:', error);
+        res.status(500).json({ success: false, message: 'Lỗi server khi đặt lại mật khẩu' });
     }
 });
 

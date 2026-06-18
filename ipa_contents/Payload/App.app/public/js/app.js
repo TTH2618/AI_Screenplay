@@ -3962,30 +3962,27 @@ function copyResult() {
 }
 
 // Download result
-async function downloadResult() {
-    const content = document.getElementById('result-content');
-    const htmlContent = content.innerHTML;
-    
+// Shared DOCX download generator
+async function _downloadAsDocx(htmlContent, downloadFileName) {
     try {
-        // Sử dụng docx library để tạo file DOCX
         const { Document, Packer, Paragraph, TextRun, HeadingLevel } = docx;
-        
+
         // Parse HTML content và chuyển thành docx paragraphs
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = htmlContent;
-        
+
         // Loại bỏ placeholder text nếu có
         const placeholder = tempDiv.querySelector('.placeholder-text');
         if (placeholder) {
             placeholder.remove();
         }
-        
+
         const paragraphs = [];
-        
+
         // Hàm đệ quy để xử lý text runs với formatting
         const processTextNode = (node, formatting = {}) => {
             const runs = [];
-            
+
             if (node.nodeType === Node.TEXT_NODE) {
                 const text = node.textContent;
                 if (text) {
@@ -3999,7 +3996,7 @@ async function downloadResult() {
             } else if (node.nodeType === Node.ELEMENT_NODE) {
                 const tagName = node.tagName;
                 const newFormatting = { ...formatting };
-                
+
                 if (tagName === 'B' || tagName === 'STRONG') {
                     newFormatting.bold = true;
                 } else if (tagName === 'I' || tagName === 'EM') {
@@ -4007,23 +4004,20 @@ async function downloadResult() {
                 } else if (tagName === 'U') {
                     newFormatting.underline = {};
                 } else if (tagName === 'BR') {
-                    // BR thêm line break
                     runs.push(new TextRun({ text: '', break: 1 }));
                     return runs;
                 }
-                
-                // Xử lý các child nodes
+
                 node.childNodes.forEach(child => {
                     runs.push(...processTextNode(child, newFormatting));
                 });
             }
-            
+
             return runs;
         };
-        
-        // Duyệt qua tất cả các nodes (bao gồm cả text nodes)
+
+        // Duyệt qua tất cả các nodes
         const processNode = (node) => {
-            // Text node trực tiếp
             if (node.nodeType === Node.TEXT_NODE) {
                 const text = node.textContent.trim();
                 if (text) {
@@ -4034,14 +4028,13 @@ async function downloadResult() {
                 }
                 return;
             }
-            
+
             if (node.nodeType !== Node.ELEMENT_NODE) {
                 return;
             }
-            
+
             const tagName = node.tagName;
-            
-            // Xử lý HR (separator)
+
             if (tagName === 'HR') {
                 paragraphs.push(new Paragraph({
                     text: '',
@@ -4057,8 +4050,7 @@ async function downloadResult() {
                 }));
                 return;
             }
-            
-            // Xử lý các heading
+
             if (tagName === 'H1') {
                 paragraphs.push(new Paragraph({
                     text: node.textContent,
@@ -4102,13 +4094,11 @@ async function downloadResult() {
                 }));
                 return;
             }
-            
-            // Xử lý paragraph
+
             if (tagName === 'P') {
-                // Xử lý nội dung của paragraph, bao gồm cả BR tags
                 const childNodes = Array.from(node.childNodes);
                 let currentRuns = [];
-                
+
                 const flushParagraph = () => {
                     if (currentRuns.length > 0) {
                         paragraphs.push(new Paragraph({
@@ -4118,24 +4108,20 @@ async function downloadResult() {
                         currentRuns = [];
                     }
                 };
-                
+
                 childNodes.forEach(childNode => {
                     if (childNode.nodeType === Node.ELEMENT_NODE && childNode.tagName === 'BR') {
-                        // Khi gặp BR, tạo paragraph mới
                         flushParagraph();
                     } else {
-                        // Xử lý text và formatting
                         const runs = processTextNode(childNode);
                         currentRuns.push(...runs);
                     }
                 });
-                
-                // Flush paragraph cuối cùng
+
                 flushParagraph();
                 return;
             }
-            
-            // Xử lý list items
+
             if (tagName === 'LI') {
                 const runs = processTextNode(node);
                 if (runs.length > 0) {
@@ -4147,8 +4133,7 @@ async function downloadResult() {
                 }
                 return;
             }
-            
-            // Xử lý ul/ol - duyệt qua các li
+
             if (tagName === 'UL' || tagName === 'OL') {
                 Array.from(node.children).forEach(child => {
                     if (child.tagName === 'LI') {
@@ -4157,17 +4142,15 @@ async function downloadResult() {
                 });
                 return;
             }
-            
-            // Xử lý div - duyệt qua các child
+
             if (tagName === 'DIV') {
                 Array.from(node.childNodes).forEach(child => {
                     processNode(child);
                 });
                 return;
             }
-            
-            // Xử lý span và các inline elements - extract text với formatting
-            if (tagName === 'SPAN' || tagName === 'STRONG' || tagName === 'B' || 
+
+            if (tagName === 'SPAN' || tagName === 'STRONG' || tagName === 'B' ||
                 tagName === 'EM' || tagName === 'I' || tagName === 'U') {
                 const runs = processTextNode(node);
                 if (runs.length > 0) {
@@ -4179,13 +4162,11 @@ async function downloadResult() {
                 return;
             }
         };
-        
-        // Xử lý tất cả các child nodes
+
         Array.from(tempDiv.childNodes).forEach(node => {
             processNode(node);
         });
-        
-        // Nếu không có paragraphs, fallback to plain text
+
         if (paragraphs.length === 0) {
             const textContent = tempDiv.textContent || '';
             if (textContent.trim()) {
@@ -4201,36 +4182,157 @@ async function downloadResult() {
                 });
             }
         }
-        
-        // Nếu vẫn không có gì, thêm thông báo
+
         if (paragraphs.length === 0) {
             paragraphs.push(new Paragraph({
                 children: [new TextRun('Không có nội dung')]
             }));
         }
-        
-        // Tạo document
+
         const doc = new Document({
             sections: [{
                 properties: {},
                 children: paragraphs
             }]
         });
-        
-        // Tạo blob và download
+
         const blob = await Packer.toBlob(doc);
+
+        if (typeof window.flutterDownloadFile === 'function') {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const base64 = e.target.result.split(',')[1];
+                window.flutterDownloadFile(base64, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', downloadFileName);
+            };
+            reader.readAsDataURL(blob);
+        } else {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = downloadFileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    } catch (error) {
+        console.error('Error creating DOCX:', error);
+        if (typeof showToast === 'function') {
+            showToast('Có lỗi khi tạo file DOCX. Vui lòng thử lại.', 'error');
+        } else {
+            alert('Có lỗi khi tạo file DOCX. Vui lòng thử lại.');
+        }
+    }
+}
+
+// Shared Markdown download generator
+function _downloadAsMd(mdText, filename) {
+    const blob = new Blob([mdText], { type: 'text/markdown;charset=utf-8' });
+    if (typeof window.flutterDownloadFile === 'function') {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const base64 = e.target.result.split(',')[1];
+            window.flutterDownloadFile(base64, 'text/markdown', filename);
+        };
+        reader.readAsDataURL(blob);
+    } else {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `screenplay_${currentTool}_${new Date().toISOString().split('T')[0]}.docx`;
+        a.download = filename;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-    } catch (error) {
-        console.error('Error creating DOCX:', error);
-        alert('Có lỗi khi tạo file DOCX. Vui lòng thử lại.');
     }
+}
+
+// Convert HTML to clean Markdown
+function _htmlToMarkdown(html) {
+    if (!html) return '';
+    let md = html;
+    md = md
+        .replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n\n')
+        .replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n\n')
+        .replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n\n')
+        .replace(/<h4[^>]*>(.*?)<\/h4>/gi, '#### $1\n\n')
+        .replace(/<h5[^>]*>(.*?)<\/h5>/gi, '##### $1\n\n')
+        .replace(/<h6[^>]*>(.*?)<\/h6>/gi, '###### $1\n\n')
+        .replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n\n')
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**')
+        .replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**')
+        .replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*')
+        .replace(/<i[^>]*>(.*?)<\/i>/gi, '*$1*')
+        .replace(/<u[^>]*>(.*?)<\/u>/gi, '_$1_')
+        .replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n')
+        .replace(/<ul[^>]*>(.*?)<\/ul>/gi, '$1\n')
+        .replace(/<ol[^>]*>(.*?)<\/ol>/gi, '$1\n')
+        .replace(/<[^>]*>/g, '') // strip remaining tags
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>');
+    return md.trim();
+}
+
+// Prompt format modal selector
+function promptDownloadFormat({ htmlContent, plainText, defaultFilename }) {
+    const overlay = document.getElementById('download-format-overlay');
+    if (!overlay) {
+        // Fallback: download as docx directly
+        _downloadAsDocx(htmlContent, defaultFilename + '.docx');
+        return;
+    }
+    overlay.style.display = 'flex';
+
+    const btnDocx = document.getElementById('download-docx-btn');
+    const btnMd = document.getElementById('download-md-btn');
+    const btnCancel = document.getElementById('download-format-cancel');
+
+    function close() {
+        overlay.style.display = 'none';
+        btnDocx.onclick = null;
+        btnMd.onclick = null;
+        btnCancel.onclick = null;
+    }
+
+    btnDocx.onclick = () => {
+        close();
+        _downloadAsDocx(htmlContent, defaultFilename + '.docx');
+    };
+
+    btnMd.onclick = () => {
+        close();
+        _downloadAsMd(plainText, defaultFilename + '.md');
+    };
+
+    btnCancel.onclick = close;
+    overlay.onclick = (e) => { if (e.target === overlay) close(); };
+}
+
+// Download result for all tools
+async function downloadResult() {
+    const content = document.getElementById('result-content');
+    if (!content) return;
+    const htmlContent = content.innerHTML;
+
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent;
+    const placeholder = tempDiv.querySelector('.placeholder-text');
+    if (placeholder) {
+        placeholder.remove();
+    }
+    const cleanHtml = tempDiv.innerHTML;
+    const markdown = _htmlToMarkdown(cleanHtml);
+
+    const defaultFilename = `screenplay_${currentTool}_${new Date().toISOString().split('T')[0]}`;
+
+    promptDownloadFormat({
+        htmlContent: cleanHtml,
+        plainText: markdown,
+        defaultFilename: defaultFilename
+    });
 }
 
 // ===================== Toolbar Functions =====================

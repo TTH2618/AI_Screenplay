@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 08, 2026 at 08:18 PM
+-- Generation Time: Jun 16, 2026 at 06:00 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -43,21 +43,6 @@ CREATE TABLE `ai_generation_logs` (
   `error_type` varchar(120) DEFAULT NULL,
   `error_message` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `api_credentials`
---
-
-CREATE TABLE `api_credentials` (
-  `id` int(10) UNSIGNED NOT NULL,
-  `provider` varchar(50) NOT NULL,
-  `api_key` text NOT NULL,
-  `is_active` tinyint(1) NOT NULL DEFAULT 1,
-  `updated_by` int(11) DEFAULT NULL,
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -209,9 +194,12 @@ CREATE TABLE `scripts` (
   `id` int(11) NOT NULL,
   `project_id` int(11) NOT NULL,
   `type` enum('screenplay','story') NOT NULL DEFAULT 'screenplay',
+  `scene_number` int(11) DEFAULT NULL COMMENT 'Scene number (NULL = legacy merged record)',
+  `scene_label` varchar(255) DEFAULT NULL COMMENT 'Scene heading / label',
   `input_data` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`input_data`)),
   `output_data` longtext DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -337,7 +325,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `email`, `password`, `full_name`, `gender`, `date_of_birth`, `phone`, `avatar`, `created_at`, `updated_at`, `is_admin`, `account_status`, `plan_type`, `pro_expires_at`, `ai_balance_vnd`, `last_login_at`) VALUES
-(1, 'admin', 'admin@gmail.com', '$2b$10$58/Ecn3dndIulS/OOoFfW.Xc25V9bvffIc9ejfrgnsC8TK/GNWPEu', 'Quản trị viên', NULL, NULL, NULL, '/uploads/avatars/avatar_1_1779716300721.jpg', '2026-01-30 10:55:23', '2026-06-08 16:23:18', 1, 'active', 'pro', '2026-07-28 16:00:00', -1642.26, '2026-06-08 23:16:02');
+(1, 'admin', 'admin@gmail.com', '$2b$10$58/Ecn3dndIulS/OOoFfW.Xc25V9bvffIc9ejfrgnsC8TK/GNWPEu', 'Quản trị viên', NULL, NULL, NULL, '/uploads/avatars/avatar_1_1779716300721.jpg', '2026-01-30 10:55:23', '2026-06-16 12:18:05', 1, 'active', 'pro', '2026-07-28 16:00:00', -9148.81, '2026-06-16 19:18:05');
 
 --
 -- Indexes for dumped tables
@@ -352,13 +340,6 @@ ALTER TABLE `ai_generation_logs`
   ADD KEY `idx_ai_logs_status` (`status`),
   ADD KEY `idx_ai_logs_user` (`user_id`),
   ADD KEY `idx_ai_logs_project` (`project_id`);
-
---
--- Indexes for table `api_credentials`
---
-ALTER TABLE `api_credentials`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uq_provider` (`provider`);
 
 --
 -- Indexes for table `beatsheets`
@@ -430,6 +411,7 @@ ALTER TABLE `scenelists`
 --
 ALTER TABLE `scripts`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_scripts_project_scene` (`project_id`,`type`,`scene_number`),
   ADD KEY `idx_scripts_project_type` (`project_id`,`type`);
 
 --
@@ -493,12 +475,6 @@ ALTER TABLE `users`
 --
 ALTER TABLE `ai_generation_logs`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `api_credentials`
---
-ALTER TABLE `api_credentials`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `beatsheets`
@@ -600,7 +576,7 @@ ALTER TABLE `uploaded_story_files`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- Constraints for dumped tables
