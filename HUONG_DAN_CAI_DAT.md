@@ -11,8 +11,8 @@ Tài liệu này hướng dẫn chi tiết cách thiết lập, cài đặt và 
 - **Hệ điều hành**: Windows 10/11, macOS, hoặc Linux (khuyến nghị Ubuntu 20.04 LTS trở lên cho production).
 - **Node.js**: Phiên bản `>= 18.x` (kèm theo `npm >= 9.x`).
 - **Python**: Phiên bản `>= 3.8` (kèm theo trình quản lý gói `pip >= 21.x`).
-- **Cơ sở dữ liệu**: MySQL `>= 8.0`.
-- **Mạng**: Kết nối Internet để kết nối các API của OpenRouter, Google Auth và các cổng thanh toán (PayOS/SePay, VNPAY).
+- **Cơ sở dữ liệu**: MySQL `>= 8.0` hoặc PostgreSQL `>= 12.x` (hệ thống tự động hỗ trợ cả hai và hỗ trợ tự động đồng bộ dữ liệu từ MySQL sang PostgreSQL).
+- **Mạng**: Kết nối Internet để kết nối các API của OpenRouter, Google Auth và các dịch vụ thanh toán/gửi thư (PayOS/SePay, VNPAY, Nodemailer).
 
 ---
 
@@ -42,6 +42,13 @@ cp .env.example .env
 | `DB_USER` | Tên tài khoản MySQL. | `root` |
 | `DB_PASSWORD` | Mật khẩu tài khoản MySQL. | `mat_khau_cua_ban` |
 | `DB_NAME` | Tên cơ sở dữ liệu dự án. | `ai_screenplay` |
+| **Cấu hình Cơ sở dữ liệu (PostgreSQL)** | | |
+| `PG_HOST` | Địa chỉ máy chủ cơ sở dữ liệu PostgreSQL. | `localhost` |
+| `PG_PORT` | Cổng kết nối dịch vụ PostgreSQL. | `5432` |
+| `PG_USER` | Tên tài khoản PostgreSQL. | `postgres` |
+| `PG_PASSWORD` | Mật khẩu tài khoản PostgreSQL. | `mat_khau_cua_ban` |
+| `PG_NAME` | Tên cơ sở dữ liệu PostgreSQL. | `ai_screenplay` |
+| `DB_TYPE` | Chọn loại cơ sở dữ liệu ưu tiên (`mysql` hoặc `postgres`). | `mysql` |
 | **Cấu hình Máy chủ Node.js chính** | | |
 | `PORT` | Cổng chạy máy chủ chính Node.js Express. | `3000` |
 | `JWT_SECRET` | Khóa bí mật dùng để ký mã thông báo JWT. | `thay-bang-chuoi-bao-mat-32-ky-tu` |
@@ -57,6 +64,12 @@ cp .env.example .env
 | `VNPAY_HASH_SECRET` | Khóa bảo mật ký chữ ký số giao dịch VNPAY. | `HASH_SECRET_VI_DU` |
 | `VNPAY_URL` | Đường dẫn gọi cổng thanh toán VNPAY Sandbox. | `https://sandbox.vnpayment.vn/paymentv2/vpcpay.html` |
 | `VNPAY_RETURN_URL` | Địa chỉ URL nhận kết quả thanh toán từ VNPAY. | `http://localhost:3000/api/payment/vnpay/return` |
+| **Cấu hình Email (Nodemailer)** | | |
+| `EMAIL_HOST` | Máy chủ gửi thư SMTP. | `smtp.gmail.com` |
+| `EMAIL_PORT` | Cổng kết nối dịch vụ gửi thư SMTP (587 cho TLS). | `587` |
+| `EMAIL_USER` | Tên tài khoản email gửi tin. | `tuthehien2618@gmail.com` |
+| `EMAIL_PASS` | Mật khẩu ứng dụng (App Password) của tài khoản email. | `yowp jeoz swhx yqgc` |
+| `EMAIL_FROM` | Tên người gửi và email đi. | `AI Screenplay <tuthehien2618@gmail.com>` |
 
 ---
 
@@ -68,7 +81,9 @@ git clone <repository-url>
 cd AI_screenplay
 ```
 
-### Bước 2: Thiết lập cơ sở dữ liệu MySQL
+### Bước 2: Thiết lập cơ sở dữ liệu (MySQL & PostgreSQL)
+
+#### Cách 1: Sử dụng MySQL (Mặc định)
 1. Khởi động dịch vụ MySQL trên máy tính của bạn.
 2. Đăng nhập và tạo cơ sở dữ liệu mới có tên `ai_screenplay` hỗ trợ bảng mã UTF-8:
    ```bash
@@ -78,6 +93,12 @@ cd AI_screenplay
    ```bash
    mysql -u root -p ai_screenplay < database/ai_screenplay.sql
    ```
+
+#### Cách 2: Sử dụng PostgreSQL
+1. Khởi động dịch vụ PostgreSQL trên máy tính của bạn.
+2. Đảm bảo cấu hình các biến môi trường `PG_...` và đặt `DB_TYPE=postgres` trong `.env`.
+3. Hệ thống có cơ chế tự động kiểm tra, nếu cơ sở dữ liệu PostgreSQL chưa tồn tại sẽ tự khởi tạo mới, đồng thời tự động đồng bộ hóa cấu trúc và dữ liệu từ MySQL sang PostgreSQL khi khởi động Node.js server.
+   *Vì vậy, để sử dụng PostgreSQL, hãy nạp dữ liệu mẫu vào MySQL trước (theo Cách 1), sau đó khởi chạy ứng dụng để hệ thống tự động nhân bản sang PostgreSQL.*
 
 ### Bước 3: Cài đặt và cấu hình Node.js backend
 Di chuyển vào thư mục `server`, cài đặt các thư viện Node.js cần thiết:
@@ -181,7 +202,7 @@ Di chuyển mã nguồn dự án vào thư mục vận hành (ví dụ: `/var/ww
    cp .env.example .env
    nano .env
    ```
-   *Cập nhật các thông số cơ sở dữ liệu (`DB_USER=screenplay_user`, `DB_PASSWORD=mat_khau_bao_mat_cua_ban`) cùng các khóa API và tham số thanh toán thực tế.*
+   *Cập nhật các thông số cơ sở dữ liệu (MySQL hoặc PostgreSQL như `PG_USER=postgres`, `PG_PASSWORD=mat_khau_bao_mat_cua_ban`, `DB_TYPE=postgres`), cấu hình Email Nodemailer, các khóa API và tham số thanh toán thực tế.*
 
 2. **Cài đặt thư viện Node.js**:
    ```bash
