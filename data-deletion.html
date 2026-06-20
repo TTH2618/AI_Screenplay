@@ -157,7 +157,7 @@
                         <p>Vui lòng đọc kỹ các lưu ý sau trước khi quyết định xóa tài khoản:</p>
                         <ul style="margin: 10px 0 0 16px; font-size: 0.95rem;">
                             <li><strong>Mất dữ liệu vĩnh viễn:</strong> Toàn bộ kịch bản, nhân vật và dữ liệu bạn đã dày công tạo dựng sẽ bị xóa vĩnh viễn và không thể khôi phục (ngay cả đối với quản trị viên hệ thống).</li>
-                            <li><strong>Giao dịch & Gói PRO:</strong> Việc xóa tài khoản đồng nghĩa với việc bạn tự nguyện hủy bỏ thời hạn PRO còn lại. Số tiền đã mua gói PRO sẽ không được hoàn lại.</li>
+                            <li><strong>Giao dịch &amp; Gói PRO:</strong> Việc xóa tài khoản đồng nghĩa với việc bạn tự nguyện hủy bỏ thời hạn PRO còn lại. Số tiền đã mua gói PRO sẽ không được hoàn lại.</li>
                             <li><strong>Sao lưu trước khi thực hiện:</strong> Hãy đảm bảo bạn đã tải xuống/export toàn bộ các kịch bản của mình dưới định dạng file Word (.docx) trước khi thực hiện xóa.</li>
                         </ul>
                     </div>
@@ -178,7 +178,7 @@
             <!-- 5. Inquiries -->
             <section id="contact">
                 <h2 class="lang-vi">5. Liên hệ giải đáp thắc mắc</h2>
-                <h2 class="lang-en">5. Questions & Inquiries</h2>
+                <h2 class="lang-en">5. Questions &amp; Inquiries</h2>
                 <div class="lang-vi">
                     <p>Nếu bạn có bất kỳ khó khăn nào trong quá trình tự thực hiện xóa dữ liệu hoặc cần làm rõ chính sách bảo mật, hãy liên hệ ngay với đội ngũ hỗ trợ:</p>
                     <div class="contact-grid">
@@ -202,6 +202,53 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </section>
+
+            <!-- Deletion Form Section -->
+            <section id="deletion-form" contenteditable="false" style="margin-top: 40px; padding-top: 30px; border-top: 1px solid var(--gray-200);">
+                <div class="support-form-card" style="margin-top: 0;">
+                    <h3 class="lang-vi"><i class="fas fa-trash-alt" style="color: #ef4444; margin-right: 8px;"></i> Điền thông tin để gửi yêu cầu</h3>
+                    <h3 class="lang-en"><i class="fas fa-trash-alt" style="color: #ef4444; margin-right: 8px;"></i> Fill in Details to Submit Request</h3>
+                    
+                    <form id="deletionForm" onsubmit="handleDeletionSubmit(event)">
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label for="registeredEmail" class="lang-vi">Email đăng ký *</label>
+                                <label for="registeredEmail" class="lang-en">Registered Email *</label>
+                                <input type="email" id="registeredEmail" required placeholder="Nhập email đăng ký">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="deletionReason" class="lang-vi">Lý do xóa tài khoản</label>
+                                <label for="deletionReason" class="lang-en">Reason for deletion</label>
+                                <select id="deletionReason">
+                                    <option value="" class="lang-vi">Chọn lý do (không bắt buộc)</option>
+                                    <option value="" class="lang-en">Select a reason (optional)</option>
+                                    <option value="privacy" class="lang-vi">Lo ngại về quyền riêng tư</option>
+                                    <option value="privacy" class="lang-en">Privacy concerns</option>
+                                    <option value="unused" class="lang-vi">Không còn nhu cầu sử dụng</option>
+                                    <option value="unused" class="lang-en">No longer needed</option>
+                                    <option value="buggy" class="lang-vi">Gặp quá nhiều lỗi</option>
+                                    <option value="buggy" class="lang-en">Encountered too many bugs</option>
+                                    <option value="other" class="lang-vi">Lý do khác</option>
+                                    <option value="other" class="lang-en">Other reason</option>
+                                </select>
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="deletionNotes" class="lang-vi">Ghi chú thêm</label>
+                                <label for="deletionNotes" class="lang-en">Additional notes</label>
+                                <textarea id="deletionNotes" rows="4" placeholder="Mô tả thêm (không bắt buộc)"></textarea>
+                            </div>
+                            <div class="form-group full-width">
+                                <button type="submit" class="btn-submit-support" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                                    <i class="fas fa-trash-alt"></i>
+                                    <span class="lang-vi">Gửi yêu cầu xóa tài khoản</span>
+                                    <span class="lang-en">Submit Account Deletion Request</span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="deletionFormFeedback" style="display:none; margin-top:20px; padding:15px; border-radius:8px; text-align:center; font-weight:600;"></div>
                 </div>
             </section>
         </main>
@@ -231,6 +278,77 @@
                     btn.style.boxShadow = 'none';
                 }
             });
+
+            // Adjust placeholders based on active language
+            const registeredEmailInput = document.getElementById('registeredEmail');
+            const deletionNotesTextarea = document.getElementById('deletionNotes');
+            if (registeredEmailInput) {
+                registeredEmailInput.placeholder = lang === 'vi' ? 'Nhập email đăng ký' : 'Enter registered email';
+            }
+            if (deletionNotesTextarea) {
+                deletionNotesTextarea.placeholder = lang === 'vi' ? 'Mô tả thêm (không bắt buộc)' : 'Additional notes (optional)';
+            }
+        }
+
+        async function handleDeletionSubmit(event) {
+            event.preventDefault();
+            const lang = localStorage.getItem('i18nLang') || 'vi';
+            const feedbackEl = document.getElementById('deletionFormFeedback');
+            const submitBtn = document.querySelector('#deletionForm button[type="submit"]');
+            
+            const email = document.getElementById('registeredEmail').value;
+            const reasonSelect = document.getElementById('deletionReason');
+            const reason = reasonSelect.options[reasonSelect.selectedIndex].text;
+            const notes = document.getElementById('deletionNotes').value;
+
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.7';
+
+            try {
+                const res = await fetch('/api/auth/data-deletion-request', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, reason, notes })
+                });
+                
+                const data = await res.json();
+                feedbackEl.style.display = 'block';
+                
+                if (res.ok && data.success) {
+                    feedbackEl.style.background = '#f0fdf4';
+                    feedbackEl.style.border = '1px solid #10b981';
+                    feedbackEl.style.color = '#15803d';
+                    feedbackEl.innerText = lang === 'vi' 
+                        ? "Yêu cầu xóa tài khoản của bạn đã được gửi thành công!" 
+                        : "Your account deletion request has been successfully submitted!";
+                    
+                    document.getElementById('deletionForm').reset();
+                } else {
+                    feedbackEl.style.background = '#fef2f2';
+                    feedbackEl.style.border = '1px solid #f87171';
+                    feedbackEl.style.color = '#b91c1c';
+                    feedbackEl.innerText = data.message || (lang === 'vi' 
+                        ? "Có lỗi xảy ra khi gửi yêu cầu. Vui lòng thử lại sau." 
+                        : "An error occurred while submitting the request. Please try again later.");
+                }
+            } catch (error) {
+                feedbackEl.style.display = 'block';
+                feedbackEl.style.background = '#fef2f2';
+                feedbackEl.style.border = '1px solid #f87171';
+                feedbackEl.style.color = '#b91c1c';
+                feedbackEl.innerText = lang === 'vi' 
+                    ? "Lỗi kết nối. Vui lòng thử lại sau." 
+                    : "Connection error. Please try again later.";
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = '1';
+                
+                setTimeout(() => {
+                    feedbackEl.style.display = 'none';
+                }, 5000);
+            }
         }
 
         // Initialize language
@@ -245,9 +363,11 @@
             window.addEventListener('scroll', () => {
                 let current = '';
                 sections.forEach(section => {
-                    const sectionTop = section.offsetTop;
-                    if (pageYOffset >= sectionTop - 120) {
-                        current = section.getAttribute('id');
+                    if (section.offsetTop) {
+                        const sectionTop = section.offsetTop;
+                        if (pageYOffset >= sectionTop - 120) {
+                            current = section.getAttribute('id');
+                        }
                     }
                 });
 

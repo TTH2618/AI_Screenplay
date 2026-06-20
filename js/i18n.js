@@ -403,6 +403,7 @@
             'admin.tab.token': 'Token & Credits',
             'admin.nav.lang': 'Ngôn ngữ',
             'admin.tab.seo': 'Cấu hình SEO',
+            'admin.tab.policy': 'Cấu hình Chính sách',
 
             /* ── Translation for renew / upgrade description ───────────────── */
             'dash.plan.free.desc': 'Tài khoản Free: tối đa 10 lượt AI/ngày. PRO: không giới hạn lượt dùng.',
@@ -858,6 +859,7 @@
             'admin.tab.token': 'Token & Credits',
             'admin.nav.lang': 'Language',
             'admin.tab.seo': 'SEO Config',
+            'admin.tab.policy': 'Policy Pages',
 
             /* ── Translation for renew / upgrade description ───────────────── */
             'dash.plan.free.desc': 'Free Plan: max 10 AI requests/day. PRO: unlimited usage.',

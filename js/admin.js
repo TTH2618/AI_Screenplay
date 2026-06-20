@@ -55,6 +55,7 @@ function setupTabs() {
             else if (tab === 'landing-page') loadLandingConfig();
             else if (tab === 'token-billing') loadTokenBilling();
             else if (tab === 'seo-config') loadSeoConfig();
+            else if (tab === 'policy-config') loadPolicyPage();
         });
     });
 }
@@ -1391,6 +1392,425 @@ window.loadSeoConfig = loadSeoConfig;
 window.handleSeoLogoSelect = handleSeoLogoSelect;
 window.handleSeoFaviconSelect = handleSeoFaviconSelect;
 window.saveSeoConfig = saveSeoConfig;
+
+// ============================================================
+// POLICY PAGES CONFIGURATION (Block-based Section Editor)
+// ============================================================
+let currentPolicyHtml = '';
+let sectionsData = [];
+let unmanagedNodes = [];
+
+async function loadPolicyPage() {
+    const id = document.getElementById('policySelect').value;
+    try {
+        const res = await api(`/policy-pages/${id}`);
+        if (res.success) {
+            currentPolicyHtml = res.html;
+            
+            // Dùng DOMParser để bóc tách tệp HTML gốc
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(currentPolicyHtml, 'text/html');
+            
+            // 1. Tìm danh sách mục lục (TOC) và các section tương ứng
+            sectionsData = [];
+            const tocList = doc.querySelector('.toc-list');
+            const managedIds = [];
+            
+            if (tocList) {
+                const links = tocList.querySelectorAll('a');
+                links.forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (!href || !href.startsWith('#')) return;
+                    const secId = href.substring(1);
+                    managedIds.push(secId);
+                    
+                    // Tìm thẻ section tương ứng
+                    const secEl = doc.getElementById(secId);
+                    if (secEl) {
+                        const viTitleEl = secEl.querySelector('h2.lang-vi');
+                        const enTitleEl = secEl.querySelector('h2.lang-en');
+                        const viDiv = secEl.querySelector('div.lang-vi');
+                        const enDiv = secEl.querySelector('div.lang-en');
+                        
+                        const viTitle = viTitleEl ? viTitleEl.textContent.trim() : '';
+                        const enTitle = enTitleEl ? enTitleEl.textContent.trim() : '';
+                        const viContent = viDiv ? viDiv.innerHTML.trim() : '';
+                        const enContent = enDiv ? enDiv.innerHTML.trim() : '';
+                        
+                        // Lấy các thẻ HTML khác nằm ngoài cấu trúc chuẩn của section
+                        const extraNode = secEl.cloneNode(true);
+                        extraNode.querySelectorAll('h2.lang-vi, h2.lang-en, div.lang-vi, div.lang-en').forEach(el => el.remove());
+                        const extraHtml = extraNode.innerHTML.trim();
+                        
+                        sectionsData.push({
+                            id: secId,
+                            viTitle,
+                            enTitle,
+                            viContent,
+                            enContent,
+                            extraHtml
+                        });
+                    } else {
+                        // Nếu có liên kết mục lục nhưng ko có section tương ứng
+                        sectionsData.push({
+                            id: secId,
+                            viTitle: link.querySelector('.lang-vi')?.textContent || '',
+                            enTitle: link.querySelector('.lang-en')?.textContent || '',
+                            viContent: '',
+                            enContent: '',
+                            extraHtml: ''
+                        });
+                    }
+                });
+            }
+            
+            // 2. Tìm và lưu giữ các child nodes không quản lý trong thẻ <main class="legal-article">
+            unmanagedNodes = [];
+            const legalArticle = doc.querySelector('.legal-article');
+            if (legalArticle) {
+                Array.from(legalArticle.childNodes).forEach(node => {
+                    if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'SECTION') {
+                        const secId = node.getAttribute('id');
+                        if (managedIds.includes(secId)) return;
+                    }
+                    unmanagedNodes.push(node.cloneNode(true));
+                });
+            }
+            
+            // 3. Cập nhật preview link
+            const viewLink = document.getElementById('policyViewLink');
+            if (viewLink) {
+                viewLink.href = `/${id}`;
+            }
+            
+            // 4. Render các block ra giao diện
+            renderPolicySections();
+        } else {
+            showToast(res.message || 'Lỗi tải trang chính sách', 'error');
+        }
+    } catch (e) {
+        showToast('Lỗi: ' + e.message, 'error');
+    }
+    
+    // Tải cấu hình email nhận yêu cầu xóa tài khoản
+    await loadDeletionEmailConfig();
+}
+
+function renderPolicySections() {
+    const container = document.getElementById('sectionsContainer');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    if (sectionsData.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: var(--muted); font-style: italic; background: #f8fafc; border: 1px dashed var(--line); border-radius: 8px;">
+                Chưa có phân mục nào được cấu hình cho trang này. Nhấp "Thêm mục mới" để bắt đầu.
+            </div>
+        `;
+        return;
+    }
+    
+    sectionsData.forEach((sec, idx) => {
+        const card = document.createElement('div');
+        card.className = 'section-card';
+        card.setAttribute('data-index', idx);
+        
+        card.innerHTML = `
+            <!-- Tiêu đề thẻ và các hành động -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--line); padding-bottom: 12px;">
+                <h4 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--ink);">Mục ${idx + 1}: <span class="section-display-id" style="color: #6366f1;">${sec.id}</span></h4>
+                <div style="display: flex; gap: 6px;">
+                    <button class="btn-mini" onclick="moveSectionUp(${idx})" title="Di chuyển lên" ${idx === 0 ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}><i class="fas fa-arrow-up"></i></button>
+                    <button class="btn-mini" onclick="moveSectionDown(${idx})" title="Di chuyển xuống" ${idx === sectionsData.length - 1 ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}><i class="fas fa-arrow-down"></i></button>
+                    <button class="btn-mini" onclick="deleteSection(${idx})" title="Xóa mục" style="color: #ef4444; border-color: #fca5a5;"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            </div>
+            
+            <!-- Trường cấu hình Id và Tiêu đề -->
+            <div class="settings-grid" style="grid-template-columns: 1fr 2fr; gap: 16px; margin-bottom: 16px;">
+                <div>
+                    <label>ID mục lục (Unique, không dấu/khoảng cách) *</label>
+                    <input type="text" class="section-id-input" value="${sec.id}" onchange="updateSectionId(${idx}, this.value)" required style="width: 100%;">
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <div style="flex: 1;">
+                        <label>Tiêu đề Tiếng Việt *</label>
+                        <input type="text" class="section-title-vi" value="${sec.viTitle}" required style="width: 100%;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label>Tiêu đề Tiếng Anh *</label>
+                        <input type="text" class="section-title-en" value="${sec.enTitle}" required style="width: 100%;">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Trình soạn thảo song ngữ -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 600;"><span style="background: #e0e7ff; color: #4f46e5; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700;">VI</span> Nội dung Tiếng Việt</label>
+                    <div class="mini-toolbar" style="display: flex; gap: 4px; background: #f8fafc; border: 1px solid var(--line); border-bottom: none; border-radius: 6px 6px 0 0; padding: 4px; align-items: center;">
+                        <button type="button" class="btn-mini" onclick="formatMiniDoc(this, 'bold')" title="Chữ đậm"><i class="fas fa-bold"></i></button>
+                        <button type="button" class="btn-mini" onclick="formatMiniDoc(this, 'italic')" title="Chữ nghiêng"><i class="fas fa-italic"></i></button>
+                        <button type="button" class="btn-mini" onclick="formatMiniDoc(this, 'underline')" title="Gạch chân"><i class="fas fa-underline"></i></button>
+                        <span style="width: 1px; height: 14px; background: var(--line); margin: 0 2px;"></span>
+                        <button type="button" class="btn-mini" onclick="formatMiniDoc(this, 'insertUnorderedList')" title="Danh sách chấm"><i class="fas fa-list-ul"></i></button>
+                        <button type="button" class="btn-mini" onclick="formatMiniDoc(this, 'insertOrderedList')" title="Danh sách số"><i class="fas fa-list-ol"></i></button>
+                        <button type="button" class="btn-mini" onclick="formatMiniDoc(this, 'removeFormat')" title="Xóa định dạng"><i class="fas fa-eraser"></i></button>
+                    </div>
+                    <div style="border: 1px solid var(--line); border-radius: 0 0 6px 6px; background: #ffffff; min-height: 180px; max-height: 300px; overflow-y: auto;">
+                        <div class="section-content-vi" contenteditable="true" style="padding: 12px; outline: none; min-height: 160px; font-size: 13px; line-height: 1.6;">${sec.viContent}</div>
+                    </div>
+                </div>
+                <div>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 600;"><span style="background: #f1f5f9; color: #475569; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700;">EN</span> Nội dung Tiếng Anh</label>
+                    <div class="mini-toolbar" style="display: flex; gap: 4px; background: #f8fafc; border: 1px solid var(--line); border-bottom: none; border-radius: 6px 6px 0 0; padding: 4px; align-items: center;">
+                        <button type="button" class="btn-mini" onclick="formatMiniDoc(this, 'bold')" title="Chữ đậm"><i class="fas fa-bold"></i></button>
+                        <button type="button" class="btn-mini" onclick="formatMiniDoc(this, 'italic')" title="Chữ nghiêng"><i class="fas fa-italic"></i></button>
+                        <button type="button" class="btn-mini" onclick="formatMiniDoc(this, 'underline')" title="Gạch chân"><i class="fas fa-underline"></i></button>
+                        <span style="width: 1px; height: 14px; background: var(--line); margin: 0 2px;"></span>
+                        <button type="button" class="btn-mini" onclick="formatMiniDoc(this, 'insertUnorderedList')" title="Danh sách chấm"><i class="fas fa-list-ul"></i></button>
+                        <button type="button" class="btn-mini" onclick="formatMiniDoc(this, 'insertOrderedList')" title="Danh sách số"><i class="fas fa-list-ol"></i></button>
+                        <button type="button" class="btn-mini" onclick="formatMiniDoc(this, 'removeFormat')" title="Xóa định dạng"><i class="fas fa-eraser"></i></button>
+                    </div>
+                    <div style="border: 1px solid var(--line); border-radius: 0 0 6px 6px; background: #ffffff; min-height: 180px; max-height: 300px; overflow-y: auto;">
+                        <div class="section-content-en" contenteditable="true" style="padding: 12px; outline: none; min-height: 160px; font-size: 13px; line-height: 1.6;">${sec.enContent}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(card);
+    });
+}
+
+function addNewSection() {
+    let newId = 'new-section';
+    let counter = 1;
+    while (sectionsData.some(s => s.id === newId)) {
+        newId = `new-section-${counter++}`;
+    }
+    
+    sectionsData.push({
+        id: newId,
+        viTitle: `${sectionsData.length + 1}. Mục mới`,
+        enTitle: `${sectionsData.length + 1}. New Section`,
+        viContent: '<p>Nhập nội dung tiếng Việt ở đây...</p>',
+        enContent: '<p>Enter English content here...</p>',
+        extraHtml: ''
+    });
+    
+    renderPolicySections();
+    setTimeout(() => {
+        const container = document.getElementById('sectionsContainer');
+        container.lastElementChild?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+}
+
+function deleteSection(index) {
+    if (!confirm('Bạn có chắc chắn muốn xóa phân mục này? Mọi nội dung bên trong sẽ bị xóa bỏ.')) return;
+    sectionsData.splice(index, 1);
+    renderPolicySections();
+}
+
+function moveSectionUp(index) {
+    if (index === 0) return;
+    const temp = sectionsData[index];
+    sectionsData[index] = sectionsData[index - 1];
+    sectionsData[index - 1] = temp;
+    renderPolicySections();
+}
+
+function moveSectionDown(index) {
+    if (index === sectionsData.length - 1) return;
+    const temp = sectionsData[index];
+    sectionsData[index] = sectionsData[index + 1];
+    sectionsData[index + 1] = temp;
+    renderPolicySections();
+}
+
+function updateSectionId(index, value) {
+    const cleaned = value.trim().replace(/[^a-zA-Z0-9_-]/g, '');
+    if (!cleaned) {
+        showToast('ID không được để trống hoặc chứa ký tự đặc biệt', 'warning');
+        return;
+    }
+    const duplicate = sectionsData.some((s, idx) => idx !== index && s.id === cleaned);
+    if (duplicate) {
+        showToast('ID này đã được sử dụng ở mục khác', 'warning');
+        return;
+    }
+    sectionsData[index].id = cleaned;
+    
+    const cards = document.querySelectorAll('.section-card');
+    if (cards[index]) {
+        cards[index].querySelector('.section-display-id').textContent = cleaned;
+    }
+}
+
+function formatMiniDoc(btn, cmd) {
+    const parentContainer = btn.closest('.mini-toolbar').nextElementSibling.firstElementChild;
+    if (parentContainer) {
+        parentContainer.focus();
+        document.execCommand(cmd, false, null);
+    }
+}
+
+async function savePolicyPage() {
+    const id = document.getElementById('policySelect').value;
+    const cards = document.querySelectorAll('.section-card');
+    let hasError = false;
+    
+    cards.forEach((card, index) => {
+        const idInput = card.querySelector('.section-id-input').value.trim().replace(/[^a-zA-Z0-9_-]/g, '');
+        const titleVi = card.querySelector('.section-title-vi').value.trim();
+        const titleEn = card.querySelector('.section-title-en').value.trim();
+        const contentVi = card.querySelector('.section-content-vi').innerHTML.trim();
+        const contentEn = card.querySelector('.section-content-en').innerHTML.trim();
+        
+        if (!idInput) {
+            showToast(`Mục ${index + 1}: ID không được để trống`, 'warning');
+            hasError = true;
+            return;
+        }
+        if (!titleVi || !titleEn) {
+            showToast(`Mục ${index + 1}: Tiêu đề VI & EN không được để trống`, 'warning');
+            hasError = true;
+            return;
+        }
+        
+        sectionsData[index].id = idInput;
+        sectionsData[index].viTitle = titleVi;
+        sectionsData[index].enTitle = titleEn;
+        sectionsData[index].viContent = contentVi;
+        sectionsData[index].enContent = contentEn;
+    });
+    
+    if (hasError) return;
+    
+    try {
+        showToast('Đang xử lý tài liệu HTML...', 'info');
+        
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(currentPolicyHtml, 'text/html');
+        
+        // 1. Tái lập mục lục (TOC list)
+        const tocList = doc.querySelector('.toc-list');
+        if (tocList) {
+            tocList.innerHTML = '\n';
+            sectionsData.forEach((sec, idx) => {
+                const li = doc.createElement('li');
+                li.innerHTML = `\n                        <a href="#${sec.id}" class="${idx === 0 ? 'toc-link active' : 'toc-link'}"><span class="lang-vi">${sec.viTitle}</span><span class="lang-en">${sec.enTitle}</span></a>\n                    `;
+                tocList.appendChild(li);
+            });
+            tocList.appendChild(doc.createTextNode('\n                '));
+        }
+        
+        // 2. Tái lập các section nội dung chính trong <main class="legal-article">
+        const legalArticle = doc.querySelector('.legal-article');
+        if (legalArticle) {
+            legalArticle.innerHTML = '\n';
+            
+            sectionsData.forEach(sec => {
+                const sectionEl = doc.createElement('section');
+                sectionEl.id = sec.id;
+                
+                sectionEl.innerHTML = `
+                <h2 class="lang-vi">${sec.viTitle}</h2>
+                <h2 class="lang-en">${sec.enTitle}</h2>
+                <div class="lang-vi">
+                    ${sec.viContent}
+                </div>
+                <div class="lang-en">
+                    ${sec.enContent}
+                </div>
+                ${sec.extraHtml ? `\n                ${sec.extraHtml}` : ''}
+            `;
+                legalArticle.appendChild(sectionEl);
+                legalArticle.appendChild(doc.createTextNode('\n\n            '));
+            });
+            
+            // Phục hồi lại các unmanaged nodes (form xóa tài khoản, script...)
+            unmanagedNodes.forEach(node => {
+                legalArticle.appendChild(node.cloneNode(true));
+            });
+        }
+        
+        // 3. Chuyển đổi tài liệu về dạng string (bao gồm cả DOCTYPE)
+        const finalHtml = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
+        
+        const res = await api(`/policy-pages/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify({ html: finalHtml })
+        });
+        
+        if (res.success) {
+            showToast('Đã lưu thay đổi trang chính sách thành công!', 'success');
+            currentPolicyHtml = finalHtml;
+        } else {
+            showToast(res.message || 'Lỗi lưu trang chính sách', 'error');
+        }
+    } catch (err) {
+        showToast('Lỗi: ' + err.message, 'error');
+    }
+}
+
+function onPolicyPageChange() {
+    loadPolicyPage();
+}
+
+async function loadDeletionEmailConfig() {
+    try {
+        const res = await api('/deletion-email');
+        if (res.success) {
+            document.getElementById('deletionRecipientEmail').value = res.email || 'support@aiscreenplay.com';
+        }
+    } catch (e) {
+        console.error('Lỗi tải cấu hình email xóa tài khoản:', e);
+    }
+}
+
+async function saveDeletionEmailConfig() {
+    const email = document.getElementById('deletionRecipientEmail').value.trim();
+    if (!email) {
+        showToast('Vui lòng nhập email nhận yêu cầu', 'warning');
+        return;
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        showToast('Địa chỉ email không hợp lệ', 'warning');
+        return;
+    }
+
+    try {
+        showToast('Đang lưu cấu hình email...', 'info');
+        const res = await api('/deletion-email', {
+            method: 'PUT',
+            body: JSON.stringify({ email })
+        });
+        if (res.success) {
+            showToast('Đã lưu cấu hình email nhận yêu cầu xóa tài khoản thành công!', 'success');
+        } else {
+            showToast(res.message || 'Lỗi lưu cấu hình email', 'error');
+        }
+    } catch (e) {
+        showToast('Lỗi: ' + e.message, 'error');
+    }
+}
+
+window.loadPolicyPage = loadPolicyPage;
+window.savePolicyPage = savePolicyPage;
+window.onPolicyPageChange = onPolicyPageChange;
+window.loadDeletionEmailConfig = loadDeletionEmailConfig;
+window.saveDeletionEmailConfig = saveDeletionEmailConfig;
+window.addNewSection = addNewSection;
+window.deleteSection = deleteSection;
+window.moveSectionUp = moveSectionUp;
+window.moveSectionDown = moveSectionDown;
+window.updateSectionId = updateSectionId;
+window.formatMiniDoc = formatMiniDoc;
 
 init().catch((err) => {
     console.error(err);

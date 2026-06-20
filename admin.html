@@ -49,6 +49,7 @@
             <button class="tab" data-tab="landing-page"><i class="fas fa-home"></i> <span data-i18n="admin.tab.landing">Landing Page</span></button>
             <button class="tab" data-tab="token-billing"><i class="fas fa-coins"></i> <span data-i18n="admin.tab.token">Token &amp; Credits</span></button>
             <button class="tab" data-tab="seo-config"><i class="fas fa-globe"></i> <span data-i18n="admin.tab.seo">Cấu hình SEO</span></button>
+            <button class="tab" data-tab="policy-config"><i class="fas fa-file-shield"></i> <span data-i18n="admin.tab.policy">Cấu hình Chính sách</span></button>
         </aside>
 
         <section class="content">
@@ -692,8 +693,258 @@
                 </div>
             </div>
         </div>
-    </section>
-</main>
+
+            <!-- ========================================================
+                 POLICY CONFIGURATION TAB
+                 ======================================================== -->
+            <div id="policy-config" class="tab-panel">
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:24px;">
+                    <h2><i class="fas fa-file-shield"></i> Cấu hình Trang Chính sách</h2>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn secondary" onclick="loadPolicyPage()"><i class="fas fa-sync"></i> Tải lại</button>
+                        <button class="btn primary" onclick="savePolicyPage()"><i class="fas fa-save"></i> Lưu cấu hình</button>
+                    </div>
+                </div>
+
+                <!-- Cấu hình Email nhận yêu cầu xóa tài khoản -->
+                <div class="panel" style="margin-bottom: 24px;">
+                    <h3 style="margin-top: 0; margin-bottom: 12px; font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-envelope" style="color: #6366f1;"></i> Cấu hình Email nhận yêu cầu xóa tài khoản
+                    </h3>
+                    <p style="font-size: 13px; color: #64748b; margin-bottom: 16px;">
+                        Các yêu cầu xóa tài khoản gửi từ biểu mẫu trên trang Data Deletion sẽ được chuyển tiếp trực tiếp về địa chỉ hòm thư này.
+                    </p>
+                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 280px;">
+                            <input id="deletionRecipientEmail" type="email" placeholder="support@aiscreenplay.com" style="width: 100%; height: 42px; padding: 0 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; box-sizing: border-box; outline: none; background: #ffffff;">
+                        </div>
+                        <button class="btn primary" onclick="saveDeletionEmailConfig()" style="height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                            <i class="fas fa-save"></i> Lưu cấu hình email
+                        </button>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="settings-grid" style="grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                        <div>
+                            <label>Chọn trang chính sách cần chỉnh sửa</label>
+                            <select id="policySelect" onchange="onPolicyPageChange()" style="width: 100%;">
+                                <option value="privacy-policy">Chính sách bảo mật (privacy-policy.html)</option>
+                                <option value="terms-of-service">Điều khoản dịch vụ (terms-of-service.html)</option>
+                                <option value="data-deletion">Yêu cầu xóa dữ liệu (data-deletion.html)</option>
+                                <option value="support">Trang hỗ trợ (support.html)</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; align-items: flex-end;">
+                            <a id="policyViewLink" href="/privacy-policy" target="_blank" class="btn" style="height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-sizing: border-box; text-decoration: none; border: 1px solid var(--line); background: #f8fafc; color: var(--ink);">
+                                <i class="fas fa-external-link-alt"></i> Xem trang thực tế
+                            </a>
+                        </div>
+                    </div>
+
+                    <style>
+                        #policyEditor.lang-vi .lang-en {
+                            display: none !important;
+                        }
+                        #policyEditor.lang-en .lang-vi {
+                            display: none !important;
+                        }
+                        #policyEditor h2 {
+                            font-size: 1.6rem;
+                            font-weight: 700;
+                            color: #0f172a;
+                            margin-top: 24px;
+                            margin-bottom: 16px;
+                            padding-bottom: 8px;
+                            border-bottom: 1px solid #f1f5f9;
+                        }
+                        #policyEditor h3 {
+                            font-size: 1.15rem;
+                            font-weight: 600;
+                            color: #1e293b;
+                            margin: 20px 0 10px;
+                        }
+                        #policyEditor p {
+                            color: #334155;
+                            margin-bottom: 14px;
+                            font-size: 14px;
+                            line-height: 1.7;
+                        }
+                        #policyEditor ul, #policyEditor ol {
+                            margin-bottom: 16px;
+                            padding-left: 20px;
+                            color: #334155;
+                        }
+                        #policyEditor li {
+                            margin-bottom: 6px;
+                            font-size: 14px;
+                        }
+                        #policyEditor .alert-box {
+                            background: #f9fafb;
+                            border-left: 4px solid #6366f1;
+                            border-radius: 0 8px 8px 0;
+                            padding: 16px 20px;
+                            margin: 20px 0;
+                        }
+                        #policyEditor .alert-box.warning {
+                            border-left-color: #f59e0b;
+                            background: #fdfaf2;
+                        }
+                        #policyEditor .alert-box.success {
+                            border-left-color: #10b981;
+                            background: #f0fdf4;
+                        }
+                        #policyEditor .alert-title {
+                            font-weight: 700;
+                            font-size: 0.9rem;
+                            text-transform: uppercase;
+                            letter-spacing: 0.5px;
+                            margin-bottom: 6px;
+                            display: flex;
+                            align-items: center;
+                            gap: 6px;
+                        }
+                        #policyEditor .alert-box.warning .alert-title { color: #b45309; }
+                        #policyEditor .alert-box.success .alert-title { color: #15803d; }
+                        
+                        #policyEditor .contact-grid {
+                            display: grid;
+                            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                            gap: 16px;
+                            margin: 20px 0;
+                        }
+                        #policyEditor .contact-card {
+                            border: 1px solid #e2e8f0;
+                            border-radius: 8px;
+                            padding: 16px;
+                            display: flex;
+                            align-items: flex-start;
+                            gap: 12px;
+                        }
+                        #policyEditor .contact-card-icon {
+                            width: 36px;
+                            height: 36px;
+                            background: rgba(99, 102, 241, 0.08);
+                            border-radius: 6px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            color: #6366f1;
+                            font-size: 1.1rem;
+                            flex-shrink: 0;
+                        }
+                        #policyEditor .contact-card-info h4 {
+                            font-weight: 600;
+                            font-size: 0.9rem;
+                            margin: 0 0 4px 0;
+                            color: #0f172a;
+                        }
+                        #policyEditor .contact-card-info p {
+                            font-size: 0.85rem;
+                            color: #4b5563;
+                            margin: 0;
+                        }
+                        #policyEditor .contact-card-info a {
+                            color: #6366f1;
+                            text-decoration: none;
+                            font-weight: 500;
+                        }
+                        #policyEditor a {
+                            color: #6366f1;
+                            font-weight: 600;
+                            text-decoration: underline;
+                        }
+                        
+                        /* Format toolbar styling */
+                        .editor-toolbar button {
+                            background: #ffffff;
+                            border: 1px solid #cbd5e1;
+                            color: #475569;
+                            border-radius: 6px;
+                            padding: 6px 10px;
+                            cursor: pointer;
+                            font-size: 12px;
+                            font-weight: 600;
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            width: 32px;
+                            height: 32px;
+                            transition: all 0.15s ease;
+                        }
+                        .editor-toolbar button:hover {
+                            background: #f1f5f9;
+                            border-color: #94a3b8;
+                            color: #0f172a;
+                        }
+                        .editor-toolbar button.btn-txt {
+                            width: auto;
+                            padding: 6px 12px;
+                        }
+                    </style>
+
+                    <div style="margin-top: 20px;">
+                        <label style="font-weight: 700; font-size: 1rem; color: var(--ink); margin-bottom: 12px; display: block;">Danh sách các phân mục chính sách</label>
+                        
+                        <style>
+                            .btn-mini {
+                                background: #ffffff;
+                                border: 1px solid #cbd5e1;
+                                color: #475569;
+                                border-radius: 4px;
+                                cursor: pointer;
+                                width: 26px;
+                                height: 26px;
+                                display: inline-flex;
+                                align-items: center;
+                                justify-content: center;
+                                font-size: 11px;
+                                transition: all 0.15s ease;
+                                padding: 0;
+                            }
+                            .btn-mini:hover {
+                                background: #f1f5f9;
+                                border-color: #94a3b8;
+                                color: #0f172a;
+                            }
+                            .section-card {
+                                background: #ffffff;
+                                border: 1px solid var(--line);
+                                border-radius: 12px;
+                                padding: 20px;
+                                margin-bottom: 20px;
+                                box-shadow: var(--shadow-sm);
+                                transition: border-color 0.2s ease;
+                            }
+                            .section-card:hover {
+                                border-color: #94a3b8;
+                            }
+                        </style>
+
+                        <!-- Container danh sách các block -->
+                        <div id="sectionsContainer" style="min-height: 200px;">
+                            <!-- Các block section sẽ được sinh ra ở đây bằng Javascript -->
+                        </div>
+
+                        <!-- Nút Thêm mục mới -->
+                        <button class="btn secondary" onclick="addNewSection()" style="margin-top: 8px; width: 100%; border-style: dashed; border-width: 2px; padding: 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class="fas fa-plus"></i> Thêm mục chính sách mới
+                        </button>
+                        
+                        <small style="display:block; color:var(--muted); margin-top:16px; font-size:12px;">
+                            <i class="fas fa-info-circle" style="color: #6366f1;"></i> 
+                            Nội dung được chia theo các block tương ứng với mục lục. Bạn có thể thêm mục mới, sửa tiêu đề, nội dung hoặc xóa các mục. Khi lưu, mục lục ở thanh bên và liên kết cuộn tự động sẽ được đồng bộ.
+                        </small>
+                    </div>
+
+                    <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; gap: 10px;">
+                        <button class="btn secondary" onclick="loadPolicyPage()"><i class="fas fa-times"></i> Hủy thay đổi</button>
+                        <button class="btn primary" onclick="savePolicyPage()"><i class="fas fa-save"></i> Lưu cấu hình</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
 
     <script src="js/config.js"></script>
     <script src="js/notify.js"></script>

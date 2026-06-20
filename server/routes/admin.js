@@ -1108,4 +1108,148 @@ router.put('/seo-settings', async (req, res) => {
     }
 });
 
+// ============================================================
+// POLICY PAGES CONFIGURATION (HTML direct editing)
+// ============================================================
+
+// GET /api/admin/policy-pages — Lấy danh sách các trang chính sách
+router.get('/policy-pages', (req, res) => {
+    return res.json({
+        success: true,
+        data: [
+            { id: 'privacy-policy', name: 'Chính sách bảo mật (privacy-policy.html)', path: 'privacy-policy.html' },
+            { id: 'terms-of-service', name: 'Điều khoản dịch vụ (terms-of-service.html)', path: 'terms-of-service.html' },
+            { id: 'data-deletion', name: 'Yêu cầu xóa dữ liệu (data-deletion.html)', path: 'data-deletion.html' },
+            { id: 'support', name: 'Trang hỗ trợ (support.html)', path: 'support.html' }
+        ]
+    });
+});
+
+// GET /api/admin/policy-pages/:id — Lấy nội dung HTML của trang chính sách
+router.get('/policy-pages/:id', (req, res) => {
+    const id = req.params.id;
+    const allowed = {
+        'privacy-policy': 'privacy-policy.html',
+        'terms-of-service': 'terms-of-service.html',
+        'data-deletion': 'data-deletion.html',
+        'support': 'support.html'
+    };
+    const file = allowed[id];
+    if (!file) {
+        return res.status(400).json({ success: false, message: 'ID trang không hợp lệ' });
+    }
+
+    const filePath = path.join(__dirname, '..', '..', file);
+    try {
+        if (!fs.existsSync(filePath)) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy file chính sách' });
+        }
+        const fileContent = fs.readFileSync(filePath, 'utf8');
+        
+        // Trích xuất nội dung bên trong <main class="legal-article">...</main> dùng Regex (giữ làm content cũ)
+        const match = fileContent.match(/<main\s+class=["']legal-article["']\s*>/i);
+        let content = fileContent;
+        if (match) {
+            const startIdx = match.index + match[0].length;
+            const endTag = '</main>';
+            const endIdx = fileContent.indexOf(endTag, startIdx);
+            if (endIdx !== -1) {
+                content = fileContent.substring(startIdx, endIdx).trim();
+            }
+        }
+        
+        return res.json({ success: true, html: fileContent, content });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: 'Lỗi đọc file chính sách', error: err.message });
+    }
+});
+
+// PUT /api/admin/policy-pages/:id — Cập nhật nội dung HTML của trang chính sách
+router.put('/policy-pages/:id', (req, res) => {
+    const id = req.params.id;
+    const { html, content } = req.body;
+    const allowed = {
+        'privacy-policy': 'privacy-policy.html',
+        'terms-of-service': 'terms-of-service.html',
+        'data-deletion': 'data-deletion.html',
+        'support': 'support.html'
+    };
+    const file = allowed[id];
+    if (!file) {
+        return res.status(400).json({ success: false, message: 'ID trang không hợp lệ' });
+    }
+
+    const filePath = path.join(__dirname, '..', '..', file);
+    try {
+        // Nếu client gửi toàn bộ HTML mới
+        if (html !== undefined && html !== null) {
+            fs.writeFileSync(filePath, html, 'utf8');
+            return res.json({ success: true, message: 'Đã lưu thay đổi vào file HTML thành công' });
+        }
+
+        // Trường hợp cũ: chỉ gửi nội dung
+        if (content === undefined || content === null) {
+            return res.status(400).json({ success: false, message: 'Nội dung không được bỏ trống' });
+        }
+
+        let fileContent = '';
+        if (fs.existsSync(filePath)) {
+            fileContent = fs.readFileSync(filePath, 'utf8');
+        }
+        
+        // Thay thế phần nội dung bên trong <main class="legal-article">...</main> dùng Regex
+        const match = fileContent.match(/<main\s+class=["']legal-article["']\s*>/i);
+        let finalHtml = content;
+        
+        if (match) {
+            const startIdx = match.index + match[0].length;
+            const endTag = '</main>';
+            const endIdx = fileContent.indexOf(endTag, startIdx);
+            if (endIdx !== -1) {
+                const prefix = fileContent.substring(0, startIdx);
+                const suffix = fileContent.substring(endIdx);
+                finalHtml = `${prefix}\n            ${content}\n        ${suffix}`;
+            }
+        }
+        
+        fs.writeFileSync(filePath, finalHtml, 'utf8');
+        return res.json({ success: true, message: 'Đã lưu thay đổi vào file HTML thành công' });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: 'Lỗi ghi file chính sách', error: err.message });
+    }
+});
+
+// GET /api/admin/deletion-email — Lấy cấu hình email nhận yêu cầu xóa tài khoản
+router.get('/deletion-email', async (req, res) => {
+    try {
+        const [rows] = await pool.execute(
+            "SELECT setting_value FROM payment_settings WHERE setting_key = 'data_deletion_recipient_email' LIMIT 1"
+        );
+        const email = rows[0]?.setting_value || 'support@aiscreenplay.com';
+        return res.json({ success: true, email });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Lỗi lấy cấu hình email xóa tài khoản', error: error.message });
+    }
+});
+
+// PUT /api/admin/deletion-email — Cập nhật cấu hình email nhận yêu cầu xóa tài khoản
+router.put('/deletion-email', async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ success: false, message: 'Email nhận yêu cầu không được để trống' });
+        }
+        
+        await pool.execute(
+            `INSERT INTO payment_settings (setting_key, setting_value)
+             VALUES ('data_deletion_recipient_email', ?)
+             ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_at = CURRENT_TIMESTAMP`,
+            [String(email).trim()]
+        );
+        return res.json({ success: true, message: 'Cập nhật cấu hình email thành công' });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Lỗi cập nhật cấu hình email', error: error.message });
+    }
+});
+
 module.exports = router;

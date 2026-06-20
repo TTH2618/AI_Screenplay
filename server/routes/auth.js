@@ -880,6 +880,236 @@ router.post('/reset-password', async (req, res) => {
     }
 });
 
+function getBaseUrl(req) {
+    const proto = (req.headers['x-forwarded-proto'] || req.protocol || 'http')
+        .split(',')[0].trim();
+    const host = (req.headers['x-forwarded-host'] || req.headers.host || 'localhost:3000')
+        .split(',')[0].trim();
+    return `${proto}://${host}`;
+}
+
+// ── Gửi yêu cầu xóa tài khoản (Gửi link xác nhận về mail user) ─────────────────────────
+router.post('/data-deletion-request', async (req, res) => {
+    const { email, reason, notes } = req.body;
+    if (!email) {
+        return res.status(400).json({ success: false, message: 'Email đăng ký không được để trống' });
+    }
+
+    try {
+        // Tạo JWT token chứa thông tin yêu cầu xóa, hết hạn trong 24 giờ
+        const token = jwt.sign(
+            { email, reason, notes, type: 'data-deletion-confirm' },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        const APP_URL = getBaseUrl(req);
+        const confirmLink = `${APP_URL}/api/auth/data-deletion-confirm?token=${token}`;
+
+        // Gửi email xác nhận đến email của người dùng
+        const html = `
+        <!DOCTYPE html>
+        <html>
+        <body style="margin:0;padding:0;background:#f9fafb;font-family:'Segoe UI',sans-serif;color:#1f2937;">
+          <div style="max-width:600px;margin:40px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,0.05);border:1px solid #e5e7eb;">
+            <div style="background:linear-gradient(135deg,#6366f1,#4f46e5);padding:30px;text-align:center;color:#ffffff;">
+              <div style="font-size:2.5rem;margin-bottom:10px;">🎬</div>
+              <h1 style="margin:0;font-size:1.5rem;font-weight:700;">Xác Nhận Yêu Cầu Xóa Tài Khoản</h1>
+              <p style="margin:8px 0 0;opacity:0.9;">AI Screenplay</p>
+            </div>
+            <div style="padding:30px;text-align:center;">
+              <p style="font-size:1.05rem;line-height:1.6;color:#374151;margin-bottom:24px;">
+                Chúng tôi đã nhận được yêu cầu xóa tài khoản liên kết với địa chỉ email này. Để tiếp tục, vui lòng nhấp vào nút bên dưới để xác nhận quyền sở hữu của bạn:
+              </p>
+              <a href="${confirmLink}" style="display:inline-block;background:linear-gradient(135deg,#ef4444,#dc2626);color:#ffffff;padding:14px 28px;border-radius:8px;font-weight:600;text-decoration:none;box-shadow:0 4px 6px rgba(239,68,68,0.2);margin-bottom:24px;transition:transform 0.2s;">
+                Xác Nhận Xóa Tài Khoản
+              </a>
+              <p style="font-size:0.9rem;color:#6b7280;line-height:1.6;">
+                Đường dẫn xác nhận này chỉ có hiệu lực trong vòng <strong style="color:#ef4444;">24 giờ</strong>.<br>
+                Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này. Tài khoản của bạn sẽ không bị ảnh hưởng.
+              </p>
+            </div>
+            <div style="border-top:1px solid #e5e7eb;padding:20px;text-align:center;background:#f9fafb;">
+              <p style="color:#9ca3af;font-size:0.8rem;margin:0;">&copy; 2026 AI Screenplay. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+        `;
+
+        await emailTransporter.sendMail({
+            from: process.env.EMAIL_FROM || '"AI Screenplay" <noreply@aiscreenplay.app>',
+            to: email,
+            subject: `[AI Screenplay] Xác nhận yêu cầu xóa tài khoản của bạn`,
+            html
+        });
+
+        console.log(`📧 Sent deletion verification email to ${email}`);
+        res.json({ success: true, message: 'Link xác nhận xóa tài khoản đã được gửi đến email của bạn. Vui lòng xác nhận trong vòng 24 giờ.' });
+    } catch (error) {
+        console.error('Lỗi gửi email xác nhận xóa tài khoản:', error);
+        res.status(500).json({ success: false, message: 'Có lỗi xảy ra khi gửi email xác nhận. Vui lòng thử lại sau.' });
+    }
+});
+
+// ── Xác nhận yêu cầu xóa (Khi người dùng click vào link trong email) ───────────────────
+router.get('/data-deletion-confirm', async (req, res) => {
+    const { token } = req.query;
+    if (!token) {
+        return res.status(400).send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="utf-8">
+              <title>Xác nhận thất bại - AI Screenplay</title>
+              <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+              <style>
+                body { font-family: 'Inter', sans-serif; background: #f9fafb; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; color: #1f2937; }
+                .card { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); max-width: 480px; text-align: center; border: 1px solid #e5e7eb; }
+                .icon { font-size: 3rem; color: #ef4444; margin-bottom: 20px; }
+                h1 { font-size: 1.5rem; font-weight: 700; margin: 0 0 12px 0; color: #111827; }
+                p { font-size: 0.95rem; line-height: 1.6; color: #4b5563; margin: 0 0 24px 0; }
+                .btn { display: inline-block; background: #374151; color: white; padding: 12px 24px; border-radius: 8px; font-weight: 600; text-decoration: none; }
+              </style>
+            </head>
+            <body>
+              <div class="card">
+                <div class="icon">❌</div>
+                <h1>Xác nhận thất bại</h1>
+                <p>Thiếu mã token xác nhận hợp lệ. Vui lòng gửi lại yêu cầu xóa tài khoản.</p>
+                <a href="/data-deletion" class="btn">Thực hiện lại</a>
+              </div>
+            </body>
+            </html>
+        `);
+    }
+
+    try {
+        // Giải mã và kiểm tra tính hợp lệ của token
+        const decoded = jwt.verify(token, JWT_SECRET);
+        if (decoded.type !== 'data-deletion-confirm') {
+            throw new Error('Invalid token type');
+        }
+
+        const { email, reason, notes } = decoded;
+
+        // Lấy cấu hình email nhận yêu cầu xóa tài khoản từ payment_settings
+        const [settingsRows] = await pool.execute(
+            "SELECT setting_value FROM payment_settings WHERE setting_key = 'data_deletion_recipient_email' LIMIT 1"
+        );
+        const recipientEmail = settingsRows[0]?.setting_value || 'support@aiscreenplay.com';
+
+        // Gửi email báo cáo yêu cầu xóa tài khoản đến Admin
+        const adminHtml = `
+        <!DOCTYPE html>
+        <html>
+        <body style="margin:0;padding:0;background:#f9fafb;font-family:'Segoe UI',sans-serif;color:#1f2937;">
+          <div style="max-width:600px;margin:40px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,0.05);border:1px solid #e5e7eb;">
+            <div style="background:linear-gradient(135deg,#ef4444,#dc2626);padding:30px;text-align:center;color:#ffffff;">
+              <div style="font-size:2.5rem;margin-bottom:10px;">⚠️</div>
+              <h1 style="margin:0;font-size:1.5rem;font-weight:700;">Yêu Cầu Xóa Tài Khoản</h1>
+              <p style="margin:8px 0 0;opacity:0.9;">AI Screenplay (Đã xác minh qua email)</p>
+            </div>
+            <div style="padding:30px;">
+              <table style="width:100%;border-collapse:collapse;">
+                <tr>
+                  <td style="padding:8px 0;font-weight:600;width:180px;color:#4b5563;">Email đăng ký:</td>
+                  <td style="padding:8px 0;">${email}</td>
+                </tr>
+                <tr>
+                  <td style="padding:8px 0;font-weight:600;color:#4b5563;">Lý do xóa:</td>
+                  <td style="padding:8px 0;">${reason || 'Không cung cấp'}</td>
+                </tr>
+                <tr>
+                  <td style="padding:8px 0;font-weight:600;vertical-align:top;color:#4b5563;">Ghi chú thêm:</td>
+                  <td style="padding:8px 0;white-space:pre-wrap;">${notes || 'Không có ghi chú'}</td>
+                </tr>
+                <tr>
+                  <td style="padding:8px 0;font-weight:600;color:#4b5563;">Thời gian yêu cầu:</td>
+                  <td style="padding:8px 0;">${new Date().toLocaleString('vi-VN')}</td>
+                </tr>
+              </table>
+              <div style="margin-top:30px;padding:15px;background:#fef2f2;border-left:4px solid #ef4444;border-radius:4px;">
+                <p style="margin:0;font-size:0.9rem;color:#991b1b;font-weight:500;">
+                  Người dùng đã xác nhận yêu cầu xóa tài khoản thành công qua hòm thư cá nhân của họ. Vui lòng tiến hành thực hiện quy trình xóa dữ liệu theo quy định.
+                </p>
+              </div>
+            </div>
+            <div style="border-top:1px solid #e5e7eb;padding:20px;text-align:center;background:#f9fafb;">
+              <p style="color:#9ca3af;font-size:0.8rem;margin:0;">&copy; 2026 AI Screenplay. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+        `;
+
+        await emailTransporter.sendMail({
+            from: process.env.EMAIL_FROM || '"AI Screenplay" <noreply@aiscreenplay.app>',
+            to: recipientEmail,
+            subject: `[AI Screenplay] Yêu cầu xóa tài khoản từ ${email} (Đã xác nhận)`,
+            html: adminHtml
+        });
+
+        console.log(`📧 Account deletion request for ${email} confirmed and forwarded to ${recipientEmail}`);
+
+        // Trả về trang thông báo xác nhận thành công
+        return res.send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="utf-8">
+              <title>Xác nhận thành công - AI Screenplay</title>
+              <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+              <style>
+                body { font-family: 'Inter', sans-serif; background: #f9fafb; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; color: #1f2937; }
+                .card { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); max-width: 480px; text-align: center; border: 1px solid #e5e7eb; }
+                .icon { font-size: 3rem; color: #10b981; margin-bottom: 20px; }
+                h1 { font-size: 1.5rem; font-weight: 700; margin: 0 0 12px 0; color: #111827; }
+                p { font-size: 0.95rem; line-height: 1.6; color: #4b5563; margin: 0 0 24px 0; }
+                .btn { display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; padding: 12px 24px; border-radius: 8px; font-weight: 600; text-decoration: none; }
+              </style>
+            </head>
+            <body>
+              <div class="card">
+                <div class="icon">✅</div>
+                <h1>Xác nhận thành công!</h1>
+                <p>Yêu cầu xóa tài khoản của bạn (${email}) đã được gửi thành công đến bộ phận hỗ trợ của chúng tôi. Chúng tôi sẽ tiến hành xử lý trong vòng 30 ngày.</p>
+                <a href="/" class="btn">Về Trang Chủ</a>
+              </div>
+            </body>
+            </html>
+        `);
+    } catch (error) {
+        console.error('Lỗi xác nhận xóa tài khoản:', error);
+        return res.status(400).send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="utf-8">
+              <title>Xác nhận thất bại - AI Screenplay</title>
+              <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+              <style>
+                body { font-family: 'Inter', sans-serif; background: #f9fafb; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; color: #1f2937; }
+                .card { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); max-width: 480px; text-align: center; border: 1px solid #e5e7eb; }
+                .icon { font-size: 3rem; color: #ef4444; margin-bottom: 20px; }
+                h1 { font-size: 1.5rem; font-weight: 700; margin: 0 0 12px 0; color: #111827; }
+                p { font-size: 0.95rem; line-height: 1.6; color: #4b5563; margin: 0 0 24px 0; }
+                .btn { display: inline-block; background: #374151; color: white; padding: 12px 24px; border-radius: 8px; font-weight: 600; text-decoration: none; }
+              </style>
+            </head>
+            <body>
+              <div class="card">
+                <div class="icon">❌</div>
+                <h1>Xác nhận thất bại</h1>
+                <p>Đường dẫn xác nhận không hợp lệ hoặc đã hết hạn (quá 24 giờ). Vui lòng gửi lại yêu cầu xóa tài khoản.</p>
+                <a href="/data-deletion" class="btn">Thực hiện lại</a>
+              </div>
+            </body>
+            </html>
+        `);
+    }
+});
+
 // Export middleware để sử dụng ở các route khác
 router.authenticateToken = authenticateToken;
 
